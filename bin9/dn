@@ -1,0 +1,35 @@
+﻿#!/bin/bash
+
+
+
+#   for i in `ls /home/u00124/* | awk '{print $0}'`; do
+
+#       read word file
+#       if grep TEXAKABANK $i > /dev/null
+#       if [ `echo $i | grep TEXAKABANK` -gt 0 ]; then
+
+
+#            echo $i 
+#        fi
+#   done
+
+
+        $ cat search<CR>
+        echo Type in the word and the file name.
+        read word file
+        if
+            grep $word $file > /dev/null
+        then
+            echo $word is in $file
+        else
+            echo $word is NOT in $file
+        fi
+        $
+
+
+
+
+
+
+
+                                          

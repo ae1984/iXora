@@ -1,0 +1,18 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+# Для тестовых баз
+echo $DBDIR
+echo $DBDIR/$DBNAME;$DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 40 -Ma 5 -tablebase 1 -tablelimit 100 -indexbase 1 -indexlimit 100 -n 250 -B 12000 -L 15000 -trig $PTRIGLIB -spin 40000 -bithold 996 -bistall 
+echo $DBDIR/$DBNAME "L-BROKER";$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $DBSV -minport 1026 -maxport 1099
+#echo $DBDIR/$DBNAME;$DLC/bin/_mprosrv $DBDIR/$DBNAME -trig $PTRIGLIB -S $DBSV -n 35
+echo $DBCOMMDIR/comm;$DLC/bin/_mprosrv $DBCOMMDIR/comm -S $DBCOMMSV -n 35
+echo $DBDIR/cards/cards;$DLC/bin/_mprosrv $DBDIR/cards/cards -S $DBCRSV
+echo $DBSTDIR/banks;$DLC/bin/_mprosrv $DBSTDIR/banks
+echo $DBALDIR/alga;$DLC/bin/_mprosrv $DBALDIR/alga   
+echo $DBSTDIR/stat;$DLC/bin/_mprosrv $DBSTDIR/stat -S $DBSTSV  
+echo $DBSKDIR/sklad;$DLC/bin/_mprosrv $DBSKDIR/sklad  
+# Запуск ИО для москвы
+if test .$DBID = .mx
+then
+echo $DBDIR/ib/ib;$DLC/bin/_mprosrv $DBDIR/ib/ib -trig /pragma/lib9/RX/IO/src -S mxi
+fi

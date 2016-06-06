@@ -1,0 +1,6 @@
+﻿#/bin/bash
+cat sik.txt | rsh NTMAIN L:/Users/Private/DIT/bin/IBtestR.exe 4 | /pragma/bin9/win2koi > sikch.log
+ls -l sikch.log | awk '{ if (int($5)>0) {exit 1 } else {exit 0}}'
+RESULT=$?
+rm -f sikch.log
+exit $RESULT

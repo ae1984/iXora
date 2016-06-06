@@ -1,0 +1,14 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv 
+
+#CLIENTMON=$DBDIR/log/clientmon/`logname`.mon
+CLIENTMON=/data/log/$DBID/clientmon/`logname`.mon
+export CLIENTMON
+
+#PROCMON=$DBDIR/log/procmon/`logname`.mon
+PROCMON=/data/log/$DBID/procmon/`logname`.mon
+export PROCMON
+
+#exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -t -T /data/9/temp  -mmax 1024 -h 10 -y -yx -p pmenu $@
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -t -T /data/temp  -Mm 16300 -mmax 1024 -h 10 -y -yx -p pmenu $@
+

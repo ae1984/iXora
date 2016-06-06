@@ -1,0 +1,75 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) 
+
+FIRST="First parametr is DBDIR/DBNAME"
+SECOND="Second parametr is directory with ziped files"
+
+test -e $1.db || { echo "NONONO $ 1"; exit 1; }
+test -d $2 || { echo "NONONO $ 2"; exit 1; }
+
+ANS="/home/`/usr/bin/whoami`/answer"
+DESCRIPTION=`$DLC/bin/_dbutil $1 -C describe`
+DATE=`/bin/date`
+ME=`/usr/bin/whoami`
+MYPC=`/usr/local/bin/askhost`
+DOT="."
+
+echo "y" > $ANS
+
+# $DLC/bin/_dbutil $1 -C holder > /dev/null
+# if [ "$?" -ne "0" ]
+#  then echo; echo -n "Shut down $1:" 
+# 	echo "START" > $2/shut.lock
+# 	`$DLC/bin/_mprshut $1 -by > /dev/null && { rm $2/shut.lock; echo "echo : DONE"; echo "echo $DATE $ME $MYPC" > $1.lock; }` &
+# 	while `test -e $2/shut.lock`
+# 	do
+# 	echo -n "$DOT"
+# 	sleep 1
+# 	done
+# fi
+
+echo "$DESCRIPTION" | grep -i "Replication" | grep -i "Source" > /dev/null
+RETCODE=$?
+if [ $RETCODE = 0 ]
+ then echo; echo -n "Disable Replication Source in $1:" 
+ $DLC/bin/_dbutil $1 -C disableSiteReplication source > /dev/null < $ANS
+	if [ $? = 0 ]
+	then echo "	Sucsess"
+	else echo "	FAILED"
+	fi
+fi
+
+echo "$DESCRIPTION" | grep -i "Replication" | grep -i "Target" > /dev/null
+RETCODE=$?
+if [ $RETCODE = 0 ]
+ then echo; echo -n "Disable Replication Target in $1:" 
+ $DLC/bin/_dbutil $1 -C disableSiteReplication source > /dev/null < $ANS
+	if [ $? = 0 ]
+	then echo "	Sucsess"
+	else echo "	FAILED"
+	fi
+fi
+
+echo "UNZIP ENGAJE:"
+for i in $(ls -1 $2/*.Z | awk -F .Z '{print $1}')
+do
+if `test -e $i.bak`; then echo -n
+else
+	echo "START" > $i.lock
+	echo -n "Unzipping $i.Z :"
+		`/bin/gunzip -qc $i.Z > $i.bak && { rm $i.lock; echo "echo : DONE"; }` &
+		while `test -e $i.lock`
+		do
+		echo -n "$DOT"
+		sleep 1
+		done
+fi
+done
+
+echo
+FIRST=`ls $2/*.bak -1 | grep -m 1 "bak"`
+echo "ROLL BACKUP ENGAGE:"
+ls -1 $2/*.bak | grep -iv "$FIRST" >> $ANS
+echo "START" > $2/roll.lock
+echo -n "Roll forward backup on $1 from $2 :"
+	$DLC/bin/prorest $1 $FIRST -verbose < $ANS

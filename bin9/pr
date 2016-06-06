@@ -1,0 +1,49 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv2
+
+
+#CLIENTMON=$DBDIR/log/clientmon/`logname`.mon
+CLIENTMON=/data/$DBID/log/clientmon/`whoami`.mon
+export CLIENTMON
+
+#PROCMON=$DBDIR/log/procmon/`logname`.mon
+PROCMON=/data/$DBID/log/procmon/`whoami`.mon
+export PROCMON
+DLC=/usr/dlc
+
+LIST="bankadm inbank superman id00477 id00005 id00004 id00020 id00258 id00630 id00193 id00179 id00185 id00027 id00483 id00369 id00775 id00700"
+#LIST="bankadm inbank superman id00477 id00005 id00004 id00020 id00179 id00027 id00276 id00297 id00635 id00176 id00185 id00193 id00189"
+LISTNB="bankadm inbank superman id00581 id00652"
+ME=`/usr/bin/whoami`
+
+
+################### Проверка на Международников #####################
+set -a
+if [ `echo $LISTNB | grep -iw "$ME" > /dev/null; echo $?` = 0 ] 
+then
+PROMSGS=$DLC/prolang/eng/promsgs.eng; export PROMSGS
+else
+PROMSGS=$DLC/prolang/rus/promsgs.rus; export PROMSGS
+fi
+set +a
+
+################### Проверка на наличае Dayclose #####################
+echo $LIST | grep -iw "$ME" > /dev/null && { test -e $DBDIR/.lock-d && echo "Доступ закрыт. Но Вы входите в группу с особым доступом. Нажмите Enter для входа." && read w; exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -s 92000 -mmax 1000 -h 10  -y -yx -p pmenu $@; exit; }
+
+
+test -e $DBDIR/.lock-d || { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -h 10 -TM 32 -TB 31 -s 92000 -mmax 1000 -Bt 1024 -tmpbsize 4 -y -yx -p pmenu $@; exit; }
+clear
+echo
+echo
+echo 	"	ВНИМАНИЕ!!!"
+echo 	"	ДОСТУП К 'iXora $DBDESCR' ЗАКРЫТ!"
+echo 	"	По всем вопросам, пожалуйста, обращайтесь к администратору АБС:"
+echo 	"	Александру Коржову вн. 192 или Ивану Карасёву вн. 135"
+echo 	"	или на 'support@metrocombank.kz'"
+echo 	""
+echo 	"	Нажмите Enter"
+read w
+
+
+
+

@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+. /pragma/bin9/rkcenv 
+
+CLIENTMON=$DBLOGDIR/clientmon/`logname`.mon
+export CLIENTMON
+
+PROCMON=$DBLOGDIR/procmon/`logname`.mon
+export PROCMON
+
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld bank -t -T $DBDIR/temp -mmax 1024 -h 10 -y -yx -p pmenu $@

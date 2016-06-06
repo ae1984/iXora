@@ -1,0 +1,18 @@
+﻿#!/bin/bash
+# ЯЙПХОР МЮОХЯЮМ id00024 (c)
+
+echo 'Set fs = CreateObject("Scripting.FileSystemObject")'				 >/tmp/ansver.vbs
+echo 'MsgBox "оНКЭГНБЮРЕКЭ '$2 'ОПНЯХК ОНДНФДЮРЭ 5 ЛХМСР!",0+64,"нРБЕР ОНКЭГНБЮРЕКЪ" '  >>/tmp/ansver.vbs
+echo '  Set a = fs.CreateTextFile("C:\tmp\run.cmd", True)'                              >>/tmp/ansver.vbs
+echo '  a.WriteLine("del C:\tmp\ansver.vbs")'                                           >>/tmp/ansver.vbs
+echo '  a.Close'                                                                        >>/tmp/ansver.vbs
+
+
+echo "start c:\tmp\mess.vbs" > /tmp/run.cmd 
+
+scp -q /tmp/mess.vbs Administrator@$1:C:\\tmp\\mess.vbs &&
+scp -q /tmp/ansver.vbs Administrator@$1:C:\\tmp\\ansver.vbs &&
+scp -q /tmp/run.cmd Administrator@$1:C:\\tmp\\run.cmd &&
+rm /tmp/run.cmd
+rm /tmp/ansver.vbs 
+echo ""

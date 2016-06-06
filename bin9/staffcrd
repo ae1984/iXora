@@ -1,0 +1,11 @@
+﻿#!/bin/sh
+#########################################################
+# Copying texaka staff card payments to /home/card/staff
+#########################################################
+
+test .$1 != . || { exit 1;}
+
+mv $1 /home/card
+cd /home/card
+chmod 600 $1
+chown card:card $1

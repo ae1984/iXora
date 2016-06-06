@@ -1,0 +1,14 @@
+﻿#!/bin/sh
+#написан id00700, перенос всех файлов из дд банкадма в подпапку с текущей датой
+
+USER=`whoami`
+
+if [ ! -d `date +%Y%m%d` ]; then
+mkdir /home/$USER/`date +%Y%m%d`
+fi
+
+TEST=`find /home/$USER/ -maxdepth 1 -type f | grep  -v "$USER/\."`
+for i in $TEST
+do
+mv $i /home/$USER/`date +%Y%m%d`
+done

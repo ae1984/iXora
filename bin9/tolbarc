@@ -1,0 +1,85 @@
+﻿#/bin/sh
+
+LOGFILE=/data/log/balm/putplat
+
+# Начало выгрузки
+echo "=================================" >> $LOGFILE
+echo `date` " Начало выгрузки (с архивацией)" >> $LOGFILE
+
+# Переходим в каталог выгрузки
+cd $3 
+
+if [ $? = "0" ]
+then
+        echo `date` " Зашли в каталог " $3 >> $LOGFILE
+fi
+
+# Тарим все файлы выгрузки 
+tar cvf ./ARC/rk"$2".tar ?$1
+
+if [ $? != "0" ]
+then
+        echo `date` " Ошибка запуска tar по маске ?"$1" в rk"$2".tar !!! " >> $LOGFILE
+        echo `date` " Выгрузка c архивацией закончена" >> $LOGFILE
+        echo "=================================" >> $LOGFILE
+        exit 1
+else 
+        echo `date` " Затарены файлы по маске ?$1 в rk$2.tar" >> $LOGFILE
+fi
+
+# Теперь компрессим
+compress -f ./ARC/rk"$2".tar
+
+if [ $? != "0" ]
+then
+        echo `date` " Ошибка сжатия tar rk"$2".tar !!! " >> $LOGFILE
+        echo `date` " Выгрузка c архивацией закончена" >> $LOGFILE
+        echo "=================================" >> $LOGFILE
+        exit 1
+esle
+        echo `date` " Сжат rk"$2".tar" >> $LOGFILE
+fi
+
+# Цикл по файлам с перекодировкой их в dos
+for fil in p$1
+do
+  if ! test $fil = "`basename $fil .$$`.$$"
+  then 
+    /pragma/bin9/win2dos $fil $fil.$$
+    echo `date` " Перекодирован $fil в dos-файл $fil.$$" >> $LOGFILE
+  fi
+done
+
+
+# Копируем файлы на NTMAIN
+# rcp p$1.$$ $4:$5
+scp -q p$1.$$ $4:$5
+
+if [ $? != "0" ]
+then
+  echo `date` " Ошибка копирования p$1.$$ на NTMAIN !!! (Файл p$1.$$ не удален) " >> $LOGFILE
+  echo `date` " Выгрузка с архивацией закончена" >> $LOGFILE
+  echo "=================================" >> $LOGFILE
+  exit 1
+else
+  echo `date` " Файл p$1.$$ скопирован в $4:$5" >> $LOGFILE
+fi
+
+
+# Удаляем все 
+/bin/rm -f ?$1 p*.$$
+if [ $? != "0" ]
+then
+  echo `date` " Ошибка удаления ?$1 и p*.$$ !!! " >> $LOGFILE
+  echo `date` " Выгрузка с архивацией закончена" >> $LOGFILE
+  echo "=================================" >> $LOGFILE
+  exit 1
+else
+  echo `date` " Удалили ?$1 и p*.$$ " >> $LOGFILE
+fi
+
+# Все в порядке. Это конец (а где же тогда пистолет?)
+echo `date` " Выгрузка c архивацией закончена" >> $LOGFILE
+echo "=================================" >> $LOGFILE
+exit 0
+

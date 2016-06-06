@@ -1,0 +1,15 @@
+﻿#!/bin/sh
+
+cat $1 | sed 's/\] \[/\        /g' | 
+sed 's/\]/\ /g' | 
+sed 's/\,/\ /g' | 
+sed 's/\-/\ /g' |
+sed 's/\./\ /g' | 
+win2koi | 
+awk ' 
+BEGIN {FS = "        "}
+/.+/ {name = substr($4,1,40); printf "%-40s%7s%-12s\n",name,$8,$10;}
+END {}' | koi2win > $1.lod
+
+
+

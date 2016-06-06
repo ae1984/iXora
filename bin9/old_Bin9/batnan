@@ -1,0 +1,58 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+	test -e $DBDIR/.lock-b && { exit; }
+	touch $DBDIR/.lock-b
+
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+ then
+        TIME=`date "+%y.%m.%d %H:%M:%S"`
+	echo "[			20$TIME			]"
+	echo "[			Detabase $DBID				]"
+        echo
+	echo "==================================================="
+
+	echo "[			Backup AI				]"
+	/pragma/bin9/ai_save
+
+	echo "[			Switch to next AI ]"
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C aimage empty
+
+# ДМС ЛПТТЕЛФОПЗП ЪБРХУЛБ ВБЪЩ ЦЕМБФЕМШОП УДЕМБФШ ПЖМБКО ВЬЛБР, ОП ОЕ ПВСЪБФЕМШОП. ПО ЪБОЙНБЕФ ~2-4 НЙОХФЩ.
+#	echo "==================================================="
+#	echo "[			Offline backup of stoped base	]"
+#        /pragma/bin9/dbsave $DBDIR/$DBNAME
+#	cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+
+	echo "[			Starting detabase				]"
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C aimage begin
+	/usr/dlc/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall
+	/usr/dlc/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT
+	/usr/dlc/bin/prowdog  $DBDIR/$DBNAME
+	/usr/dlc/bin/probiw   $DBDIR/$DBNAME
+	/usr/dlc/bin/proaiw   $DBDIR/$DBNAME
+	/usr/dlc/bin/proapw   $DBDIR/$DBNAME
+	/usr/dlc/bin/proapw   $DBDIR/$DBNAME
+
+	echo "==================================================="
+	echo "[			List processes by Linux			]"
+
+	ps -eaf | grep $DBDIR/$DBNAME
+
+	echo "==================================================="
+	echo "[			List processes by Progress		]"
+
+	/usr/dlc/bin/proshut $DBDIR/$DBNAME -C list
+
+	echo "==================================================="
+	echo "[			List AI					]"
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C aimage extent list
+  else
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+ fi
+
+

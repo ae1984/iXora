@@ -1,0 +1,8 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+#exec $DLC/bin/_progres $STATDIR/banks -mmax 1024 -h 10 -d dmy -ld bank "$@" -U stalker -P stat1 -t -T /data/temp 
+exec $DLC/bin/_progres $DBSTDIR/banks -mmax 650 -h 10 -d dmy -ld bank "$@" -U stalker -P stat1 -t -T /data/temp 
+#$DLC/bin/_progres $DBSTDIR/banks -mmax 650 -h 10 -d dmy -ld bank "$@" -U stalker -P stat1 -t -T /data/temp 
+
+#exec $DLC/bin/_progres $DBDIR/bank -mmax 650 -h 10 -d dmy -ld bank "$@" -U stalker -P stat1 -t -T /data/temp 
+

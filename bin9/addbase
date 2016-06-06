@@ -1,0 +1,42 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) для автоматического создания БД
+
+
+DBDIR=$1
+DBNAME=$2
+DBID=$3
+
+/pragma/bin9/crrdir.sh $DBID alm
+
+ST=$DBDIR/$DBNAME.st
+echo "#" > $ST
+echo "b $DBDIR/$DBNAME.b1" >> $ST
+echo "#" >> $ST
+echo -n 'd "Schema Area"' >> $ST; echo ":6,64;1 $DBDIR/$DBNAME.d1 f 1048576" >> $ST
+echo -n 'd "Schema Area"' >> $ST; echo ":6,64;1 $DBDIR/$DBNAME.d2" >> $ST
+echo "#" >> $ST
+echo "a $DBDIR/ai/$DBNAME.a1" >> $ST
+echo "#" >> $ST
+echo "a $DBDIR/ai/$DBNAME.a2" >> $ST
+echo "#" >> $ST
+echo "a $DBDIR/ai/$DBNAME.a3" >> $ST
+echo "#" >> $ST
+echo "a $DBDIR/ai/$DBNAME.a4" >> $ST
+
+
+cd $DBDIR
+prostrct create $DBNAME -blocksize 8192
+chmod 0777 -R *
+cd
+
+#dbrest $DBDIR/$DBNAME /savedb/etalon_fil/bank0.Z alm
+
+#echo "Bflv02" > pass
+#echo "cd /savedb/$DBID/bank/full/" >> pass
+#echo 'DIR=`ls -tr1 | grep -B 1 "bank.st" | grep -v "bank.st"`' >> pass
+#echo "echo /savedb/$DBID/bank/full/$DIR" >> pass
+#echo " read w" >> pass
+#
+#ssh bankadm@172.16.1.11 < pass
+
+

@@ -1,0 +1,40 @@
+﻿#!/bin/sh
+
+TIME=`date "+%d-%m-%y.%H-%M"`
+
+
+# Almaty HEADQUARTER
+
+echo -n "Начало архивации Алматы:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/alm/backup /savedb/alm/bank/$TIME
+/pragma/bin9/dbarc /data/comm/backup /savedb/alm/comm/$TIME
+#/pragma/bin9/dbarc /data/9/cards/backup /savedb/alm/cards/$TIME
+#/pragma/bin9/dbarc /data/9/alm/sklad/backup /savedb/alm/sklad/$TIME
+#/pragma/bin9/dbarc /data/9/alm/stat/data/backup /savedb/alm/stat/$TIME
+#/pragma/bin9/dbarc /data/9/alm/alga/backup /savedb/alm/alga/$TIME
+
+echo "Копируются исходники" >> /data/log/daycopy.log
+nice -5 cp /pragma/lib9/ARCHIVE/*.Z /savedb/alm/bank/$TIME 
+nice -5 cp /pragma/lib9/*.Z /pragma/lib9/ARCHIVE
+
+echo -n "Окончание архивации Алматы:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Astana BRANCH
+
+#echo -n "Начало архивации Астаны:  " >> /data/log/daycopy.log
+#date >> /data/log/daycopy.log
+
+#/pragma/bin9/dbarc /data/9/ast/backup /savedb/ast/bank/$TIME
+#/pragma/bin9/dbarc /data/9/ast/stat/data/backup /savedb/ast/stat/$TIME
+#/pragma/bin9/dbarc /data/9/ast/alga/backup /savedb/ast/alga/$TIME
+
+#echo -n "Окончание архивации Астаны:  " >> /data/log/daycopy.log
+#date >> /data/log/daycopy.log
+#echo >> /data/log/daycopy.log
+
+# Uralsk BRANCH
+

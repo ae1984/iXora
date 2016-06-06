@@ -1,0 +1,15 @@
+﻿#!/bin/bash
+####################################################
+# Script for big files import
+# (to import without lock-table overflow error) :-)
+# By Alexander Muhovikov, 04/04/2003
+####################################################
+# $1 - original file name (from C:\\)
+# $2 - Progress procedure name (to import from $F)
+# $F - import file name (takes all in format base.*)
+
+for F in base.*
+do
+    baseimport0 $2 $1\|$F
+    rm $F
+done

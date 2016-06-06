@@ -1,0 +1,7 @@
+﻿#!/bin/bash
+
+for i in `echo "bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"`
+#for i in `echo "bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"`
+do 
+dpragma $i -U bankadm -P $passw
+done

@@ -1,0 +1,16 @@
+﻿#!/bin/sh
+#
+# id00024
+#
+. /pragma/bin9/dbenv2
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+DEADSESS=`screen -list | grep -w "Dead" | awk '{print $1}' | awk '{print $1}'`
+test $DEADSESS && { screen -q -wipe; }
+SESS=`screen -list | grep -w "Detached" | awk '{print $1}' | awk '{print $1}'`
+if [[ $SESS = "" ]]
+then
+screen -T putty -c /pragma/bin9/screenrc -t "$DBDESCR" /pragma/bin9/ixora $@
+exit
+else
+screen -r $SESS
+fi

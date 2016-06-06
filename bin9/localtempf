@@ -1,0 +1,2 @@
+﻿#!/bin/bash
+ssh $pc 'echo %TEMP%' | tr -d '\15'

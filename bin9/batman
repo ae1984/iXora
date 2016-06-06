@@ -1,0 +1,211 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+  test -e $DBDIR/.lock-b || { echo "		[ Status of <$DBID>: Unlocked ]" | grep --colour=always "$DBID" ; } 
+  test -e $DBDIR/.lock-b && { echo "		[ Status of <$DBID>: Locked ]" | grep --colour=always "$DBID" ; } 
+  echo
+  echo "            1. Lock Batman"
+  echo "            2. Unlock Batman"
+  echo "            3. Check status Batman"
+  echo 
+  echo "            4. Lock Batman for all"
+  echo "            5. Unlock Batman for all"
+  echo "            6. Check status Batman for all"
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  1) touch $DBDIR/.lock-b;
+     test -e $DBDIR/.lock-b && { echo "Locked"; } 
+     ;;
+
+  2) rm $DBDIR/.lock-b;
+     test -e $DBDIR/.lock-b || { echo "Unlocked"; }
+     ;; 
+
+  3) test -e $DBDIR/.lock-b || { echo "Unlocked"; } 
+     test -e $DBDIR/.lock-b && { echo "Locked"; } 
+     ;;	
+
+  4)    
+if [ $DBID = "alm" ]
+   then
+		echo
+		echo " :(	Бэтман для ТОО РКЦ-1 заблокирован"
+		touch /data/rkc/.lock-b;
+		echo
+		echo " :(	Бэтман для МКО рабочие базы заблокирован"
+		touch /data/alm/.lock-b;
+		touch /data/akt/.lock-b;
+		touch /data/kos/.lock-b;
+		touch /data/trz/.lock-b;
+		touch /data/url/.lock-b;
+		touch /data/kar/.lock-b;
+		touch /data/sem/.lock-b;
+		touch /data/kok/.lock-b;
+		touch /data/ast/.lock-b;
+		echo
+		echo " :(	Бэтман для МКО Филиалы на стадии открытия заблокирован"
+		touch /data/pav/.lock-b;
+		touch /data/pet/.lock-b;
+		touch /data/atr/.lock-b;
+		touch /data/aku/.lock-b;
+		touch /data/zes/.lock-b;
+		touch /data/ust/.lock-b;
+		touch /data/chm/.lock-b;
+		echo
+		echo " :(	Бэтман для МЕТРОКОМБАНК рабочие базы заблокирован"
+		touch /data/balm/.lock-b;
+		touch /data/bakt/.lock-b;
+		touch /data/bkos/.lock-b;
+		touch /data/btrz/.lock-b;
+		touch /data/burl/.lock-b;
+		touch /data/bkar/.lock-b;
+		touch /data/bsem/.lock-b;
+		touch /data/bkok/.lock-b;
+		touch /data/bast/.lock-b;
+		echo
+		echo " :(	Бэтман для Общие базы работающие 24/7 заблокирован"
+		touch /data/comm/.lock-b;
+		touch /data/cards/.lock-b;
+		echo
+   else
+	echo "Блокировка Бэтмана (с) для ВСЕХ баз возможна только под элиасом <alm>. Текущий элиас <$DBID>" | grep --colour=always "$DBID"
+	echo
+fi
+;;
+
+  5)    
+if [ $DBID = "alm" ]
+  then
+
+		echo
+ 		echo " :)	Бэтман для ТОО РКЦ-1 разблокирован"
+		rm /data/rkc/.lock-b;
+		echo
+		echo " :)	Бэтман для МКО рабочие базы разблокирован"
+		rm /data/alm/.lock-b;
+		rm /data/akt/.lock-b;
+		rm /data/kos/.lock-b;
+		rm /data/trz/.lock-b;
+		rm /data/url/.lock-b;
+		rm /data/kar/.lock-b;
+		rm /data/sem/.lock-b;
+		rm /data/kok/.lock-b;
+		rm /data/ast/.lock-b;
+		echo
+		echo " :)	Бэтман для МКО Филиалы на стадии открытия разблокирован"
+		rm /data/pav/.lock-b;
+		rm /data/pet/.lock-b;
+		rm /data/atr/.lock-b;
+		rm /data/aku/.lock-b;
+		rm /data/zes/.lock-b;
+		rm /data/ust/.lock-b;
+		rm /data/chm/.lock-b;
+		echo
+		echo " :)	Бэтман для МЕТРОКОМБАНК рабочие базы разблокирован"
+		rm /data/balm/.lock-b;
+		rm /data/bakt/.lock-b;
+		rm /data/bkos/.lock-b;
+		rm /data/btrz/.lock-b;
+		rm /data/burl/.lock-b;
+		rm /data/bkar/.lock-b;
+		rm /data/bsem/.lock-b;
+		rm /data/bkok/.lock-b;
+		rm /data/bast/.lock-b;
+		echo
+		echo " :)	Бэтман для Общие базы работающие 24/7 разблокирован"
+		rm /data/comm/.lock-b;
+		rm /data/cards/.lock-b;
+		echo
+   else
+	echo "Разблокировка Бэтмана (с) для ВСЕХ баз возможна только под элиасом <alm>. Текущий элиас <$DBID>" | grep --colour=always "$DBID"
+	echo
+fi
+;;
+
+  6)
+		echo
+ 		echo "Бэтман для ТОО РКЦ-1 разблокирован"
+		test -e /data/rkc/.lock-b || { echo "rkc: Unlocked"; } 
+		test -e /data/rkc/.lock-b && { echo "rkc: Locked"; } 
+		echo
+		echo "Бэтман для МКО рабочие базы разблокирован"
+		test -e /data/alm/.lock-b || { echo "alm: Unlocked"; } 
+		test -e /data/akt/.lock-b || { echo "akt: Unlocked"; } 
+		test -e /data/kos/.lock-b || { echo "kos: Unlocked"; } 
+		test -e /data/trz/.lock-b || { echo "trz: Unlocked"; } 
+		test -e /data/url/.lock-b || { echo "url: Unlocked"; } 
+		test -e /data/kar/.lock-b || { echo "kar: Unlocked"; } 
+		test -e /data/sem/.lock-b || { echo "sem: Unlocked"; } 
+		test -e /data/kok/.lock-b || { echo "kok: Unlocked"; } 
+		test -e /data/ast/.lock-b || { echo "ast: Unlocked"; } 
+
+		test -e /data/alm/.lock-b && { echo "alm: Locked"; } 
+		test -e /data/akt/.lock-b && { echo "akt: Locked"; } 
+		test -e /data/kos/.lock-b && { echo "kos: Locked"; } 
+		test -e /data/trz/.lock-b && { echo "trz: Locked"; } 
+		test -e /data/url/.lock-b && { echo "url: Locked"; } 
+		test -e /data/kar/.lock-b && { echo "kar: Locked"; } 
+		test -e /data/sem/.lock-b && { echo "sem: Locked"; } 
+		test -e /data/kok/.lock-b && { echo "kok: Locked"; } 
+		test -e /data/ast/.lock-b && { echo "ast: Locked"; } 
+		echo
+		echo "Бэтман для МКО Филиалы на стадии открытия разблокирован"
+		test -e /data/pav/.lock-b || { echo "pav: Unlocked"; } 
+		test -e /data/pet/.lock-b || { echo "pet: Unlocked"; } 
+		test -e /data/atr/.lock-b || { echo "atr: Unlocked"; } 
+		test -e /data/aku/.lock-b || { echo "aku: Unlocked"; } 
+		test -e /data/zes/.lock-b || { echo "aku: Unlocked"; } 
+		test -e /data/ust/.lock-b || { echo "ust: Unlocked"; } 
+		test -e /data/chm/.lock-b || { echo "chm: Unlocked"; } 
+
+		test -e /data/pav/.lock-b && { echo "pav: Locked"; } 
+		test -e /data/pet/.lock-b && { echo "pet: Locked"; } 
+		test -e /data/atr/.lock-b && { echo "atr: Locked"; } 
+		test -e /data/aku/.lock-b && { echo "aku: Locked"; } 
+		test -e /data/zes/.lock-b && { echo "zes: Locked"; } 
+		test -e /data/ust/.lock-b && { echo "ust: Locked"; } 
+		test -e /data/chm/.lock-b && { echo "chm: Locked"; } 
+		echo
+		echo "Бэтман для МЕТРОКОМБАНК рабочие базы разблокирован"
+		test -e /data/balm/.lock-b || { echo "balm: Unlocked"; } 
+		test -e /data/bakt/.lock-b || { echo "bakt: Unlocked"; } 
+		test -e /data/bkos/.lock-b || { echo "bkos: Unlocked"; } 
+		test -e /data/btrz/.lock-b || { echo "btrz: Unlocked"; } 
+		test -e /data/burl/.lock-b || { echo "burl: Unlocked"; } 
+		test -e /data/bkar/.lock-b || { echo "bkar: Unlocked"; } 
+		test -e /data/bsem/.lock-b || { echo "bsem: Unlocked"; } 
+		test -e /data/bkok/.lock-b || { echo "bkok: Unlocked"; } 
+		test -e /data/bast/.lock-b || { echo "bast: Unlocked"; } 
+
+		test -e /data/balm/.lock-b && { echo "balm: Locked"; } 
+		test -e /data/bakt/.lock-b && { echo "bakt: Locked"; } 
+		test -e /data/bkos/.lock-b && { echo "bkos: Locked"; } 
+		test -e /data/btrz/.lock-b && { echo "btrz: Locked"; } 
+		test -e /data/burl/.lock-b && { echo "burl: Locked"; } 
+		test -e /data/bkar/.lock-b && { echo "bkar: Locked"; } 
+		test -e /data/bsem/.lock-b && { echo "bsem: Locked"; } 
+		test -e /data/bkok/.lock-b && { echo "bkok: Locked"; } 
+		test -e /data/bast/.lock-b && { echo "bast: Locked"; } 
+		echo
+		echo "Бэтман для Общие базы работающие 24/7 разблокирован"
+		test -e /data/comm/.lock-b || { echo "comm: Unlocked"; } 
+		test -e /data/comm/.lock-b && { echo "comm: Locked"; } 
+
+		test -e /data/cards/.lock-b || { echo "cards: Unlocked"; } 
+		test -e /data/cards/.lock-b && { echo "cards: Locked"; } 
+		echo
+;;
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-6 or Q."
+     sleep 2;;
+  esac
+done

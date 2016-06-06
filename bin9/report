@@ -1,0 +1,68 @@
+﻿#!/bin/bash
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" -o "$1" = "?" ]
+then
+#clear
+LINE="---------------------------------"
+echo "How to use this great script:"
+echo $LINE
+echo "First parametr: 	bmkb/balm/bakt/bkos/btrz/burl/bkar/bsem/bkok/bast/bpet/batr/bpav/bust/bzes/bchm/baku"
+echo
+echo $LINE
+echo
+exit
+fi
+
+
+if [[ $1 ]]
+then
+test $1 = "" && { echo '1 parametr is invalid'; exit; }
+  for base in $(echo $1 | awk -F/ '{print $1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17}')
+   do echo "$LIST" | grep -i "$base" || test -d /data/$base && LIST="$LIST $base"
+   done 
+
+for base in $LIST
+do
+	export TIME=`/bin/date`
+	export PC=`/usr/local/bin/askhost`
+	export DLC="/usr/dlc"
+	clear 
+
+	test -e $base.all && rm $base.all
+	cat /data/log/report/new.new | while read line
+	do
+	proc=`echo $line | awk -F ";" '{print $1}'`
+
+		for id in `dir /data/$base/log/procmon/*.mon`
+		do
+#			cat $id | grep -w "2007\|2008\|2009\|2010\|$proc" > $proc.txt;
+			cat $id | grep -w "2010\|$proc" > $proc.txt;
+			for n in {1..80};
+			do
+			let x=x+1 
+			test -e $proc.txt && tail -n $n $proc.txt | grep -w "$proc" > /dev/null && tail -n $n $proc.txt | grep -B $x -w "$proc" | grep -w "2010" > /dev/null && {
+
+			DATE=`tail -n $n $proc.txt | grep -B $x -w "$proc" | grep -w "2010"`;
+			DATE=`echo "$DATE" | awk '{print $5" "$2" "$3" "$1}' | grep "2010" | sort`;
+			WHO=`echo $id | awk -F/ '{print $6}' | awk -F. '{print $1}'`;
+			echo -e "$DATE\t $line\t $WHO" >> ALL.tmp;
+				};
+			done;
+
+		done
+
+	test -e $proc.txt && rm $proc.txt > /dev/null;
+
+	if [[ `test -e ALL.tmp && cat ALL.tmp | grep -w "$proc" > /dev/null; echo $?` != "0" ]]
+	then 
+	DATE="Newer_been_used"
+	WHO="Nobody"
+	echo -e "\n$DATE\t $line\t $WHO" >> ALL.tmp
+	fi
+	test -e ALL.tmp && cat ALL.tmp | sort | tail -n 1 >> $base.all && rm ALL.tmp
+	done
+done
+
+else echo "You havn't input any parametrs"
+sleep 1
+fi

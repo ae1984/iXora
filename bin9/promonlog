@@ -1,0 +1,17 @@
+﻿#!/bin/bash
+
+for i in `echo "bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku"`
+#for i in `echo "bmkb balm"`
+do 
+cd /data/$i/log/procmon
+echo $i > /data/reports/mon/$i.csv
+	for x in $(dir)
+	do
+	cat /etc/passwd | grep -w `echo "$x" | awk -F. '{print $1}'` | awk -F: '{print $1";"$5}' >> /data/reports/mon/$i.csv
+	echo    >> /data/reports/mon/$i.csv
+	echo    >> /data/reports/mon/$i.csv
+	cat $x | grep -A 20 "Mon Apr 27" | grep -iv "statistics" | awk '{print $1";"$2";"$3";"$4";"$5";"$6";"$7}' >> /data/reports/mon/$i.csv
+	echo >> /data/reports/mon/$i.csv
+	done
+cd
+done

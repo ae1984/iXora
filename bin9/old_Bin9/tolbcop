@@ -1,0 +1,58 @@
+﻿#/bin/sh
+
+LOGFILE=/data/log/balm/putplat
+
+# оБЮБМП ЧЩЗТХЪЛЙ
+echo "=================================" >> $LOGFILE
+echo `date` " оБЮБМП ЧЩЗТХЪЛЙ (ВЕЪ БТИЙЧБГЙЙ)" >> $LOGFILE
+
+# рЕТЕИПДЙН Ч ЛБФБМПЗ ЧЩЗТХЪЛЙ
+cd $3 
+
+if [ $? = "0" ]
+then
+        echo `date` " ъБЫМЙ Ч ЛБФБМПЗ " $3 >> $LOGFILE
+fi
+
+# гЙЛМ РП ЖБКМБН У РЕТЕЛПДЙТПЧЛПК ЙИ Ч dos
+for fil in p$1
+do
+  if ! test $fil = "`basename $fil .$$`.$$"
+  then 
+    /pragma/bin9/un-dos $fil $fil.$$
+    echo `date` " рЕТЕЛПДЙТПЧБО $fil Ч dos-ЖБКМ $fil.$$" >> $LOGFILE
+  fi
+done
+
+
+# лПРЙТХЕН ЖБКМЩ ОБ NTMAIN
+# rcp p$1.$$ $4:$5
+scp -q p$1.$$ $4:$5
+
+if [ $? != "0" ]
+then
+  echo `date` " пЫЙВЛБ ЛПРЙТПЧБОЙС p$1.$$ ОБ NTMAIN !!! (жБКМ p$1.$$ ОЕ ХДБМЕО) " >> $LOGFILE
+  echo `date` " чЩЗТХЪЛБ ЪБЛПОЮЕОБ" >> $LOGFILE
+  echo "=================================" >> $LOGFILE
+  exit 1
+else
+  echo `date` " жБКМ p$1.$$ УЛПРЙТПЧБО Ч $4:$5" >> $LOGFILE
+fi
+
+
+# хДБМСЕН ЧУЕ 
+/bin/rm -f p*.$$
+if [ $? != "0" ]
+then
+  echo `date` " пЫЙВЛБ ХДБМЕОЙС ?$1 Й p*.$$ !!! " >> $LOGFILE
+  echo `date` " чЩЗТХЪЛБ ЪБЛПОЮЕОБ" >> $LOGFILE
+  echo "=================================" >> $LOGFILE
+  exit 1
+else
+  echo `date` " хДБМЙМЙ ?$1 Й p*.$$ " >> $LOGFILE
+fi
+
+# чУЕ Ч РПТСДЛЕ. ьФП ЛПОЕГ (Б ЗДЕ ЦЕ ФПЗДБ РЙУФПМЕФ?)
+echo `date` " чЩЗТХЪЛБ ЪБЛПОЮЕОБ" >> $LOGFILE
+echo "=================================" >> $LOGFILE
+exit 0

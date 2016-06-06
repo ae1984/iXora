@@ -1,0 +1,8 @@
+﻿test $pc || { export pc=`/usr/local/bin/askhost`; }
+rhost=$pc:C:/WINDOWS/TEMP
+rfil=/tmp/$2.txt
+/bin/rm -f $rfil 
+un-win $1 $rfil
+rcp $rfil $rhost 
+/bin/rm -f $rfil
+

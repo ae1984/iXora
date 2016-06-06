@@ -1,0 +1,7 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+test -e /data/bmkb/ps/NB/IN/ARC && { exit; }
+TIME=`date "+%d-%m-%y.%H:%M:%S"`
+echo "ALARM! '/data/bmkb/ps/NB/IN/ARC' is absent! TIME = $TIME" | /usr/lib/sendmail -F ARC id00005@metrobank.kz
+

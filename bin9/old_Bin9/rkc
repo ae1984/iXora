@@ -1,0 +1,32 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+ME=`/usr/bin/whoami`
+export ME
+
+SOURS=`ps -eaf | grep $ME | grep $1 | grep _progres | awk '{print $1" "$9}' | grep bank | awk '{print $2}'`
+BASE=`echo -n "$SOURS" | awk -F/ '{print $3}'`
+
+if [ "$BASE" = "$1" ]
+ then
+clear
+while true
+do
+  echo
+  echo "уЕТЧЕТ ПВОПТХЦЙМ ЮФП чБЫ МПЗЙО ($ME) ХЦЕ РПДЛМАЮЕО Л ВБЪЕ ДБООЩИ фпп 'тлг-1'"
+  echo "уЛПТЕЕ ЧУЕЗП РТПЙЪПЫМП ПФЛМАЮЕОЙЕ УЧСЪЙ"
+  echo "рПДФЧЕТДЙФЕ ЧИПД Ч ВБЪХ ДБООЩИ:"
+  echo
+  echo "1) чПКФЙ Ч ВБЪХ ДБООЩИ фпп 'тлг-1'"
+  echo "2) чЩКФЙ ЙЪ ЬФПЗП НЕОА"
+  echo
+  read ans
+  case $ans in
+  1) pragma $1;;
+  2) exit;;
+  *) echo "рПЦБМХКУФБ ОБЦНЙФЕ ГЙЖТХ 1 ЙМЙ 2, ЪБФЕН ЛМБЧЙЫХ ENTER"; sleep 2;;
+  esac
+done
+   else
+  pragma $1
+fi

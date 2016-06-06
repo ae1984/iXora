@@ -1,0 +1,32 @@
+﻿#!/bin/sh
+
+# Проверка размера bi файлов
+# Вызов: 
+#        bitest <db> <db_sub_id>
+# Пример:
+#        bitest alm alm        Алматы bank
+#        bitest alm sklad      sklad
+#        bitest ast stat       Астана stat
+#        bitest alm comm       comm
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/aienv
+
+PREVBISIZE=`cat /tmp/bi-$DBID-$AIID 2>/dev/null`
+: ${PREVBISIZE:=0}
+CRNTBISIZE=`ls -l $DBDIR/$DBNAME.b1|awk '{print $5}'`
+
+BIDATE=`date`
+
+echo $CRNTBISIZE >/tmp/bi-$DBID-$AIID
+if test `echo $CRNTBISIZE $CTRLBISIZE $PREVBISIZE|awk '{if($1 > $2 && $1 > $3) print $1}'`
+then
+  echo "before image file $DBDIR/$DBNAME.b1 size is $CRNTBISIZE"|mail -s "$DBNAME BI file grow warning" support@texakabank.kz
+  echo "$BIDATE BI file $DBDIR/$DBNAME.b1 size is $CRNTBISIZE" >> $DBDIR/$DBNAME.lg
+fi
+
+if test `echo $CRNTBISIZE $MAXBISIZE $PREVBISIZE|awk '{if($1 > $2 && $1 > $3) print $1}'`
+then
+    echo "BI file $DBDIR/$DBNAME.b1 is too big! PLEASE CALL SYSTEM OR DATABASE ADMINISTRATOR!!!!"|mail -s "$DBNAME BI file is too big" support@texakabank.kz 
+    echo "$BIDATE BI file $DBDIR/$DBNAME.b1 is too big! (CURRENT=$CRNTBISIZE  MAX=$MAXBISIZE)" >> $DBDIR/$DBNAME.lg
+fi

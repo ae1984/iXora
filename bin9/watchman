@@ -1,0 +1,94 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+#   if [ $DBID = "alm" ]
+#   then
+	while true
+	do
+	echo    
+	  echo 
+		STS=`cat /pragma/bin9/watchsrc | grep OK`
+		if [ "$STS" = "#OK" ]
+		then
+		STS="Watchcat корректен! :)"
+		else
+		STS="Watchcat не корректен! :|"
+		fi
+	  echo "       Managing WATCHCAT"
+	  echo "       Текущее состояние: $STS"
+	  echo 
+	  echo "    1. Скопировать корректный файл-источник для watchcat"
+	  echo "    2. Скопировать НЕ корректный файл-источник для watchcat"
+	  echo "    3. Показать содержимое файла-источника для watchcat"
+	  echo "    4. Показать расписание cron с выборкой watch (bankadm)"
+	  echo "    5. Проверить статус баз. (используется файл-источник п.3)"
+	  echo "    6. Проверить статус ВСЕХ баз"
+	  echo "    Q. Выход"
+	  echo 
+	  read ans
+	  case $ans in
+	  1) /home/bankadm/old_bin9/watchOn/watchOn;;
+	  2) /home/bankadm/old_bin9/watchOff/watchOff;;
+	  3) echo; cat -n /pragma/bin9/watchsrc | grep --colour=always "$1"; echo;;
+	  4) if [ whoami = "bankadm" ]
+	      then
+	       echo; crontab -l | grep watch; echo;
+	      else
+	     echo -n "По умолчанию задание выполняется под банкадмом. а ты: "; whoami
+	     fi;;
+	  5) FLAG=1; export FLAG; /pragma/bin9/watchsrc; FLAG=0; export FLAG;; 
+	  6) 
+		FLAG=1; export FLAG; clear
+		echo "			ТОО РКЦ-1"
+		/pragma/bin9/watchcat rkc/bank
+		echo
+		echo "			МКО рабочие базы"
+		/pragma/bin9/watchcat alm/bank
+		/pragma/bin9/watchcat akt/bank
+		/pragma/bin9/watchcat kos/bank
+		/pragma/bin9/watchcat trz/bank
+		/pragma/bin9/watchcat url/bank
+		/pragma/bin9/watchcat kar/bank
+		/pragma/bin9/watchcat sem/bank
+		/pragma/bin9/watchcat kok/bank
+		/pragma/bin9/watchcat ast/bank
+		echo
+		echo "			МЕТРОКОМБАНК рабочие базы"
+		/pragma/bin9/watchcat balm/bank
+		/pragma/bin9/watchcat bakt/bank
+		/pragma/bin9/watchcat bkos/bank
+		/pragma/bin9/watchcat btrz/bank
+		/pragma/bin9/watchcat burl/bank
+		/pragma/bin9/watchcat bkar/bank
+		/pragma/bin9/watchcat bsem/bank
+		/pragma/bin9/watchcat bkok/bank
+		/pragma/bin9/watchcat bast/bank
+		/pragma/bin9/watchcat bpet/bank
+		echo
+		echo "			МЕТРОКОМБАНК Филиалы на стадии открытия"
+		/pragma/bin9/watchcat bpav/bank
+		/pragma/bin9/watchcat batr/bank
+		/pragma/bin9/watchcat baku/bank
+		/pragma/bin9/watchcat bzes/bank
+		/pragma/bin9/watchcat bust/bank
+		/pragma/bin9/watchcat bchm/bank
+		echo
+		echo "			Общие базы работающие 24/7"
+		/pragma/bin9/watchcat comm/comm
+		/pragma/bin9/watchcat cards/cards
+		echo
+		echo "			Тестовая база"
+		/pragma/bin9/watchcat tst/bank
+
+		FLAG=0; export FLAG;; 
+	  [Qq]) exit;;
+	  exit) exit;;
+	  quit) exit;;
+	  *) echo "Wrong selection. Press 1-5"; sleep 1;;
+	  esac
+	done
+#   else
+#	echo "Изменение параметров утилиты слежения watchcat(с) за базами, возможно только под элиасом <alm>. Текущий элиас <$DBID>" | grep --colour=always "$DBID" 
+#	exit  
+#   fi
+		

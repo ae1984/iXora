@@ -1,0 +1,60 @@
+﻿#!/bin/sh
+
+##################################
+# header
+# 03.10.2003 sasco
+# Generates / adds standard header
+# to Poogress files
+# Usage:
+#       header <filename> [ -F ]
+# Parameter -F is Force mode: 
+# add header to existing file
+##################################
+
+HELP="Usage: $0 <filename> [-F]\n\tCreates <filename> with standard PROGRESS header\n\t-F parameter: Force mode - enables overwrite\n"
+
+if [ "$1" = "" ]; then
+   echo "\n$0:\n\tNot enough parameters!\n\tPlease, give me filename!\n$HELP"
+   exit 1
+   
+fi
+
+if [ -f $1 ]; then
+   if [ "$2" = "-F" ]; then
+   echo "$0:\nForce mode: overwrite enabled"
+   cp $1 /tmp/$1
+   else
+   echo "\n$0:\n\tYou must specify NON existing filename!\n\t$1 is existing filename!\n$HELP"
+   exit 2
+   fi
+else
+  echo> /tmp/$1   
+fi
+
+FNAME=/tmp/$$newrx
+FNAMENEW=$1
+
+echo "/* $1" > $FNAME
+echo " * MODULE" >> $FNAME
+echo "       Название модуля " >> $FNAME
+echo " * DESCRIPTIOM" >> $FNAME
+echo "       Назначение программы" >> $FNAME
+echo " * RUN" >> $FNAME
+echo "       Спосбо вызова программы, примеры" >> $FNAME
+echo " * CALLER" >> $FNAME
+echo "       Список процедур, вызывающих этот файл" >> $FNAME
+echo " * SCRIPT" >> $FNAME
+echo "       Скрипты запуска" >> $FNAME
+echo " * INHERIT" >> $FNAME
+echo "       Список вызываемых процедур" >> $FNAME
+echo " * MENU" >> $FNAME
+echo "       Перечень пунктьов меню Прагмы" >> $FNAME
+echo " * AUTHOR" >> $FNAME
+echo "       " `date` `whoami` >> $FNAME
+echo " * CHANGES\n*/\n" >> $FNAME
+
+cp $FNAME $FNAMENEW
+cat /tmp/$1 >> $FNAMENEW
+rm /tmp/$1
+rm $FNAME
+ 

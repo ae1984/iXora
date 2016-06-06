@@ -1,0 +1,32 @@
+﻿#/bin/sh
+# -----------------------------------------------
+# check_ibh: check if IBH process is working...
+# 29.04.2003 sasco
+# -----------------------------------------------
+#     usage: check_ibh /path/to/DB/root/dir TXBnn
+#
+#  examples: 1) check_ibh /data/alm/ps TXB00
+#            2) check_ibh /data/ast/ps TXB01
+#            3) check_ibh /data/url/ps TXB02
+
+#if [ "$1" == "" ]
+#then
+#   echo "Incorrect usage: missing Path argument"
+#   exit
+#fi
+
+#if [ "$2" == "" ]
+#then
+#   echo "Incorrect usage: missing TXBnn argument"
+#   exit
+#fi
+
+_EXIT_CODE=""
+_EXIT_CODE=`tail -1 $1/LOG/$2_IBH_00_ps.lg | awk '{ if ( length($1) == 7 && length($2) == 8 && length($3) == 0 ) {} else {print "FAILED!";} }'`
+_EXIT_STR=`tail -1 $1/LOG/$2_IBH_00_ps.lg | awk '{ if ( length($1) == 7 && length($2) == 8 && length($3) == 0 ) {} else {print $0;} }' | /pragma/bin9/koi2win `
+
+if [ "$_EXIT_CODE" != "" ]
+then
+  echo "IBH ON $2 is not working! Log file last string: $_EXIT_STR "|mail -s "IBH ERROR" it@texakabank.kz    
+fi
+

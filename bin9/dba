@@ -1,0 +1,831 @@
+﻿#!/bin/bash
+# скрипт написан id00024 (c) 
+
+export ME=`/usr/bin/whoami`
+test $ME = "bankadm" || { echo "-bash: /pragma/bin9/dba: Permission denied"; exit; }
+
+if [[ $@ ]]
+then
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" ]
+then
+#clear
+LINE="---------------------------------"
+echo "How to use this great script:"
+echo $LINE
+echo "First parametr: 	all | bank/mko | bank | mko | ib | 24 | db1/db2/db3...db20"
+echo
+echo "Second parametr:	server [ start | stop | check | auto ] 	use carefully: [ lk | forcestart ]"
+echo "			ai [ start | stop | check | list | size | sync ]"
+echo "			am [ start | stop ]"
+echo "			backup [ mark | incremental | log ]"
+echo "			repl [ source (restart/agents/kick/start/stop) | target (create1/create2/kick/start/stop) | check ]"
+echo "			recreate [ create | all | silent | target ]"
+echo "			lock [ touch | remove | check ]"
+#proutil /drbd/data/comm/comm  -C EnableLargeFiles
+echo                                                                                         
+echo $LINE
+echo "all	= bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku comm ib alm akt kos url sem"
+echo "bank/mko= bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"
+echo "bank	= bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku"
+echo "mko	= alm akt kos url sem"
+echo "24	= comm ib"
+echo $LINE
+echo
+exit
+fi
+
+if [[ $1 ]];
+then
+test $1 = ""	&& { echo '1 parametr is invalid "all | bank | mko | ib | 24 | db1/db2/db3...db20"'; exit; }
+test $1 = "all"	&& LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku comm ib alm akt kos url sem"
+test $1 = "bank/mko"	&& LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"
+test $1 = "bank"	&& LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku"
+test $1 = "mko"	-o $1 = "m"	&& LIST="alm akt kos url sem"
+test $1 = "24"	&& LIST="comm ib"
+ if [ `echo $1 | grep -i "all\|bank\|mko\|m\|ib\|24" > /dev/null; echo $?` -ge 0 ]
+ then 
+  for i in $(echo $1 | awk -F/ '{print $1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17" "$18" "$9" "$20}')
+   do echo "$LIST" | grep -i "$i"  || test -d /drbd/data/$i && LIST="$LIST $i"
+  done 
+ fi
+fi
+
+export TIME=`/bin/date`
+export PC=`/usr/local/bin/askhost`
+export DLC="/usr/dlc"
+clear 
+
+{ case $2 in
+############################################################## REPLICATION ##############################################################
+	repl|[rR])
+	test -e /drbd/data/answer && rm -f /drbd/data/answer
+	echo "y" > /drbd/data/answer
+
+		{ case $3 in
+
+		source|[sS])
+	 		{ case $4 in
+			restart|[rR])
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 $DLC/bin/dsrutil $DB -C restart server > /dev/null
+				 if [ $? = 0 ]
+				 then echo "Restart replication on $DB OK"
+				 else echo "Restart replication on $DB is failed!"
+				 fi
+				 done
+			;;
+
+			agents|[aA])
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 $DLC/bin/dsrutil $DB -C startAgent ALL > /dev/null
+				 if [ $? = 0 ]
+				 then echo "Restart ALL agents on $DB OK"
+				 else echo "Restart ALL agents on $DB is failed!"
+				 fi
+				 done
+			;;
+
+			kick|[kK])
+                                ALL=`/bin/ps aux | grep -iw "rpserver" | grep -iv "grep" | awk '{print $1" "$2" "$14}'`
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+					for x in $(echo "$ALL" | grep -i $DB | awk '{print $1}')
+					do
+					 if [ "$x" = "$ME" ]
+					 then kill `echo "$ALL" | grep -i $DB | awk '{print $2}'`
+						if [ $? = 0 ]
+						then echo "Replication agent was kicked from `echo "$ALL" | grep -i $DB | awk '{print $3}'`"
+						else echo "Replication agent was NOT kicked from `echo "$ALL" | grep -i $DB | awk '{print $3}'`"
+				 		fi
+					 else echo "$ME can't kill $x process."
+					 fi
+					done
+				done
+			;;
+
+			start|on|1) 
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 $DLC/bin/_dbutil $DB -C enableSiteReplication source > /dev/null
+				 if [ $? = 0 ]
+				 then echo "Enabling $DB OK"
+				 else echo "Enabling $DB is failed!"
+				 fi
+				 done
+			 ;;
+
+			stop|off|2)  
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                                 $DLC/bin/_dbutil $DB -C holder > /dev/null
+				 if [ "$?" = "0" ]
+					then $DLC/bin/_dbutil $DB -C disableSiteReplication source > /dev/null < /drbd/data/answer 
+					if [ $? = 0 ]
+					then echo "Disabling $DB is OK!"
+					else echo "Disabling $DB in offline failed!"
+					fi
+
+				 else $DLC/bin/dsrutil $DB -C disableSiteReplication source > /dev/null < /drbd/data/answer
+					if [ $? = 0 ]
+					then echo "Disabling $DB is OK!"
+					else echo "Disabling $DB is online failed!"
+				 	fi
+				 fi            
+				 done
+			 ;;
+
+			*) echo "Incorrect Usage SOURCE";;
+			esac } 
+		;;
+
+		target|[tT])
+	 		{ case $4 in
+			create1|c1) 
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 /pragma/bin9/repls $i trg1 way1 #> /dev/null
+				 if [ $? = 0 ]
+				 then echo "Creating replication on $DB is sucsessful in =`date`="; echo; echo
+				 echo
+				 else echo "Creating replication on $DB is FAILED in =`date`="; echo; echo
+				 echo
+				 fi
+				 done
+			 ;;
+
+			create2|c2) 
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 /pragma/bin9/repls $i trg1 way2 #> /dev/null
+				 if [ $? = 0 ]
+				 then echo "Creating replication on $DB is sucsessful in =`date`="; echo; echo
+				 echo
+				 else echo "Creating replication on $DB is FAILED in =`date`="; echo; echo
+				 echo
+				 fi
+				 done
+			 ;;
+
+			kick|[kK])
+                                ALL=`/bin/ps aux | grep -iw "rpagent" | grep -iv "grep" | awk '{print $1" "$2" "$13}'`
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+					for x in $(echo "$ALL" | grep -i $DB | awk '{print $1}')
+					do
+					 if [ "$x" = "$ME" ]
+					 then kill `echo "$ALL" | grep -i $DB | awk '{print $2}'`
+						if [ $? = 0 ]
+						then echo "Replication agent was kicked from `echo "$ALL" | grep -i $DB | awk '{print $3}'`"
+						else echo "Replication agent was NOT kicked from `echo "$ALL" | grep -i $DB | awk '{print $3}'`"
+				 		fi
+					 else echo "$ME can't kill $x process."
+					 fi
+					done
+				done
+			;;
+
+			start|on|1) 
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				 $DLC/bin/_dbutil $DB -C enableSiteReplication target > /dev/null
+				 if [ $? = 0 ]
+				 then echo "Enabling $DB OK"
+				 else echo "Enabling $DB is failed!"
+				 fi
+				 done
+			 ;;
+
+			stop|off|2)
+				for i in $LIST
+				do
+				 DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                                 $DLC/bin/_dbutil $DB -C holder > /dev/null
+				 if [ "$?" = "0" ]
+				 then $DLC/bin/_dbutil $DB -C disableSiteReplication target > /dev/null < /drbd/data/answer
+					if [ $? = 0 ]
+					then echo "Disabling $DB is OK!"
+					else echo "Disabling $DB in offline failed!"
+				 	fi
+				 else $DLC/bin/dsrutil $DB -C disableSiteReplication terget > /dev/null < /drbd/data/answer
+					if [ $? = 0 ]
+					then echo "Disabling $DB is OK!"
+					else echo "Disabling $DB in online failed!"
+				 	fi
+				 fi            
+				 done
+			;;
+
+			*) echo "Incorrect Usage TARGET";;
+			esac } 
+		;;
+
+		check|[cC]) 
+			for i in $LIST
+			do
+			DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+			RETCODE=`$DLC/bin/rprepl $DB -C status -detail` 
+			case $RETCODE in 
+			"Database $DB is not enabled for OpenEdge Replication.") MESS=" Replication is not enabled";; 
+			1001) MESS=" Initial connection";; 
+			1002) MESS=" Initializing...";; 
+			1003) MESS=" Target Database in Quiet Point";; 
+			1032) MESS=" Initial Connection Failed!";; 
+			1033) MESS=" Recovery Failed!";; 
+			1034) MESS=" Invalid Target Database Configuration!";; 
+			1035) MESS=" Agent Failed!";; 
+			1036) MESS=" Agent is Ignored!";; 
+			1037) MESS=" Agent is Stopped!";; 
+			1038) MESS=" Agent is Terminated!";; 
+			1036) MESS=" Agent is Ended!";; 
+			3048) MESS=" Sychronization...";; 
+			3049) MESS=" Normal Target Processing";; 
+			3050) MESS=" Recovery Synchronization.";; 
+			2080) MESS=" Pre-transition!";; 
+			2081) MESS=" Applying After-image Extent";;
+			2082) MESS=" Transitioning!";; 
+			2083) MESS=" Listening!";; 
+			6001) MESS=" Server Initialization";; 
+			6002) MESS=" Connecting to Agents";; 
+			6003) MESS=" Configuring Agent(s)";; 
+			6004) MESS=" Recovery Processing";; 
+			6005) MESS=" Synchronization";; 
+			6021) MESS=" Normal Source Processing";; 
+			6060) MESS=" Server is ended!";;
+			*) MESS=" Unknown!";;
+			esac  
+			echo "Fantom Replication $DB check:	$MESS"
+			done
+			 ;;
+
+		auto|[aA]) 
+			for i in $LIST
+			do
+			DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+			RETCODE=`$DLC/bin/rprepl $DB -C status -detail` 
+			if [ "$RETCODE" -eq 1063 ]
+			then $DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "16" ]
+				then `$DLC/bin/_mprshut $DB -by > /dev/null && /pragma/bin9/Lenin $i > /dev/null`
+				     RCODE=$?
+						if [ $RCODE = 0 ]
+						then echo "Database $DB was restarted"
+						else echo "Database $DB was NOT restarted"
+						fi
+				else echo "Can't restart DB $DB. It is not online!"
+				fi
+
+			else echo "Fantom Replication $DB is OK"
+			fi
+			done
+			 ;;
+
+		   *) echo "Incorrect Usage REPL";;
+		esac } 
+	test -e /drbd/data/answer && rm -f /drbd/data/answer
+	;;
+
+############################################################## After Image ##############################################################
+	ai|[aA])
+		{ case $3 in  
+			check|[cC])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				echo -n "After Image of $DB check:       	"
+				ALL=`$DLC/bin/_dbutil $DB -T /drbd/data/temp -C aimage extent list`
+		 			if [ $? = 0 ]
+					then 
+					        VAR="Extent Empty Busy Full Locked"
+						for x in $VAR
+						do 
+						WC=`echo -n "$ALL" | grep -iw "$x" | wc -l`
+						echo -n "$WC-$x  	"
+						done
+						echo
+					else echo "$ALL"
+				 	fi
+				done
+		 		;;
+
+			list|[lL])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				echo -n "After Image of $DB list:	"
+				ALL=`$DLC/bin/_dbutil $DB -T /drbd/data/temp -C aimage extent list | grep -iw "Status:" | awk '{print $2}'`
+		 			if [ $? = 0 ]
+					then 
+                                                for i in $ALL
+						do
+						test "$i" = "Empty"  && echo -en "\t." #•
+						test "$i" = "Busy"   && echo -en "\tB"
+						test "$i" = "Full"   && echo -en "\tF"
+						test "$i" = "Locked" && echo -en "\tL"
+						done
+						echo
+					else echo "$ALL"
+				 	fi
+				done
+		 		;;
+
+			size|[sS])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				echo -n "After Image of $DB size:	"
+					for i in `$DLC/bin/_dbutil $DB -T /drbd/data/temp -C aimage extent list | grep -iw "Used:" | awk '{print $2}'`
+					do 
+					test $i = 0 && echo -en "\t."
+					test $i = 0 || { let "i=$i/1024"; echo -en "\t$i"; }
+					done
+				echo
+				done
+		 		;;
+
+			sync)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				echo -n "Sync After Image of $i:	"
+				if `test -e /drbd/data/$i/ai.lock`
+				then echo "LOCKED"
+				else /bin/nice -200 /bin/cp /drbd/data/$i/ai/* /savedb/$i/aibkup/ && echo "done"
+				fi
+				done
+		 		;;
+
+			start|on|1)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then $DLC/bin/_dbutil $DB -C aimage begin > /dev/null
+		 			if [ $? = 0 ]
+					then echo "Enabling AI in $DB is OK!"
+					else echo "Enabling AI in $DB is failed!"
+				 	fi
+		 		else $DLC/bin/probkup online $DB /drbd/data/temp/$i enableai enableaiarchiver -aiarcdir $DBDIR/fullai || echo "Enabling AI in online in $DB is OK!"
+		 		test -e /drbd/data/temp/$i && rm /drbd/data/temp/$i
+				fi
+				done
+		 		;;
+
+			stop|off|2)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then $DLC/bin/_dbutil $DB -C aimage end > /dev/null
+		 			if [ $? = 0 ]
+					then echo "Disabling AI in $DB is OK!"
+					else echo "Disabling AI in $DB is failed!"
+				 	fi
+		 		else echo "DB $DB is in multi-user mode!"
+		 		fi
+				done
+				;;
+			*) echo "Incorrect Usage AI";;
+		esac }
+	;;
+
+
+
+############################################################## After Image Managemont Daemon ##############################################
+	am|[mM])
+		{ case $3 in
+			check|[cC])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				echo -n "After Image Management Daemon of $DB:	"
+				$DLC/bin/_proutil $DB -C describe | grep -iw "Mangement/Archiver" > /dev/null
+		 			if [ $? = 0 ]
+					then echo "is enabled"
+					else echo "is disabled"
+				 	fi
+
+				done
+		 		;;
+			start|on|1)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then test -d /drbd/data/$i/fullai/ || { echo "Создаю директорию /drbd/data/$i/fullai/ для after-image Management Daemon"; mkdir /drbd/data/$i/fullai/; chmod 777 /drbd/data/$i/fullai/; }
+				$DLC/bin/_dbutil $DB -C aiarchiver enable > /dev/null
+		 			if [ $? = 0 ]
+					then echo "Enabling after-image Management Daemon in $DB is OK!"
+					else echo "Enabling after-image Management Daemon in $DB is failed!"
+				 	fi
+		 		else echo "DB $DB is in multi-user mode!"
+				fi
+				done
+		 		;;
+
+			stop|off|2)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then 
+				$DLC/bin/_dbutil $DB -C aiarchiver disable > /dev/null
+		 			if [ $? = 0 ]
+					then echo "Disabling after-image Management Daemon in $DB is OK!"
+					else echo "Disabling after-image Management Daemon in $DB is failed!"
+				 	fi
+		 		else echo "DB $DB is in multi-user mode!"
+				fi
+				done
+				;;
+
+			*) echo "Incorrect Usage AM";;
+		esac }
+	;; 
+############################################################## START ####################################################################
+	server|[sS])
+		{ case $3 in
+			check|[cC])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				$DLC/bin/_dbutil $DB -C holder > /dev/null
+		 			if [ $? -ne 16 ]
+					then test -e $DB.lock || exit 1
+				 	fi
+				done
+				;;
+
+			lk)
+			        echo "You use lk. Are you sure?"
+			        echo -n "[y/n] "
+				read yn
+				if [[ "$yn" != "y" ]]; then exit; fi
+
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				$DLC/bin/_progres $DB -b -T /drbd/data/temp/ | grep -i "Can't attach shared memory with segment_id" > /dev/null && { test -e $DB.lk && rm -f $DB.lk; }
+		 			if [ $? -eq 0 ]
+					then echo "Can't attach shared memory with segment_id for $DB 	-	fixed"
+					else echo "Can't attach shared memory with segment_id for $DB 	-	not founded"
+				 	fi
+				done
+
+				;;
+
+			lk!)
+			        echo "You use lk(!). Are you sure?"
+			        echo -n "[y/n] "
+				read yn
+				if [[ "$yn" != "y" ]]; then exit; fi
+
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				test -e $DB.lk && rm -f $DB.lk
+		 			if [ $? -eq 0 ]
+					then echo "$DB.lk was removed"
+					else echo "$DB.lk wasn't removed"
+				 	fi
+				done
+
+				;;
+
+			start|on|lenin|Lenin|1)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then 
+					/pragma/bin9/Lenin $i > /dev/null
+					RCODE=$?
+						if [ $RCODE = 0 ]
+						then echo "DB $DB was started"
+						else echo "DB $DB was NOT started"
+						fi
+				else echo "Can't start DB $DB. It is online!"
+				fi
+				done
+		 		;;
+
+
+		forcestart|[fF])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				test -e $DB.lk && rm -f $DB.lk
+		 			if [ $? -eq 0 ]
+					then echo -n "$DB.lk was removed       	"
+					else echo -n "$DB.lk was absent       	"
+				 	fi
+
+					/pragma/bin9/Lenin $i > /dev/null
+					RCODE=$?
+						if [ $RCODE = 0 ]
+						then echo "DB $DB was started"
+						else echo "DB $DB was NOT started"
+						fi
+				done
+		 		;;
+			stop|off|2)
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "16" ]
+				then 
+#					HUMANS=`$DLC/bin/proshut $DB -C list | grep -iv "bankadm\|batch\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA" | awk '{print $8}'`
+					if [ "$HUMANS" = "" ]
+					then
+						$DLC/bin/proshut $DB -by > /dev/null 
+						RCODE=$?
+						if [ $RCODE = 0 ]
+						then echo "DB $DB shutted down"
+						echo "$TIME	-	$ME	-	$PC" > $DB.lg
+						else echo "DB $DB was NOT shutted down"
+						fi
+                                        else echo "Can't stop DB $DB. There are Humans there!"
+					fi
+				else echo "Can't stop DB $DB. It isn't online!"
+				fi
+				done
+				;;
+
+			*) echo "Incorrect Usage SERVER";;
+		esac }
+	;; 
+############################################################## BACKUP ####################################################################
+	backup|[bB])
+		{ case $3 in
+			mark|[mM])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ "$?" = "0" ]
+				then $DLC/bin/_dbutil $DB -C mark backedup > /dev/null
+						if [ $? = 0 ]
+						then echo "DB $DB was marked"
+						else echo "DB $DB was NOT marked"
+						fi
+				else echo "DB $DB is NOT offline"
+				fi
+				done
+		 		;;
+
+		incremental|[iI])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+                		$DLC/bin/_dbutil $DB -C holder > /dev/null
+				if [ $RET = "16" ]; then ONLINE="online"; else ONLINE=" "; fi
+				$DLC/bin/probkup $ONLINE $DB /drbd/data/temp/$i incremental -verbose && rm /drbd/data/temp/$i
+					if [ $? = 0 ]
+					then echo "DB $DB was incremental backuped"
+					else echo "DB $DB was NOT incremental backuped"
+					fi
+				done
+		 		;;
+
+		log|[lL])
+				for i in $LIST
+				do
+				DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+				RCODE="0"
+				test -d /savedb/$i/logs || { test -e /savedb/$i/logs && rm /savedb/$i/logs && echo -n "Logs is file and was deleted!"; }
+				test -e /savedb/$i/logs || { mkdir /savedb/$i/logs && chmod 0777 /savedb/$i/logs && echo -n "Logs dir has been created"; } 
+				test -w /savedb/$i/logs || { echo -n "/savedb/$i/logs is wright protected :(  Exiting..."; RCODE="1"; }
+				if [ "$RCODE" = "0" ]
+				then echo -ne "Start copy:\t\t"
+					TARGET=/savedb/$i/logs/$i`date "+20%y.%m.%d_%H-%M-%S"`
+					cp -v $DB.lg $TARGET.lg && echo > $DB.lg
+					if [ $? = 0 ]
+					then echo -ne "Start zipping file:\t"
+					/usr/bin/gzip -c1v $TARGET.lg > $TARGET".Z" && rm $TARGET.lg || echo -ne "Can't delete $TARGET.lg" 
+					else echo "Can't copy $DBDIR/$DBNAME.lg :("
+					fi
+				fi
+				echo
+				done
+		 		;;
+
+
+			*) echo "Incorrect Usage BACKUP";;
+		esac }
+	;; 
+############################################################## RECREATE ####################################################################
+	recreate)
+		#SYSTEM ERROR: Memory violation. (49)
+		#** Save file named core for analysis by Progress Software Corporation. (439)
+
+		 for i in $LIST
+		 do
+		 if [ `test -e /drbd/data/$i/*.db; echo $?` = 0 ]
+		 then
+			DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+	                DBDIR="/drbd/data/$i/"
+        	        echo -n "Recreating $DB:"
+
+			{ case $3 in
+
+				create|[cC])
+				{
+				$DLC/bin/proshut $DB -by > /dev/null
+        	                $DLC/bin/prostrct list $DB 
+				rm $DB.db $DB.b1 $DB.d1 $DB.d2 $DB.lg > /dev/null
+				cd $DBDIR/ai; for i in $(dir); do rm $i; done; cd ~
+				$DLC/bin/prostrct create $DB -blocksize 8192 > /dev/null
+				cd $DBDIR; for i in $(dir); do chmod -f 0777 $i; done
+				cd ai; for i in $(dir); do chmod -f 0777 $i; done; cd ~
+				}	
+					if [ $? = 0 ]
+					then echo "	sucsessfull"
+					else echo "	FAILED"
+					fi
+				;;
+
+				silent|SILENT|Silent|[sS])
+				{
+				$DLC/bin/proshut $DB -by > /dev/null
+                        	$DLC/bin/prostrct list $DB > /dev/null
+				$DLC/bin/probkup $DB $DB.tmp > /dev/null && rm $DB.db $DB.b1 $DB.d1 $DB.d2 $DB.lg > /dev/null
+				cd $DBDIR/ai; for i in $(dir); do rm $i > /dev/null; done; cd ~
+				$DLC/bin/prostrct create $DB -blocksize 8192 > /dev/null
+				cd $DBDIR; for i in $(dir); do chmod -f 0777 $i > /dev/null; done
+				cd ai; for i in $(dir); do chmod -f 0777 $i > /dev/null; done; cd ~
+				$DLC/bin/prorest $DB $DB.tmp > /dev/null
+				}	
+					if [ $? = 0 ]
+					then echo "	sucsessfull"
+					else echo "	FAILED"
+					fi
+				;;
+
+
+				target)
+				{
+				$DLC/bin/proshut $DB -by
+
+				echo "b $DB.b1" > $DB.st
+                                echo -n 'd "Schema Area":6,64;1 '>> $DB.st
+                                echo "$DB.d1" >> $DB.st
+
+				rm -f $DB.db $DB.b1 $DB.d* $DB.lg > /dev/null
+				cd $DBDIR/ai; for i in $(dir); do rm -f $i; done; cd ~
+				$DLC/bin/prostrct create $DB -blocksize 8192 
+				cd $DBDIR; for i in $(dir); do chmod -f 0777 $i; done
+				cd ai; for i in $(dir); do chmod -f 0777 $i; done; cd ~
+				}	
+					if [ $? = 0 ]
+					then echo "	sucsessfull"
+					else echo "	FAILED"
+					fi
+				;;
+
+				[tT])
+				{
+				$DLC/bin/proshut $DB -by > /dev/null
+
+				echo "b $DB.b1" > $DB.st
+                                echo -n 'd "Schema Area":6,64;1 '>> $DB.st
+                                echo "$DB.d1" >> $DB.st
+
+				rm -f $DB.db $DB.b1 $DB.d* $DB.lg > /dev/null
+				cd $DBDIR/ai; for i in $(dir); do rm -f $i; done; cd ~
+				$DLC/bin/prostrct create $DB -blocksize 8192 > /dev/null
+				cd $DBDIR; for i in $(dir); do chmod -f 0777 $i; done
+				cd ai; for i in $(dir); do chmod -f 0777 $i; done; cd ~
+				}	
+					if [ $? = 0 ]
+					then echo "	sucsessfull"
+					else echo "	FAILED"
+					fi
+				;;
+
+				all|ALL|All|[aA])
+				{
+				echo
+				$DLC/bin/proshut $DB -by
+        	                $DLC/bin/prostrct list $DB
+				$DLC/bin/probkup $DB $DB.tmp && rm $DB.db $DB.b1 $DB.d1 $DB.d2 $DB.lg
+				cd $DBDIR/ai; for i in $(dir); do rm $i; done; cd ~
+				$DLC/bin/prostrct create $DB -blocksize 8192
+				cd $DBDIR; for i in $(dir); do chmod -f 0777 $i; done
+				cd ai; for i in $(dir); do chmod -f 0777 $i; done; cd ~
+				$DLC/bin/prorest $DB $DB.tmp
+				}	
+					if [ $? = 0 ]
+					then echo "Recreating $DB sucsessfull"
+					else echo "Recreating $DB FAILED"
+					fi
+				;;
+
+				*) echo "Incorrect Usage RECREATE " ;;
+			esac } 
+		 else echo "NO DB"
+		 fi
+		 done 
+		 ;;
+############################################################## LOCK ####################################################################
+	lock|[lL])
+
+		 for i in $LIST
+		 do
+		 if [ `test -e /drbd/data/$i/*.db; echo $?` = 0 ]
+		 then
+	                DBDIR="/drbd/data/$i/"
+
+			{ case $3 in
+
+				touch|[tT])
+	        	        echo -n "$i: "
+				RCODE="1"
+				test -e $DBDIR/.lock-d || { touch $DBDIR/.lock-d; RCODE="0"; }
+					if [ "$RCODE" = "0" ]
+					then echo "	locked"
+					else echo "	didn't locked"
+					fi
+				;;
+
+				remove|[rRuU])
+	        	        echo -n "Remove lock $i: "
+				RCODE="1"
+				test -e $DBDIR/.lock-d && { rm $DBDIR/.lock-d; RCODE="0"; }
+					if [ "$RCODE" = "0" ]
+					then echo "	sucsessfull"
+					else echo "	FAILED"
+					fi
+				;;
+
+				check|[cC])
+	        	        echo -n "Check lock on $i: "
+				test -e $DBDIR/.lock-d 
+					if [ $? = 0 ]
+					then echo "	locked"
+					else echo "	unlocked"
+					fi
+				;;
+
+				*) echo "Incorrect Usage LOCK " ;;
+			esac } 
+		 else echo "NO DB"
+		 fi
+		 done 
+		 ;;
+
+
+############################################################## END OF CASE ##############################################################
+	*) echo "Incorrect Usage DBA" ;;
+
+esac } 
+
+else echo "You havn't input any parametrs"
+sleep 1
+fi

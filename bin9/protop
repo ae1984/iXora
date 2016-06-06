@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+
+. /opt/protop/bin/protop.env
+. /pragma/bin9/dbenv2
+
+DB=$1
+
+PROPATH=/opt/protop; export PROPATH
+
+mpro $DBDIR/$DBNAME -U bankadm -P Bflv02 -p /opt/protop/protop.p -param "i;10|d;Summary,User IO"

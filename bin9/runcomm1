@@ -1,0 +1,4 @@
+﻿#!/bin/sh
+# KOVAL запуск процедур на COMM
+. /pragma/bin9/dbenv
+exec $DLC/bin/_progres /home/marinav/comm/comm -mmax 1024 -d dmy -ld comm -U superman -P $passw -b -p $1 -param $2

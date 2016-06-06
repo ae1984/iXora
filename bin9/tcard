@@ -1,0 +1,4 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+exec $DLC/bin/_progres $DBCRDIR/cards -e 63 -l 5150 -d dmy -ld cards $@
+#$DLC/bin/_progres $DBCRDIR/cards -e 63 -l 5150 -d dmy -ld cards $@

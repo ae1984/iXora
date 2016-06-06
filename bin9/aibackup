@@ -1,0 +1,33 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/aienv
+
+LOG2=$DBDIR/log/ai.log
+
+wlog(){
+    echo `date "+%d/%m/%y %H:%M:%S"` `whoami` " " $1 $2 $3 $4 |tee -a $LOG2
+}
+
+HELP="Usage: "`basename $0`" database [store]\nBackups database to store (default database.Z).\nTo restore database use dbrest."
+
+test -n "$1" || { echo "You must supply a database name."; echo $HELP; exit 1; }
+DB=`dirname $1`/`basename $1 .db`
+test -f $DB.db || { echo "File $DB.db not found."; echo $HELP; exit 1; }
+BAK=${2:-$DB}
+BAK=`dirname $BAK`/`basename $BAK .Z`.Z
+
+LOG=$DBDIR/log/backup.log
+echo '***********************************************' >>$LOG
+(
+wlog Start Backup $DB
+proshut $DB
+PIPEFILE=/tmp/bakup.$$
+mkfifo $PIPEFILE
+$DLC/bin/probkup $DB $PIPEFILE -com -verbose  &
+/usr/bin/gzip -1 <$PIPEFILE >$BAK
+rm -f $PIPEFILE
+wlog End compress $DB 
+
+ls -l $BAK|awk '{print $9 "\t" $7 " " $6 " " $8 " " $5}'
+) 2>&1 | tee -a $LOG

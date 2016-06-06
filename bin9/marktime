@@ -1,0 +1,12 @@
+﻿#!/bin/sh
+#CMDFILE=cmd.$$
+#TMPfile=/tmp/mrktm.$$
+#echo '#!/bin/sh' >$CMDFILE
+#echo $@ >>$CMDFILE
+#chmod +x $CMDFILE
+#timex $CMDFILE 2>$TMPfile
+#echo Elapsed time `grep real<$TMPfile|tr -dc '[:digit:].'` sec.
+#rm -f $CMDFILE
+#rm -f $PIPE
+
+timex $*grep real<$TMPfile|tr -dc '[:digit:]

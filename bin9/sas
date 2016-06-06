@@ -1,0 +1,179 @@
+﻿#!/bin/bash
+
+if [ `/bin/uname -n` = "ixora601.metrobank.kz" ]; then
+	HOUR=`/bin/date "+%H"`
+############################################### ps id00024 ##################################### 
+
+	#if [ $HOUR != 05 -a $HOUR != 08 -a $HOUR != 20 -a $HOUR != 21 -a $HOUR != 22 ]
+	#then LOG=/tmp/ps.log; test -e $LOG && rm $LOG 
+	#	/bin/ps aux | grep -iv "cpu\|grep" | while read line
+	#	do
+	#	 if [ `echo $line | awk '{print $8}'` = Z ]; then echo -e "$line\n" >> $LOG; fi
+	#	 if [ `echo $line | awk '{print $3}' | awk -F. '{print $1}'` -ge 30 ]; then echo -e "$line\n" >> $LOG; fi
+	#	done
+	#
+	#	if [ `test -e /data/lock.ps; echo $?` = 0 ]
+	#	 then test -e $LOG || test -e /data/lock.ps && rm /data/lock.ps
+	#	 else test -e $LOG && { cat $LOG | /bin/mail -s SAS_PS 'id00477@fortebank.com id00700@fortebank.com id00640@fortebank.com'; rm $LOG; echo > /data/lock.ps; }
+	#	fi;                             
+	#fi
+
+############################################### sonic id00024 ################################## 
+
+	#ACTIVE=`adaptman -i sonicMQ1 -q | grep -i "Active Servers" | awk -F: '{print $2}'`
+	#if [ `test -e /data/lock.ps; echo $?` = 0 ]
+	# then test $ACTIVE -eq 24 && test -e /data/lock.sonic && rm /data/lock.sonic
+	# else test $ACTIVE -ne 24 && echo "Active Servers of sonic is $ACTIVE" | /bin/mail -s SAS_SONIC 'id00020@fortebank.com; id00343@fortebank.com; id00477@fortebank.com; id00700@fortebank.com id00640@fortebank.com' && echo "$ACTIVE" > /data/lock.sonic
+	#fi
+
+############################################### df id00363 ##################################### 
+
+	SPACE1=`df | grep "drbd\|data" | awk '{print $4}'`
+	if [ $SPACE1 -lt 5120000 ]
+	then TIME=`date "+20%y.%m.%d %H:%M:%S"`; SERVER=`/bin/uname -n`; let SPACE1=($SPACE1/1024)
+	 test -e /data/lock.sas.dt || echo "There is less then 5GB free space in /DRBD(DATA) on $SERVER. There is $SPACE1 Mb. Time $TIME. Please call DB Admins or Linux Admin" | /bin/mail -s SAS_DF 'id00477@fortebank.com id00700@fortebank.com id00640@fortebank.com'
+	 echo $TIME > /data/lock.sas.dt
+	else test -e /data/lock.sas.dt && rm /data/lock.sas.dt
+	fi
+
+############################################### df id00024 ##################################### 
+
+	SPACE2=`df | grep "savedb" | awk '{print $4}'`
+	if [ $SPACE2 -lt 20480000 ]
+	then TIME=`date "+20%y.%m.%d %H:%M:%S"`; SERVER=`/bin/uname -n`; let SPACE2=($SPACE2/1024)
+	 test -e /data/lock.sas.sv || echo "There is less then 20GB free space in /SAVEDB on $SERVER. There is $SPACE2 Mb. Time $TIME. Please call DB Admins or Linux Admin" | /bin/mail -s SAS_DF 'id00477@fortebank.com id00700@fortebank.com id00640@fortebank.com'
+	 echo $TIME > /data/lock.sas.sv
+	else test -e /data/lock.sas.sv && rm /data/lock.sas.sv
+	fi
+
+############################################### 950 id00024 #################################### 
+
+	HOUR=`/bin/date "+%H"`
+	if [ $HOUR = 18 -o $HOUR = 19 -o $HOUR = 20 -o $HOUR = 21 -o $HOUR = 22 -o $HOUR = 23 ]
+	then
+	RCODE="1"
+		test -e /data/bmkb/ps/NB/IN/*.950 && RCODE="0"
+		if [ $RCODE = 0 ]
+		then
+			DATE=`/bin/date "+%H:%M:%S"`
+			test -e /data/lock.sas.950 || echo "There is 950. DATE = $DATE" |  /bin/mail -s SAS_950 'id00477@fortebank.com id00700@fortebank.com id00640@fortebank.com' && echo $DATE > /data/lock.sas.950
+		else test -e /data/lock.sas.950 && rm /data/lock.sas.950
+		fi
+	fi
+
+############################################### qps #################################### 
+
+	if [ $HOUR != 06 -a $HOUR != 07 -a $HOUR != 08 -a $HOUR != 19 -a $HOUR != 20 -a $HOUR != 21 -a $HOUR != 22 ]
+	then
+		QPS=`ps aux | grep -iw "qps" | grep -iv "grep" | wc -l`
+		if test -e /data/lock.qps
+		 then test "$QPS" = 24 && test -e /data/lock.qps && rm /data/lock.qps
+		 else test "$QPS" = 24 || { echo "There is $QPS qps processes on `/bin/uname -n`" | /bin/mail -s SAS_QPS 'id00020@fortebank.com id00477@fortebank.com id00671@fortebank.com id00700@fortebank.com id00640@fortebank.com'; echo "$QPS" > /data/lock.qps; }
+		fi
+	fi
+
+############################################### repl id00477 #################################### 
+
+	MESS=/data/mess_repl.tmp
+	test -e $MESS && rm $MESS
+	amount=25 #количество работающих баз и репликаций
+
+	function check_repl {
+		export DLC="/usr/dlc"
+		
+		LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku comm ib alm akt kos url sem"
+		for i in $LIST
+		do
+			DB=`ls /drbd/data/$i/*.db | awk -F. '{print $1}' | grep "$i"`
+
+			RETCODE=`$DLC/bin/rprepl $DB -C status -detail` 
+			case $RETCODE in 
+				"Database $DB is not enabled for OpenEdge Replication.") STAT=" Replication is not enabled";; 
+				1001) STAT=" Initial connection";; 
+				1002) STAT=" Initializing...";; 
+				1003) STAT=" Target Database in Quiet Point";; 
+				1032) STAT=" Initial Connection Failed!";; 
+				1033) STAT=" Recovery Failed!";; 
+				1034) STAT=" Invalid Target Database Configuration!";; 
+				1035) STAT=" Agent Failed!";; 
+				1036) STAT=" Agent is Ignored!";; 
+				1037) STAT=" Agent is Stopped!";; 
+				1038) STAT=" Agent is Terminated!";; 
+				1036) STAT=" Agent is Ended!";; 
+				3048) STAT=" Sychronization...";; 
+				3049) STAT=" Normal Target Processing";; 
+				3050) STAT=" Recovery Synchronization.";; 
+				2080) STAT=" Pre-transition!";; 
+				2081) STAT=" Applying After-image Extent";;
+				2082) STAT=" Transitioning!";; 
+				2083) STAT=" Listening!";; 
+				6001) STAT=" Server Initialization";; 
+				6002) STAT=" Connecting to Agents";; 
+				6003) STAT=" Configuring Agent(s)";; 
+				6004) STAT=" Recovery Processing";; 
+				6005) STAT=" Synchronization";; 
+				6021) STAT=" Normal Source Processing";; 
+				6060) STAT=" Server is ended!";;
+				*) STAT=" Unknown!";;
+			esac  
+			echo $STAT
+			
+			
+			case $i in
+				bmkb)
+					echo "<tr><td colspan = 2>&nbsp;</td></tr>" >> $MESS
+					echo "<tr><td colspan = 2 align = center>&nbsp;<b>ForteBank</b>&nbsp;</td></tr>" >> $MESS
+				;;
+				comm)
+					echo "<tr><td colspan = 2>&nbsp;</td></tr>" >> $MESS
+					echo "<tr><td colspan = 2 align = center>&nbsp;<b>24/7</b>&nbsp;</td></tr>" >> $MESS
+				;;
+				alm)
+					echo "<tr><td colspan = 2>&nbsp;</td></tr>" >> $MESS
+					echo "<tr><td colspan = 2 align = center>&nbsp;<b>MKO</b>&nbsp;</td></tr>" >> $MESS
+				;;
+			esac
+			
+			if [ "$STAT" != " Normal Source Processing" ]; then
+				echo "<tr><td align = center>&nbsp;$i&nbsp;</td><td align = center bgcolor = red>&nbsp;$STAT&nbsp;</td></tr>" >> $MESS	
+			else 
+				echo "<tr><td align = center>&nbsp;$i&nbsp;</td><td align = center>&nbsp;$STAT&nbsp;</td></tr>" >> $MESS	
+			fi
+		done
+	}
+	echo 'Return-Path: bankadm@ixora601.metrobank.kz' >> $MESS
+	echo 'From: bankadm@ixora601.metrobank.kz' >> $MESS
+
+	echo 'To: id00477@fortebank.com id00700@fortebank.com id00640@fortebank.com' >> $MESS
+
+	echo 'Subject: =?windows-1251?Q?SAS_REPL?=' >> $MESS
+	echo 'Content-type: multipart/mixed; boundary="--------=PART.BOUNDARY"' >> $MESS
+	echo "X-Priority: 3" >> $MESS
+	echo '----------=PART.BOUNDARY' >> $MESS
+	echo 'Content-Type: text/html; charset="windows-1251"' >> $MESS
+	echo '' >> $MESS
+	echo "<table border = 1>" >> $MESS	
+	echo "<tr><td colspan = 2>&nbsp;There must be $amount Normal Source Processing Replication on `/bin/uname -n`&nbsp;</td></tr>" >> $MESS
+	echo "<tr><td colspan = 2>&nbsp;</td></tr>" >> $MESS
+	echo "<tr><td align = center><b>&nbsp;Base&nbsp;</b></td><td align = center><b>&nbsp;Status&nbsp;</b></td></tr>" >> $MESS
+
+	repl=`check_repl | grep -c "Normal Source Processing"`
+
+	echo "<tr><td colspan = 2>&nbsp;</td></tr>" >> $MESS
+	echo "<tr><td colspan = 2>&nbsp;There is $repl Normal Source Processing Replication on `/bin/uname -n`&nbsp;</td></tr>" >> $MESS
+	echo "</table>" >> $MESS
+	echo "----------=PART.BOUNDARY--" >> $MESS
+
+	old_repl=0
+	test -e /data/lock.repl && old_repl=`cat /data/lock.repl`
+
+	if test -e /data/lock.repl 
+	then 
+		{ test "$repl" = 26 && rm /data/lock.repl; } || test "$repl" = "$old_repl" || { cat $MESS | /usr/lib/sendmail -t ; echo "$repl" > /data/lock.repl; }
+	else 
+		test "$repl" = 26 || { cat $MESS | /usr/lib/sendmail -t ; echo "$repl" > /data/lock.repl; }
+	fi
+	test -e $MESS && rm $MESS
+
+############################################### END ############################################ 
+fi

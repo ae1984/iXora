@@ -1,0 +1,9 @@
+﻿echo "==================================" > $$.tmp
+zcat `tar xvf $1 $2` | \
+awk -v ttt=$3 '{ if (index($0,ttt) != 0) a = "yes";
+        if (a == "yes") { print $0;
+        if (index($0,"-}") != 0 ) exit}}' >> $$.tmp
+echo "==================================" >> $$.tmp
+alt --fa $$.tmp
+joe -rdonly $$.tmp
+/bin/rm -f $$.tmp

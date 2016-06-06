@@ -1,0 +1,211 @@
+﻿#!/usr/bin/perl
+# ISAEV
+#       Скрипт для поверки подлежащих к оплате услуг по 
+#       выдаче информации о поступлении и движении 
+#       средств вкладчика ГЦВП
+#
+# Synopsis:
+#       gcvpstat --dir=/data/9/import/gcvp/
+#       gcvpstat --dir=/data/9/import/gcvp/ --year=2004 --month=12 --verbose
+#
+# Last update: 08.01.04
+#
+
+@months = qw(ЯНВАРЬ ФЕВРАЛЬ МАРТ АПРЕЛЬ МАЙ ИЮНЬ ИЮЛЬ АВГУСТ СЕНТЯБРЬ ОКТЯБРЬ НОЯБРЬ ДЕКАБРЬ);
+
+$det_form = " %-19s  %-8s  %-20s  %-21s\n";
+
+%req = ();
+%resp = ();
+$all_request_count = 0;
+$all_responce_count = 0;
+$decline_count = 0;
+$no_respnonce_count = 0;
+$invalid_count = 0;
+
+$print = 0;
+
+foreach (@ARGV) {
+    /--(\w+)(?:=(.*))?/;
+    ${$1} = ($2) ? $2 : 1;
+}
+
+
+if (($day && (!$month || !$year)) || ($month && !$year)) {
+    &startError();
+}
+
+if (!-d $dir) {
+    &startError();
+}
+
+&scanFolder();
+
+
+if ($verbose) {
+    printf ($det_form, "Дата", "Запрос#", "Результат", "Коментарии");
+    print " -------------------  --------  --------------------  ----------------------\n"
+}
+
+foreach $id (keys %req) {
+    $razn_seconds = $resp{$id} - $req{$id};
+
+    #   0    1    2     3     4    5     6     7     8
+    my ($s,  $m,  $h,   $md,  $mn, $yr,  $wd,  $yd,  $isdst) =
+                                       localtime($req{$id});
+
+    
+    $data->{$yr}->{$mn}->{'req_cnt'}++;
+    if ($resp{$id}) {
+        if ($razn_seconds < 0) {
+#           print "Разница времени отрицательная для $id\n";
+            $data->{$yr}->{$mn}->{'invalid_cnt'}++;
+        } elsif ($razn_seconds / 60 > 15) {
+            if ($verbose) {
+                printf ($det_form, pr($req{$id}), $id, "время ответа >15 мин", getTimeRazn($razn_seconds));
+            }
+            $data->{$yr}->{$mn}->{'late_cnt'}++;
+        } else {
+            if ($verbose && $all) {
+                printf ($det_form, pr($req{$id}), $id, "OK");
+            }
+        }
+
+    } else {
+        if ($verbose) {
+            printf ($det_form, pr($req{$id}), $id, "нет ответа", "не найден файл gcvp$id");
+        }
+        $data->{$yr}->{$mn}->{'noresp_cnt'}++;
+    }
+
+}
+
+if ($verbose) {
+    print " -------------------  --------  --------------------  ----------------------\n"
+}
+
+
+
+foreach $y (keys %{$data}) {
+    foreach $m (keys %{$data->{$y}}) {
+        print "=========================================\n";
+        print "СТАТИСТИКА ЗАПРОСОВ В ГЦВП ЗА $months[$m], ".($y + 1900)."\n";
+        print "\n";
+        print "Запросов сделано всего: " . ($data->{$y}->{$m}->{'req_cnt'} * 1). "\n";
+        print "\n";
+        print "Неподлежат к оплате: " . ($data->{$y}->{$m}->{'noresp_cnt'} + $data->{$y}->{$m}->{'late_cnt'}) . "\n";
+        print "  без ответа: " . ($data->{$y}->{$m}->{'noresp_cnt'} * 1). "\n";
+        print "  просроченных (>15 мин ответа): " . ($data->{$y}->{$m}->{'late_cnt'} * 1). "\n";
+        print "\n";
+        print "Итого принятых к оплате запросов: " . ($data->{$y}->{$m}->{'req_cnt'} - $data->{$y}->{$m}->{'late_cnt'} - $data->{$y}->{$m}->{'noresp_cnt'}) . "\n";
+        print "\n";
+    }
+}
+
+print "=========================================\n";
+if (!keys %{$data}) {
+    print "Нет данных за данный период\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sub scanFolder {
+    if (!chdir($dir)) {
+        print "Can not change to directory $dir\n";
+        exit(1);
+    }
+
+    foreach (glob("*")) {
+        if (/^(gcvp)?(\d+)$/) {
+            my $tmstmp = &getFC($_);
+            if ($1) {
+                $resp{$2} = $tmstmp;
+            } else {
+                if (validDate($tmstmp)) {
+                    $req{$2} = $tmstmp;
+                }
+            }
+        }
+    }
+}
+
+sub getFC {
+    my ($fname) = @_;
+    my @fst = stat($fname);
+    
+    return $fst[9];
+}
+
+sub validDate {
+    my ($tm) = @_;
+    pr($tm);
+    #   0    1    2     3     4    5     6     7     8
+    my ($s,  $m,  $h,   $md,  $mn, $yr,  $wd,  $yd,  $isdst) =
+                                       localtime($tm);
+    $yr += 1900;
+    $mn++;
+    $md++;
+    if ($year && $year != $yr) {
+        return 0;
+    }
+    if ($month && $month != $mn) {
+        return 0;
+    }
+    return 1;
+}
+
+sub startError {
+    print "Use: compare --dir=DIRECTORY [--year=YYYY [--month=MM]] [--verbose [--all]]\n";
+    exit(1);
+}
+
+sub getTimeRazn{
+    my ($sec) = @_;
+    my $ret = '';
+
+    # $ret = sprintf("%02d", ($sec % 60)) . " сек. "  . $ret;
+    if ($sec > 60) {
+        $sec /= 60;
+        
+        $ret = sprintf("%02d", ($sec % 60)) . "m "  . $ret;
+        if ($sec > 60) {
+            $sec /= 60;
+            $ret = int($sec) . "h " . $ret;
+        }
+    }
+    return $ret;
+}
+
+sub pr {
+    my ($tm) = @_;
+    #   0    1    2     3     4    5     6     7     8
+    my ($s,  $m,  $h,   $md,  $mn, $yr,  $wd,  $yd,  $isdst) =
+                                       localtime($tm);
+    $yr += 1900;
+    $md++;
+    $mn++;
+    return sprintf("%04d/%02d/%02d %02d:%02d:%02d", $yr, $mn, $md, $h, $m, $s);
+}

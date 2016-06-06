@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+
+fn(){
+while read f 
+do
+  test -f $f/bank.z || echo $f
+done
+}
+
+ls -1t /data/ast/savedb/|head -n 10|fn

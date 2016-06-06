@@ -1,0 +1,40 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv2 
+. mcset
+
+CLIENTMON=/data/$DBID/log/clientmon/`whoami`.mon
+export CLIENTMON
+
+PROCMON=/data/$DBID/log/procmon/`whoami`.mon
+export PROCMON
+DLC=/usr/dlc
+
+
+test $ME = "bankadm" && { clear; echo "PROPATH:"; echo $PROPATH; echo "Press enter"; read w; }
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -h 10 -TM 32 -TB 31 -mmax 1000 -Bt 1024 -tmpbsize 4 -U bankadm -P Bflv02 -y -yx $@
+
+
+#pragma          20001/tcp       pragma
+#pragma1         20002/tcp       pragma1 not use
+#comm            20003/tcp       comm
+#ib		 20004/tcp	 ib
+#
+#aktau           20005/tcp
+#astana          20006/tcp
+#atyrau          20007/tcp 
+#zeskaz          20008/tcp
+#karaganda       20009/tcp
+#kokshetau       20010/tcp
+#kostanai        20011/tcp
+#pavlodar        20012/tcp 
+#petropav        20013/tcp
+#taraz           20014/tcp
+#chimkent        20015/tcp
+#uralsk          20016/tcp
+#ustkam          20017/tcp
+#almaty		 20018/tcp
+#almatfl	 20019/tcp      balm
+
+
+

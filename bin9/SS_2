@@ -1,0 +1,244 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+if [ $DBID = "bmkb" ]
+then
+                                        
+while true
+do  
+  echo    
+  echo 
+  echo "    1. Start COMM database server"
+  echo "    2. Start COMM database server + AI + AIMD"
+  echo "    3. Start COMM database server + AI + AIMD + Replication Server"
+  echo "    4. Start COMM database server Replication Target"
+  echo "    5. Stop COMM database"
+  echo 
+  echo "    6. Start CARDS database server"
+  echo "    7. Start CARDS database server + AI + AIMD"
+  echo "    8. Start CARDS database server + AI + AIMD + Replication Server"
+  echo "    9. Start CARDS database server Replication Target"
+  echo "   10. Stop CARDS database"
+  echo
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+
+
+  1) 
+   /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+      then
+	RC=0
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in COMM!"; }
+
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in COMM!"; }
+
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 400 -spin 20000 -L 15000 -bibufs 20 -B $COMMBPool -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCOMMDIR/comm 
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+    else
+	echo Cannot DO THIS.  
+    fi;;
+
+  2) 
+   /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+      then
+	RC=0
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in COMM!"; RC=1; }
+
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in COMM!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -aiarcdir $DBCOMMDIR/fullai/ -aiarcdircreate -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 400 -spin 20000 -L 15000 -bibufs 20 -B $COMMBPool  -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCOMMDIR/comm 
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proaiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+    else
+	echo Cannot DO THIS.  
+    fi;;
+
+  3) 
+   /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+      then
+	RC=0
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in COMM!"; RC=1; }
+
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in COMM!"; RC=1; }
+
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Source Replication in COMM!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 -aiarcdir $DBCOMMDIR/fullai/ -aiarcdircreate -DBService replserv -N TCP -S $DBCOMMREPLPORT -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 400 -spin 20000 -L 15000 -bibufs 20 -B $COMMBPool  -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+    else
+	echo Cannot DO THIS.  
+    fi;;
+
+
+  4) 
+   /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+      then
+	RC=0
+
+	$DLC/bin/proutil $DBCOMMDIR/comm -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Source Replication in COMM!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -DBService replagent -N TCP -S $DBCOMMREPLPORT -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 400 -spin 20000 -L 15000 -bibufs 20 -B $COMMBPool  -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCOMMDIR/comm 
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+    else
+	echo Cannot DO THIS.  
+    fi;;
+
+
+   5) 
+   /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+     	dbshut $DBCOMMDIR/comm
+	A=`/bin/date`
+	B=`/usr/bin/whoami`
+	C=`/usr/local/bin/askhost`
+	echo "$A $B $C" > $DBCOMMDIR/comm.lock
+     else
+	echo Cannot DO THIS.  
+   fi;;
+
+###################
+
+   6)
+   /usr/dlc/bin/_dbutil $DBCRDIR/cards -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+	then 
+	RC=0
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in CARDS!"; }
+
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in CARDS!"; }
+
+     $DLC/bin/_mprosrv $DBCRDIR/cards -B $CRDSBPool
+     $DLC/bin/_mprosrv $DBCRDIR/cards -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCRDIR/cards
+     $DLC/bin/probiw   $DBCRDIR/cards
+     $DLC/bin/proapw   $DBCRDIR/cards
+     else
+       echo Cannot DO THIS. 
+     fi;;
+
+   7)
+   /usr/dlc/bin/_dbutil $DBCRDIR/cards -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+	then 
+	RC=0
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in CARDS!"; RC=1; }
+
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in CARDS!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCRDIR/cards -aiarcdir $DBCRDIR/fullai/ -aiarcdircreate -B $CRDSBPool
+     $DLC/bin/_mprosrv $DBCRDIR/cards -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCRDIR/cards
+     $DLC/bin/probiw   $DBCRDIR/cards
+     $DLC/bin/proaiw   $DBCRDIR/cards
+     $DLC/bin/proapw   $DBCRDIR/cards
+     else
+       echo Cannot DO THIS. 
+     fi;;
+
+   8)
+   /usr/dlc/bin/_dbutil $DBCRDIR/cards -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+	then
+	RC=0
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in CARDS!"; RC=1; }
+
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in CARDS!"; RC=1; }
+
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Source Replication in CARDS!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCRDIR/cards -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 -aiarcdir $DBCRDIR/fullai/ -aiarcdircreate -B $CRDSBPool -DBService replserv -N TCP -S $DBCRDREPLPORT
+     else
+       echo Cannot DO THIS. 
+     fi;;
+
+   9)
+   /usr/dlc/bin/_dbutil $DBCRDIR/cards -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+	then 
+	RC=0
+
+	$DLC/bin/proutil $DBCRDIR/cards -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Source Replication in CARDS!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+     $DLC/bin/_mprosrv $DBCRDIR/cards -B $CRDSBPool -DBService replagent -N TCP -S $DBCRDREPLPORT
+     $DLC/bin/_mprosrv $DBCRDIR/cards -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCRDIR/cards
+     $DLC/bin/probiw   $DBCRDIR/cards
+     $DLC/bin/proapw   $DBCRDIR/cards
+     else
+       echo Cannot DO THIS. 
+     fi;;
+
+   10)
+  /usr/dlc/bin/_dbutil $DBCRDIR/cards -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+    	dbshut $DBCRDIR/cards
+	A=`/bin/date`
+	B=`/usr/bin/whoami`
+	C=`/usr/local/bin/askhost`
+	echo "$A $B $C" > $DBCRDIR/cards.lock
+     else
+       echo Cannot DO THIS. 
+     fi;; 
+
+ [Qq]) exit 0;;
+  exit) exit 0;;
+  *) echo "Wrong selection. Press 1-10 or Q."
+     sleep 1;;
+  esac
+done
+
+else
+echo "db is not bmkb"
+fi

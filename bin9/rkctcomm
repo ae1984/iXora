@@ -1,0 +1,5 @@
+﻿#!/bin/sh
+. /pragma/bin9/rkcenv
+exec $DLC/bin/_progres $DBCOMMDIR/comm -e 63 -l 5150 -d dmy -ld comm 
+
+

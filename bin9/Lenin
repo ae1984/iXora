@@ -1,0 +1,193 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+#test `/sbin/ifconfig  | grep "172.16.1.25" > /dev/null; echo $?` = 0 || let BPool="$BPool/2"
+test `/bin/uname -n` = "ixora601.metrobank.kz" -o `/bin/uname -n` = "devel.metrobank.kz" || BPool="4096" 
+{ case $DBID in
+
+############################################################## COMM ##############################################################
+	comm)
+
+	/usr/dlc/bin/_progres $DBDIR/$DBNAME -b -T /data/temp/ | grep -i "Can't attach shared memory with segment_id" > /dev/null && { test -e $DBDIR/$DBNAME.lk && rm -f $DBDIR/$DBNAME.lk && echo "Can't attach shared memory with segment_id for $DBDIR/$DBNAME 	-	fixed"; }
+
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+	RET=$?
+	if [ $RET = "0" ]
+	then
+	WAY="0"
+	SCAN=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+	echo "$SCAN" | grep "After" > /dev/null && AICOMMAND="$DLC/bin/proaiw   $DBDIR/$DBNAME"
+	echo "$SCAN" | grep "Mangement/Archiver" > /dev/null && AMCOMMAND="-aiarcdir $DBDIR/fullai/ -aiarcdircreate"
+	echo "$SCAN" | grep "Replication" | grep "Source" > /dev/null && { REPLCOMMAND="-DBService replserv"; WAY="0"; }
+	echo "$SCAN" | grep "Replication" | grep "Target" > /dev/null && { REPLCOMMAND="-DBService replagent"; WAY="1"; }
+
+	echo "Начинаю поднимать базу: $DBDIR/$DBNAME"
+
+		if [ $WAY = "1" ]
+		then
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 700 -spin 50000 -L 15000 -bibufs 25 -aibufs 25 -B $BPool -bithold 1650 -bistall -semsets 4 || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 900 -spin 50000 -L 800000 -bibufs 25 -aibufs 25 -B $BPool -bithold 4096 -bistall -semsets 4 -pica 8192 || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT1 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT2 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		$DLC/bin/proapw   $DBDIR/$DBNAME
+		else
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 700 -spin 50000 -L 15000 -bibufs 256 -aibufs 256 -B $BPool -bithold 1650 -bistall -semsets 4 || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 900 -spin 50000 -L 800000 -bibufs 256 -aibufs 256 -B $BPool -bithold 4096 -bistall -semsets 4 -pica 8192 || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		$DLC/bin/proapw   $DBDIR/$DBNAME
+		fi
+	test -e $DBDIR/$DBNAME.lock && rm $DBDIR/$DBNAME.lock
+	touch $DBDIR/.lock-ai
+	exit 0
+	else
+	echo Cannot DO THIS.  
+	fi
+	;; 
+
+############################################################## CARDS ##############################################################
+	cards)
+
+	/usr/dlc/bin/_progres $DBDIR/$DBNAME -b -T /data/temp/ | grep -i "Can't attach shared memory with segment_id" > /dev/null && { test -e $DBDIR/$DBNAME.lk && rm -f $DBDIR/$DBNAME.lk && echo "Can't attach shared memory with segment_id for $DBDIR/$DBNAME 	-	fixed"; }
+
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+	RET=$?
+	if [ $RET = "0" ]
+	then
+	WAY="0"
+	SCAN=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+	echo "$SCAN" | grep "After" > /dev/null && AICOMMAND="$DLC/bin/proaiw   $DBDIR/$DBNAME"
+	echo "$SCAN" | grep "Mangement/Archiver" > /dev/null && AMCOMMAND="-aiarcdir $DBDIR/fullai/ -aiarcdircreate"
+	echo "$SCAN" | grep "Replication" | grep "Source" > /dev/null && { REPLCOMMAND="-DBService replserv"; WAY="0"; }
+	echo "$SCAN" | grep "Replication" | grep "Target" > /dev/null && { REPLCOMMAND="-DBService replagent"; WAY="1"; }
+
+	echo "Начинаю поднимать базу: $DBDIR/$DBNAME"
+
+
+		if [ $WAY = "1" ]
+		then
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -B $BPool -bithold 1650 -bistall || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -n 50 -B $BPool -bithold 4096 -bistall || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT1 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT2 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		else
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -B $BPool -bithold 1650 -bistall || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -n 50 -B $BPool -bithold 4096 -bistall || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		fi
+	test -e $DBDIR/$DBNAME.lock && rm $DBDIR/$DBNAME.lock
+	touch $DBDIR/.lock-ai
+	exit 0
+	else
+	echo Cannot DO THIS.  
+	fi
+	;; 
+
+############################################################## all ##############################################################
+        *)
+
+	/usr/dlc/bin/_progres $DBDIR/$DBNAME -b -T /data/temp/ | grep -i "Can't attach shared memory with segment_id" > /dev/null && { test -e $DBDIR/$DBNAME.lk && rm -f $DBDIR/$DBNAME.lk && echo "Can't attach shared memory with segment_id for $DBDIR/$DBNAME 	-	fixed"; }
+
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+	RET=$?
+	if [ $RET = "0" ]
+	then
+	WAY="0"
+	SCAN=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+	echo "$SCAN" | grep "After" > /dev/null && AICOMMAND="$DLC/bin/proaiw   $DBDIR/$DBNAME"
+	echo "$SCAN" | grep "Mangement/Archiver" > /dev/null && AMCOMMAND="-aiarcdir $DBDIR/fullai/ -aiarcdircreate"
+	echo "$SCAN" | grep "Replication" | grep "Source" > /dev/null && { REPLCOMMAND="-DBService replserv"; WAY="0"; }
+	echo "$SCAN" | grep "Replication" | grep "Target" > /dev/null && { REPLCOMMAND="-DBService replagent"; WAY="1"; }
+
+	echo "Начинаю поднимать базу: $DBDIR/$DBNAME"
+
+		if [ $WAY = "1" ]
+		then                                                                                      
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 21 -n 200 -B $BPool -L 230000 -trig $PTRIGLIB -bibufs 25 -aibufs 25 -spin 50000 -semsets 5 -bithold 1650 -bistall || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 21 -n 200 -B $BPool -L 800000 -trig $PTRIGLIB -bibufs 25 -aibufs 25 -spin 50000 -semsets 5 -bithold 4096 -bistall -pica 8192 || { echo "Cannot start server"; exit 1; }
+#	        $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+	        $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT1 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+#	        $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 $REPLCOMMAND -N TCP -S $REPLPORT2 -minport 40000 -maxport 50000 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		$DLC/bin/proapw   $DBDIR/$DBNAME
+		else
+		#$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 21 -n 200 -B $BPool -L 230000 -trig $PTRIGLIB -bibufs 25 -aibufs 25 -spin 50000 -semsets 5 -bithold 1650 -bistall || { echo "Cannot start server"; exit 1; }
+		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND $REPLCOMMAND -Mn 21 -n 200 -B $BPool -L 800000 -trig $PTRIGLIB -bibufs 25 -aibufs 25 -spin 50000 -semsets 5 -bithold 4096 -bistall -pica 8192 || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME $AMCOMMAND -Mn 21 -n 200 -B $BPool -L 230000 -trig $PTRIGLIB -bibufs 25 -aibufs 25 -spin 50000 -semsets 5 -bithold 1650 -bistall || { echo "Cannot start server"; exit 1; }
+#		$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $MAINPORT
+#	        $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mm 1024 -Mpb 20 -Ma 5 -Mi 3
+		$DLC/bin/prowdog  $DBDIR/$DBNAME 
+		$DLC/bin/probiw   $DBDIR/$DBNAME
+		$AICOMMAND
+		$DLC/bin/proapw   $DBDIR/$DBNAME
+		fi
+	test -e $DBDIR/$DBNAME.lock && rm $DBDIR/$DBNAME.lock
+	touch $DBDIR/.lock-ai
+	exit 0
+	else
+	echo "База $DBDIR/$DBNAME уже запущена :)"
+	fi
+	;;
+
+esac } 
+
+#Configuration Properties
+#
+#    General
+#        # Blocks in DB Buffer         -B
+#        # Hash Table entries          -hash
+#        # Lock Table entries          -L
+#        Maximum users                 -n    "-n" Parameter: Sets the maximum numbers of remote and local users connected to the database. 
+#        Maximum servers               -Mn   "-Mn" Parameter: Sets the number of servers to be started.
+#        Apply crash protection        -i
+#        Employ direct I/O             -directio
+#
+#    Advanced
+#        Semaphore sets                -semsets
+#        Shared memory overflow        -Mxs
+#        Spin lock retries             -spin
+#
+#Server Group
+#
+#    General
+#        Server name or port number    -S
+#        Number of Servers             -Mpb  "-Mpb" Parameter:  Sets the maximum number of servers that each broker can spawn.
+#        Message buffer size           -Mm
+#        Reporting interval            -rptint (****)
+#
+#    Clients
+#        Maximum clients per server    -Ma  "-Ma" Parameter: Sets the number of users that can be connected to each server.
+#        Minimum clients per server    -Mi  "-Mi" Parameter: Sets the number of connections that are to be connected to one server before spawning another server. 
+
+#
+#    Ports
+#        Maximum dynamic port          -maxport
+#        Minimum dynamic port          -minport
+#(****) Progress Explorer erroneously allows you to set the Reporting
+#Interval property (-rptint) for database configurations. This property
+#is not supported by the Progress V9 database.
+
+#        Database Service Communication Area Size    -pica "-n" Parameter: set the size of the database service communications area in Kb

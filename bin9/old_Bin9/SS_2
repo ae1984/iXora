@@ -1,0 +1,72 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+
+
+while true
+do  
+  echo    
+  echo 
+  echo "    1. Start general $DBDESCR servers (COMM, CARDS, SKLAD)"
+  echo "    2. Stop general $DBDESCR servers (COMM, CARDS, SKLAD)"
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+
+
+  1) 
+  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+      then
+	rfutil $DBCOMMDIR/comm -C aimage begin
+
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 200 -spin 20000 -L 15000 -bibufs 20 -B 20000  -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -S $DBCOMMSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCOMMDIR/comm
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proaiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+     
+     $DLC/bin/_mprosrv $DBCRDIR/cards 
+        fi
+	if dbcheck $DBCRDIR/cards 0
+	then 
+	  $DLC/bin/_mprosrv $DBCRDIR/cards
+     else
+       echo Cannot DO THIS. 
+     fi
+     ;;
+  2) 
+  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+     	dbshut $DBCOMMDIR/comm 
+	rfutil $DBCOMMDIR/comm -C aimage end
+        fi
+	if dbcheck $DBCRDIR/cards 16
+     then
+    	dbshut $DBCRDIR/cards
+	rfutil $DBCRDIR/cards -C aimage end
+     else
+       echo Cannot DO THIS. 
+     fi
+	;; 
+ [Qq]) exit 0;;
+  exit) exit 0;;
+  *) echo "Wrong selection. Press 1-8 or Q."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

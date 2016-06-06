@@ -1,0 +1,9 @@
+﻿#!/bin/sh
+PARAM=${1:-man}
+FNAME=`man -w $PARAM | awk '/located/ {print $NF}'`
+SNAME=`man -w $PARAM | awk '/located/ {print $NF}' | awk 'BEGIN {FS="/"} {print $NF}'`
+if [ -f $FNAME ]; then 
+   cp $FNAME .
+   /pragma/bin9/cptwin $SNAME explorer.exe
+   rm ./$SNAME
+fi

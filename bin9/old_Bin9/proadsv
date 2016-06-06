@@ -1,0 +1,229 @@
+﻿#!/bin/sh
+# Progress Admin Server utility for starting/stopping/querying
+PROG=`basename $0`
+
+# Determine the correct directory where the Progress is
+# installed from either the tailored name or existing value of $DLC.
+for what_dlc in "$DLC" "/usr/wsrt"
+do
+    [ ! -f "${what_dlc}/java/progress.jar" ] && continue
+    DLC=$what_dlc
+    export DLC
+    break
+done
+
+# Set the user working directory - this is a tailored value
+for what_wrkdir in "$WRKDIR" "/usr/wrk" "."
+do
+    [ ! -d "${what_wrkdir}" ] && continue
+    WRKDIR=$what_wrkdir
+    export WRKDIR
+    break
+done
+
+
+# Set PROMSGS (if not set) add another others here
+PROMSGS=${PROMSGS-$DLC/promsgs};                     export PROMSGS
+
+# Set ICU_DATA for IBM XML Parser support
+ICU_DATA=${ICU_DATA-$DLC/lib/icu/data};              export ICU_DATA
+
+# Set variables for AdminServer classes and package
+ADMSRVRCLASS=${ADMSRVRCLASS-com.progress.chimera.adminserver.AdminServerType}
+
+# Set property file to start AdminServer
+ADMSRVRPROP=${ADMSRVRPROP-$DLC/properties/AdminServerPlugins.properties}
+ADMSRVRGRP=${ADMSRVRGRP-PluginPolicy.Progress.AdminServer}
+
+# Set defaults for AdminServer startup
+STARTCLASS=""
+
+# Java Virtual Machine starter - sets up process env for JVM
+JVMSTRT=${JVMSTRT-$DLC/bin/jvmStart}
+JVMSTRT_DBGOPT=0
+
+# In case TERM is not set to something, avoid a warning message.
+TERM=ansi; export TERM
+
+cat $DLC/version
+
+# Set any environment variables below required to start the AdminServer
+
+# set the java environment
+if [ ! -f $DLC/bin/java_env ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "java_env could not be found."
+    echo
+    echo "JAVA environment not set correctly."
+    echo "Progress DLC environment variable may not be set correctly."
+    echo "Set DLC variable to Progress installation directory."
+    echo
+    echo "Progress DLC setting: $DLC"
+    echo
+    echo
+    exit 1
+fi
+
+# Set the JAVA environment
+. $DLC/bin/java_env
+
+if [ ! -f $JREHOME/bin/$JVMEXE ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "Java Virtual Machine could not be found."
+    echo
+    echo "JREHOME environment variable may not be set correctly."
+    echo "Set JREHOME variable to a valid directory."
+    echo
+    echo "JREHOME setting: $JREHOME"
+    echo
+    exit 1
+fi
+
+
+# set the Progress shared lib  environment
+if [ ! -f $DLC/bin/slib_env ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "slib_env could not be found."
+    echo
+    echo "Progress shared library environment not set correctly."
+    echo "Progress DLC environment variable may not be set correctly."
+    echo "Set DLC variable to Progress installation directory."
+    echo
+    echo "Progress DLC setting: $DLC"
+    echo
+    echo
+    exit 1
+fi
+
+# Set the Progress Shared lib environment
+. $DLC/bin/slib_env
+
+# if the Oracle shared lib environment file exists, run it
+if [  -f $DLC/bin/slibor_env ]
+then
+. $DLC/bin/slibor_env
+fi
+
+# if the ODBC shared lib environment file exists, run it
+if [  -f $DLC/bin/slibod_env ]
+then
+. $DLC/bin/slibod_env
+fi
+
+# if the AMS environment file exists, run it
+if [  -f $FATHOMTARG/bin/fathom_env ]
+then 
+. $FATHOMTARG/bin/fathom_env
+elif [  -f $DLC/bin/fathom_env ]
+then
+. $DLC/bin/fathom_env
+fi
+
+# if the Replication environment file exists, run it
+if [  -f $REPLTARG/bin/repl_env ]
+then 
+. $REPLTARG/bin/repl_env
+elif [  -f $DLC/bin/repl_env ]
+then
+. $DLC/bin/repl_env
+fi
+
+# if the Web Services Toolkit file exists, run it
+# This operation affects the CLASSPATH and should be run
+# after all other environment files have run.
+#
+if [  -f $WSTKTARG/bin/wstk_env ]
+then 
+. $WSTKTARG/bin/wstk_env
+elif [  -f $DLC/bin/wstk_env ]
+then
+. $DLC/bin/wstk_env
+fi
+
+
+
+# Is the 4GL search path already set?
+if [ -n "$PROPATH" ]
+then
+    # Yes, add after the current directory.
+    PROPATH=.:$PROPATH
+else
+    # No, just set it
+    PROPATH=.
+fi
+export PROPATH
+
+
+# To override any of the settings in this script, create a file proset.env in
+# the application default directory and set any environment variables in that
+# file in the same way it would be done for any Bourne shell script i.e.
+#   # proset.env - application environment changes
+#   # Adjust the PROPATH to also include the web/examples directory.
+#   PROPATH=$PROPATH:$DLC/src/web/examples
+#   export PROPATH
+# The file must be named "proset.env" and it must be in the current working
+# directory to be loaded by this and other scripts.
+if [ -f proset.env ]
+then
+    echo "Loading settings from proset.env"
+    . ./proset.env
+fi
+
+
+
+# make sure the working directory is real.
+if [ ! -d $WRKDIR ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "Working directory is invalid."
+    echo
+    echo "Progress WRKDIR environment variable may not be set correctly."
+    echo "Set WRKDIR variable to a valid directory."
+    echo
+    echo "Progress WRKDIR setting: $WRKDIR"
+    echo
+    exit 1
+fi
+
+if [ ! -f $JVMSTRT ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "Progress Java Server starter could not be found."
+    echo
+    echo "Progress DLC environment variable may not be set correctly."
+    echo "Set DLC variable to Progress installation directory."
+    echo
+    echo "Progress DLC setting: $DLC"
+    echo "Executable not found: $JVMSTRT"
+    echo
+    exit 1
+fi
+
+if [ ! -f $ADMSRVRPROP ]
+then
+    echo "Progress $PROG Messages:"
+    echo
+    echo "Progress plugin property file could not be found."
+    echo
+    echo "Progress DLC environment variable may not be set correctly."
+    echo "Set DLC variable to Progress installation directory."
+    echo
+    echo "Progress DLC setting: $DLC"
+    echo "Executable not found: $ADMSRVRPROP"
+    echo
+    exit 1
+fi
+
+# at this point ALL required environment variable should be set
+
+echo "exec $JVMSTRT -w $WRKDIR -o stderr  -m silent -a $ADMSRVRPROP::$ADMSRVRGRP $JREHOME/bin/$JVMEXE -DInstall.Dir=$DLC -DWork.Dir=$WRKDIR -Djvmstart.debug=$JVMSTRT_DBGOPT  -Djava.command=$JVMEXE -Dadmsrv.jvm=$JREHOME/bin/$JVMEXE  $ADMSRVRCLASS $@"
+read w
+

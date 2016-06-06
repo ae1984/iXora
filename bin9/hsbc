@@ -1,0 +1,167 @@
+﻿#!/bin/bash
+####################################################
+# Processing of pay-cards merchant statements 
+# By Alexander Muhovikov, 08/02/2002
+####################################################
+# * CHANGES
+#   30/04/2004 isaev - ёҐ­ҐЮ ФЁО Д ©«®ў Ї® ATM, POS
+
+
+while true
+do  
+  echo
+  echo " --------------------- "
+  echo "| Merchant statements |"
+  echo "|- - - - - - - - - - -|"
+  echo "|   1. HSBK           |"
+  echo "|   2. ABN AMRO       |"   
+  echo "|   Q. Quit           |"
+  echo " --------------------- "
+  echo
+
+  read ans
+  case $ans in
+
+###################################
+#  HSBK
+###################################
+
+  1)  clear
+
+TDIR="tmph"
+mkdir $TDIR
+echo 'Getting files (HSBK) from C:\HSBK\WORK\...'
+rcp `askhost`:c:\\hsbk\\work\\*mt*.* $TDIR
+
+echo 'File (HSBK) processing...'
+for F in `ls $TDIR/*mt*.1`
+do
+  echo 'Current file is : ' $F
+  prcpragma.awk $F > $F.pragma
+  pragma2prt.awk $F.pragma > $F.prt
+done
+
+echo 'Adding statements (HSBK) to PRAGMA...'
+for F in $TDIR/*.pragma
+do
+  echo 'Current file is : ' $F
+  genstat $F
+done
+
+echo 'Moving file (HSBK) to C:\HSBK\PRINT\...'
+rcp $TDIR/*.prt `askhost`:c:\\hsbk\\print\\
+rcp $TDIR/*.pragma `askhost`:c:\\hsbk\\pragma\\ 
+
+rm -r $TDIR
+
+     ;;
+
+
+###################################
+#  ABN AMRO
+###################################
+
+  2) clear
+
+TDIR="tmpa"
+mkdir $TDIR
+
+echo 'Getting files (ABN) from C:\HSBK\WORK\...'
+rcp `askhost`:c:\\hsbk\\work\\MerchTransAll.* $TDIR
+rcp `askhost`:c:\\hsbk\\work\\MerchTrans.* $TDIR
+
+echo 'File (ABN) processing...'
+for F in `ls $TDIR/*.txt`
+do
+  echo 'Current file is : ' $F
+  process3.awk $F
+done
+
+
+
+echo 'Printing retail statements (ABN)...'
+for F in `ls $TDIR/*.headkzt`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+for F in `ls $TDIR/*.headusd`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+
+echo 'Printing ATM statements (ABN)...'
+for F in `ls $TDIR/*.atmkzt`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+for F in `ls $TDIR/*.atmusd`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+echo 'Printing POS statements (ABN)...'
+for F in `ls $TDIR/*.cashkzt`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+for F in `ls $TDIR/*.cashusd`
+do
+  echo 'Current file is : ' $F
+  print.awk $F
+done
+
+
+
+
+
+echo 'Adding retail statements (ABN) to PRAGMA...'
+for F in `ls $TDIR/*.head*.pragma`
+do
+  echo 'Current file is : ' $F
+  genstat $F
+done
+
+echo 'Adding ATM statements (ABN) to PRAGMA...'
+for F in `ls $TDIR/*.atm*.pragma`
+do
+  echo 'Current file is : ' $F
+  geastat $F
+done
+
+echo 'Adding POS statements (ABN) to PRAGMA...'
+for F in `ls $TDIR/*.cash*.pragma`
+do
+  echo 'Current file is : ' $F
+  gepstat $F
+done
+
+
+
+
+echo 'Moving file (ABN) to C:\HSBK\PRINT\...'
+rcp $TDIR/*.prt `askhost`:c:\\hsbk\\print\\ 
+rcp $TDIR/*.pragma `askhost`:c:\\hsbk\\pragma\\ 
+
+rm -r $TDIR
+
+     ;;
+
+  [Qq]) clear
+        exit 0
+     ;;
+
+  *) echo "Wrong selection. Press 1, 2 or Q."
+     sleep 2;;
+
+  esac
+done
+

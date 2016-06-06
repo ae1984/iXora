@@ -1,0 +1,7 @@
+﻿#!/bin/bash
+
+cat bmkb.all | while read line
+do
+echo $line | grep "Newer_been_used" > /dev/null || echo $line | awk '{print $1" "$2" "$3" "$4" ; "$5" ; "$6" ; "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17" "$18" "$19" "$20}'
+echo $line | grep "Newer_been_used" > /dev/null && echo $line | awk '{print $1" ; "$2" ; "$3" ; "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17" "$18" "$19" "$20}'
+done

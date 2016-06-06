@@ -1,0 +1,2 @@
+﻿#!/bin/sh
+cat $1|{ tr -d "^<>"; echo;}|sed 's/\/\*/</g'|sed 's/\*\//>/g'|sed 's/~{//g'|sed 's/~}//g'|sed 's/\\{//g'|sed 's/\\}//g'|sed 's/{/^&/g'|sed 's/}/&^/g'|sed 's/</^&/g'|sed 's/>/&\^/g'|tr "^" "\n"|awk '/\}|\{|<|>/ {print}'|grep -v -e '^ *<.*> *$'|{ tr "\n" " "; echo;}|sed 's/<[^<>]*>//g'|sed 's/<[^<>]*>//g'|sed 's/<[^<>]*>//g'|sed 's/{ *[0123456789]* *}//g'|sed 's/{ *\&.*}//g'|sed 's/{/\^&/g'|sed 's/}/&\^/g'|tr "^" "\n"|grep "{"|tr "{}" "  "|awk '!/^&/ {print $1}'|sort -u

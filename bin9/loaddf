@@ -1,0 +1,29 @@
+﻿#!/bin/sh
+#написан id00700
+
+dir=~
+banks="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"
+
+df=$1
+dir=~
+
+#проврка аргумента
+if [ "$df" = "" ]; then
+echo "Введите имя df-файла!!!"
+sleep 2
+exit
+fi
+
+#проверка наличия файла
+if [ ! -e $dir"/"$df ]; then
+echo "Указанного df-файла нет в вашей домашней директории!!!"
+sleep 2
+exit
+fi
+
+for i in $banks
+do
+echo $i
+sleep 1
+mpro /data/$i/bank -U bankadm  -P Bflv02 -p /pragma/lib/RX/rcode_debug/myloaddf.p -param $1
+done

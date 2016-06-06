@@ -1,0 +1,49 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/proenv
+
+SDIR=data/alm/ai
+BDIR=data/alm/aibkup
+test -d /savedb/alm/aibkup || { mkdir /savedb/alm/aibkup; chmod 750 /savedb/alm/aibkup; }
+test -d /$BDIR || { mkdir /$BDIR; chmod 750 /$BDIR; }
+cp -f /$SDIR/* /$BDIR 
+
+DATE=`date "+%y-%m-%d"`
+DAY=/savedb/alm/aibkup/$DATE
+
+TIME=`date "+%H-%M-%S"`
+TDIR=$DAY/$TIME
+
+ABDIR=/data/log/alm/$DATE
+test -d /$ABDIR || { mkdir /$ABDIR; chmod 750 /$ABDIR; }
+echo "	 " $i >> /$ABDIR/ai.log
+
+test -d $DAY || { mkdir $DAY; chmod 750 $DAY; }
+rm -rfv /savedb/alm/aibkup/$DATE/* >> $ABDIR/ai.log
+echo "уФБТЩЕ ЖБКМЩ ХДБМЕОЩ РТПГЕДХТПК ЪБРХУЛБЕНПК У ЛТПОБ" >> $ABDIR/ai.log
+echo "	"
+echo "уПЪДБОЙЕ ДЙТЕЛФПТЙЙ $DATE / $TIME " >> /$ABDIR/ai.log
+
+cd /$BDIR
+	for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		   cp $i /$BDIR/
+		   if [ $? = 0 ]
+			 then rm -f $i
+                              echo "$DATE / $TIME лПРЙТХЕН " $i "Ч $TDIR" >> /$ABDIR/ai.log
+               		 else echo "$DATE / $TIME пЫЙВЛБ РТЙ ЛПРЙТПЧБОЙЙ $i !!!" >> /$ABDIR/ai.log
+            	      fi
+            else 
+                nice -5 /usr/bin/gzip -qc1 $i > /$BDIR/$i".Z"
+		   if [ $? = 0 ]
+                      then rm -f $i
+                           echo "$DATE / $TIME  бТИЙЧЙТХЕН " $i "Ч $TDIR" >> /$ABDIR/ai.log
+                      else echo "$DATE / $TIME пЫЙВЛБ РТЙ БТИЙЧБГЙЙ $i !!!" >> /$ABDIR/ai.log
+                   fi
+            fi
+        done
+
+test -d /$TDIR || { mkdir /$TDIR; chmod 750 /$TDIR; }
+mv -f /$BDIR/*.Z  /$TDIR/

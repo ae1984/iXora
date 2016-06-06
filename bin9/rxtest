@@ -1,0 +1,13 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) 2010.10.28
+
+RX=`ls /pragma/lib/RX/RX.pl -l | awk '{print $7" "$6" "$8}'`
+RT=`echo "$RX" | awk '{print $1" "$2}'`
+DT=`date | awk '{print $3" "$2}'`
+
+if [ "$RT" = "$DT" ]
+then MESS="All OK!.Last library modification match current date. Date create of RX.pl - $RX"
+else MESS="ATTENTION!!! Date of create RX.pl did not match current date. Date create of RX.pl - $RX"
+fi
+
+echo "$MESS" | /bin/mail -s RX.pl 'id00205@metrobank.kz id00020@metrobank.kz id00477@metrobank.kz id00700@metrobank.kz id00640@metrobank.kz'

@@ -1,0 +1,41 @@
+﻿#!/bin/sh
+# KOVAL запуск процедур на COMM
+# suchkov - 05.11.2003 - подставлена процедура запроса пароля
+. /pragma/bin9/dbenv
+
+if [ $passw ]; then 
+    tes="yes"
+
+else
+    echo -n "Input PaySystem Administrator Password:"
+    passw=`perl -e 'use Term::ReadKey;                                                                                     
+             ReadMode("cbreak");                                                                                    
+             while ($key ne "\n")                                                                                   
+             {                                                                                                      
+                 $key = ReadKey(0);                                                                                 
+                 if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+                 {                                                                                                  
+                     $pass = $pass . $key;                                                                          
+                     print "*";
+                 }                                                                                                  
+             }                                                                                                      
+             ReadMode("normal");
+             print ":$pass";' | awk -F: '{print $2}'`
+
+    if [ $passw ]; then 
+            res=`awk -F: '/superman/ {print $2}' /pragma/bin9/passwd`
+            tes=`genkey.exe -c $passw $res`
+        else 
+        tes="no"
+    fi
+fi
+   
+if [ $tes = "yes" ]; then 
+
+    echo "OK!"
+    exec $DLC/bin/_progres -db $DBDIR/bank -ld bank -U superman -P $passw -L 5000 -db $DBCOMMDIR/comm -mmax 1024 -d dmy -ld comm -U superman -P $passw -b -p $1 -param $2  -t -T /data/temp 
+    
+
+else
+    echo "Password incorrect."
+fi

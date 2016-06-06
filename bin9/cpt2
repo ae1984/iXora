@@ -1,0 +1,10 @@
+﻿#!/bin/bash
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+RHOST=`rsh $pc 'echo %TEMP%'`
+TFILE=$$_$1
+un-win $1 $TFILE
+echo  $RHOST
+rcp $TFILE $pc:'$RHOST'
+rm -f $fltmp1
+#rsh $pc start $2 $RHOST\\$TFILE
+rm -f $TFILE

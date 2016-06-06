@@ -1,0 +1,119 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+if [ $1 = "alm" ]
+ then
+  echo "Locked, wait for unlock by ast!"
+   while true
+    do
+    test -e /tmp/.lockast && { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "akt" ]
+ then
+  echo "Locked, wait for unlock by alm!"
+   while true
+    do
+    test -e /tmp/.lockalm || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "kos" ]
+ then
+  echo "Locked, wait for unlock by akt!"
+   while true
+    do
+    test -e /tmp/.lockakt || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "url" ]
+ then
+  echo "Locked, wait for unlock by kos!"
+   while true
+    do
+    test -e /tmp/.lockkos || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "kar" ]
+ then
+  echo "Locked, wait for unlock by url!"
+   while true
+    do
+    test -e /tmp/.lockurl || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "trz" ]
+ then
+  echo "Locked, wait for unlock by kar!"
+   while true
+    do
+    test -e /tmp/.lockkar || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "sem" ]
+ then
+  echo "Locked, wait for unlock by trz!"
+   while true
+    do
+    test -e /tmp/.locktrz || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "kok" ]
+ then
+  echo "Locked, wait for unlock by sem!"
+   while true
+    do
+    test -e /tmp/.locksem || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi
+
+if [ $1 = "ast" ]
+ then
+  echo "Locked, wait for unlock by kok!"
+   while true
+    do
+    test -e /tmp/.lockkok || { echo " Unlocked"; exit; }
+    echo -n "."
+    sleep 1
+   done
+  else
+ echo -n
+fi

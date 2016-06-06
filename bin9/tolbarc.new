@@ -1,0 +1,31 @@
+﻿cd $3 
+tar cvf ./ARC/rk"$2".tar ?$1
+if [ $? != "0" ]
+then
+exit 1
+fi
+compress -f ./ARC/rk"$2".tar
+if [ $? != "0" ]
+then
+exit 1
+fi
+for fil in `ls p$1.eks`
+do
+    /pragma/bin9/un-dos $fil $fil.$$
+done
+rcp p$1.$$ $4:$5
+
+/bin/rm -f ?$1 p*.eks.*
+
+if [ $? != "0" ]
+then
+  exit 1
+fi
+
+if [ $? != "0" ]
+then
+  exit 1
+fi
+exit 0
+
+

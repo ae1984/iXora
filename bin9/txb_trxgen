@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+txb_path=$1;export txb_path
+txb_trxcode=$2;export txb_trxcode
+txb_vdel=$3;export txb_vdel
+txb_vparam=$4;export txb_vparam
+txb_vsub=$5;export txb_vsub
+txb_vref=$6;export txb_vref
+txb_sts=$7;export txb_sts
+txb_sjh=$8;export txb_sjh
+_progres "$txb_path" -b -U superman -P Svfy02 -p trxgen_txb

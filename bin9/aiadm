@@ -1,0 +1,68 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/aienv
+
+ACMD=$1
+BCMD=$2
+
+HELP="\naiadm: Incorrect parameter list!\nUsage: aiadm <db_id> <ai_db_id> <start | stop> <switch | rollfwd>\n"
+
+########################################
+# CHECKING FOR CORRECT PARAMETER LIST
+########################################
+
+if [ "$ACMD" = "" ]; then
+   echo $HELP
+   exit 1
+fi
+
+if [ "$BCMD" = "" ]; then
+   echo $HELP
+   exit 2
+fi
+
+if [ "$ACMD" != "start" ]; then
+   if [ "$ACMD" != "stop" ]; then
+      echo $HELP
+      exit 3
+   fi
+fi
+
+if [ "$BCMD" != "switch" ]; then
+   if [ "$BCMD" != "rollfwd" ]; then
+      echo $HELP
+      exit 4
+   fi
+fi
+
+########################################
+# START processing
+########################################
+
+if [ "$ACMD" = "start" ]; then
+   if [ "$BCMD" = "switch" ]; then
+      if [ -f $AIDIR/.stop ]; then
+         rm -f $AIDIR/.stop
+      fi
+   fi
+   if [ "$BCMD" = "rollfwd" ]; then
+      if [ -f $AIAPPLY/.stop ]; then
+         rm -f $AIAPPLY/.stop
+      fi
+   fi
+fi
+
+########################################
+# STOP processing
+########################################
+
+if [ "$ACMD" = "stop" ]; then
+   if [ "$BCMD" = "switch" ]; then
+      echo " " > $AIDIR/.stop
+   fi
+   if [ "$BCMD" = "rollfwd" ]; then
+      echo " " > $AIAPPLY/.stop
+   fi
+fi
+

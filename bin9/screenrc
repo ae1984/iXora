@@ -1,0 +1,13 @@
+﻿#
+# This is an example for the global screenrc file.
+# You may want to install this file as /usr/local/etc/screenrc.
+# Check config.h for the exact location.
+#
+# Flaws of termcap and standard settings are done here.
+#
+
+# no annoying audible bell, please
+vbell off
+defencoding cp1251
+#acladd id00700
+#multiuser on

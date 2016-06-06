@@ -1,0 +1,533 @@
+﻿#/bin/bash
+# KOVAL
+#       This script for copy host:a:/swift.txt file to /ps/NB/PSJ/PP
+#
+# Synopsis:
+#       cppfv 0 - Test
+#       cppfv 1 - Upload to Pragma
+#
+# Last update: 07.11.02
+#
+# Changed 03.07.03 SASCO - check RIC using scripts /pragma/bin/prsic and crric
+#         12.05.2004 nadejda - проверка на количество строк наименования - должна быть одна строка, исправлена ошибка при проверке длины наименования
+#         16.11.2004 sasco   - обработка АТФ банка (смена головного банка, 190501826 - коресп для 190501956
+#
+#         14.01.2005 sasco   - обработка социальных отчислений
+#         14.03.2005 sasco   - обработка слова PERIOD для социальных отчислений
+#	21.06.2006 u00121 - ТЗ 370 от 30.06.06 - отменены все пенсионные фонды, обработка только для ГЦВП, проверка на наличие поля /PERIOD/, и на отсутствие поля 54C
+#	02.10.2006 u00121 - временные файлы (каталог /psjtemp/ ) будут храниться теперь в домашнем каталоге пользователя, а то они стали держать друг друга часто
+#	26.09.2013 yerganat - для загрузки файлы беруться из psjin 
+
+test -e $HOME/psjtemp && rmdir $HOME/psjtemp
+
+fn(){
+    echo -n `date "+%y%j"`
+    expr `date "+%H"` \* 3600 + `date "+%M"` \* 60 + `date "+%S"`| awk '{printf "%0.5i", $1}'
+}
+
+frm(){
+    echo -n $1|awk '{printf "%0.2i", $1}'
+}
+
+wlog(){
+    echo `date "+%d/%m/%y %H:%M:%S"` `whoami` " " $1 $2 $3 $4 |tee -a $LOG
+}
+
+lenta(){
+#Запись ленточки
+ STR=`cat $OUTF|awk '/:50:\/D\//  {D=substr($0,8,20)}  /:32A:/ {s=substr($0,15,length($0)-14); split (s,W,","); s=W[1] "." W[2]; printf ("%9s %-18.2f",D,s) }'`
+ SUMMA=`echo $STR " " $SUMMA|awk '{S=$2+$3;printf ("%18.2f",S)}'`
+ NLNT=`expr $NLNT + 1`
+ echo `date "+%d/%m/%y"` $NLENTA `whoami` " " $STR|tee -a $HLLOG >> $LLOG 
+}
+
+tst_mt102(){
+# KOVAL IGOR
+# F01K0591400
+cat $1 | tr -d '\015' | awk ' 
+   NR==1        {print NR "|1|" $0}
+  /\{2:/        {print NR "|2|" substr($0,4,length($0)-4)}
+  /:20:/        {print NR "|20|" substr($0,5,length($0)-4)}
+  /:21:/        {NUMBER=int(substr($0,5,length($0)-4))
+                 MANRNN[NUMBER]="0" 
+                 MANNR[NUMBER]=NR
+                }
+  /:50:\/D\//   {print NR "|D|" substr($0,8,20)}
+  /\/NAME\//    {if (NR<10) { NAME="|NAME-ORGANIZATION|" }
+                       else { NAME="|NAME-FOND|" }
+                  counter=1
+                  while ((substr($0,1,1)!="/")||(substr($0,1,6)=="/NAME/")) {
+                     print NR NAME substr($0,7,length($0)-6)
+                     if (getline==0) { exit }
+                     counter++
+                  }
+                  if (counter>2) {print NR "|ERROR| Наименование содержит несколько строк, строка " NR " в файле " }
+                }
+  /\/RNN\//     {if (NR<10) { RNN="|RNN-ORGANIZATION|" }
+                       else { if (NR<20) { RNN="|RNN-FOND|" }
+                                         else { RNN="|RNN|" 
+#                                                MANRNN[NUMBER]=substr($0,length($0)-11,12)
+                                                RNNNUMS = split ($0, RNNF, "/")
+                                                MANRNN[NUMBER]=RNNF[RNNNUMS]
+                                              } 
+                 }
+#                 print NR RNN substr($0,length($0)-11,12)
+                 RNNNUMS = split ($0, RNNF, "/")
+                 print NR RNN RNNF[RNNNUMS]
+                }        
+  /\/CHIEF\//   {print NR "|CHIEF|"  substr($0,8,length($0)-7)}
+  /\/MAINBK\//  {print NR "|MAINBK|" substr($0,9,length($0)-8)}
+  /\/IRS\//     {if (NR<12) { IRS="|IRS-ORGANIZATION|" }
+                       else { IRS="|IRS-FOND|" }
+                 print NR IRS substr($0,6,length($0)-5)
+                }
+  /\/SECO\//    {if (NR<14) { SECO="|SECO-ORGANIZATION|" }
+                       else { SECO="|SECO-FOND|" } 
+                 print NR SECO substr($0,7,length($0)-6)
+                }
+  /:52B:/       {print NR "|52B|" substr($0,6,8)}
+  /:54C:/       {print NR "|54C|" substr($0,6,length($0)-5)}
+  /:57B:/       {print NR "|57B|" substr($0,6,8)}
+  /:59:/        {print NR "|59|"  substr($0,5,20)}
+  /:70:\/NUM\// {print NR "|NUM|" substr($0,10,length($0)-9)}
+  /\/VO\//      {print NR "|VO|"  substr($0,5,length($0)-4)}
+  /\/DATE\//    {print NR "|DATE|" substr($0,11,2) "." substr($0,9,2) "." substr($0,7,2)}
+  /\/SEND\//    {print NR "|SEND|" substr($0,7,length($0)-6)}
+  /\/KNP\//     {print NR "|KNP|" substr($0,6,length($0)-5)}
+  /\/PSO\//     {print NR "|PSO|" substr($0,6,length($0)-5)} 
+  /\/PRT\//     {print NR "|PRT|" substr($0,6,length($0)-5)}
+  /\/ASSIGN\//  {counter=1
+                  while (substr($0,1,4)!=":21:") {
+                     if (substr($0,1,8)=="/ASSIGN/") { print NR "|ASSIGN|" substr($0,9,length($0)-8) }
+                     else { print NR "|ASSIG2|" $0 }
+                     if (getline==0) { exit }
+                     counter++
+#                     if (counter>7) {break }
+                  }
+                  if (counter>8) { print NR "|ERROR| Поле назначения платежа больше 7 строк, строка " NR " в файле "}
+                }  
+  /\/PERIOD\//  {print NR "|PERIOD|" substr($0,9,length($0)-8)}
+  /:32B:KZT/   { s = substr($0,9,length($0)-8) 
+                 SNUM=split (s,W,",") 
+                 if (SNUM==1) {print NR "|32B| Неверный разделитель дробной части в сумме платежа"}
+                 s = W[1] "," W[2]
+                 sum = sum + s
+               }
+  /:32A:/      { s = substr($0,15,length($0)-14); split (s,W,",")
+                 SNUM=split (s,W,",")
+                 if (SNUM==1) {print NR "|32A| Неверный разделитель дробной части в итоговой сумме"}
+                 s = W[1] "," W[2]
+                 printf ("%d|AMT|%.2f\n%d|VDT|%8s\n",NR, s,NR,substr($0,10,2) "." substr($0,8,2) "." substr($0,6,2))
+               }
+ END { printf ("%d|SUM|%.2f\n",NR,sum) 
+                for (i in MANRNN) {
+                   if (MANRNN[i]=="0") {ERR++; print NR "|ERROR| Отсутствует РНН у плательщика " i ", строка " MANNR[i] " в файле " }
+                }
+ }
+ ' | awk '
+         # Тестирование РНН
+         function testRNN(vrnn) {
+             vwstr1=vrnn
+
+             for (i=1; i<=10; i++) {
+                       for (j=1; j<=10; j++) {
+                           if (i==1) { wstr2[j]=j } else { wstr2[j]=wstr2[j+1] }
+                       }
+                       wstr2[11]=wstr2[1]
+                       vs=0
+                       for (j=1; j<=11; j++) {
+                           vs=vs+(wstr2[j]*int(substr(vwstr1,j,1)))
+                       }
+                       vnres=vs % 11
+                       if (vnres<10) {
+                           if (vnres!=int(substr(vrnn,length(vrnn),1))) { 
+                               return "1"
+                           }
+                           return "0"
+                       }
+             }
+             return "0"
+         }
+
+         BEGIN {
+                 isocial=0
+                 FS="|"
+                 LIST="1,2,20,D,RNN-ORGANIZATION,NAME-ORGANIZATION,CHIEF,MAINBK,IRS-ORGANIZATION,SECO-ORGANIZATION,52B,54C,57B,59,RNN-FOND,NAME-FOND,IRS-FOND,SECO-FOND,NUM,VO,DATE,SEND,KNP,PSO,PRT,ASSIGN,AMT,VDT,SUM,PERIOD"
+                 LSTSECO="1,2,3,4,5,6,7,8,9"
+                 LSTIRS="1,2"
+
+                 OURBICS="MEOKKZKA"
+
+                 CLST=split(LIST, MLST, ",") 
+                 a=0; ERR=0; counter=1;
+
+                 #ГЦВП для пенсионных отчислений переменная isocial должна быть равна 0
+                 FNDBICS[0]="GCVPKZ2A"; FNDACNT[0]="KZ12009NPS0413609816"; FNDRNNS[0]="970740001013"
+                 #ГЦВП для социальных отчислений переменная isocial должна быть равна 1
+                 FNDBICS[1]="GCVPKZ2A"; FNDACNT[1]="KZ67009SS00368609110"; FNDRNNS[1]="970740001013"
+         }
+         {
+                 MNR[a]=$1 
+                 MIDX[a]=$2 
+                 MTXT[a]=$3
+                    # Проверка содержания полей
+                    if (MIDX[a]=="1") {           
+                       if (substr(MTXT[a],4,11)!="F01K0547000") { ERR++; print " Неверный 1-ый блок или имя банка в плат.системе, строка " MNR[a] " в файле" } 
+                       if (substr(MTXT[a],1,3)!="{1:") { ERR++; print " Неверный первые три символа блока номер 1, строка " MNR[a] " в файле" } 
+                       if (length(MTXT[a])!=29) { ERR++; print " Неверная длина блока номер 1 (должно быть 29 символов), строка " MNR[a] " в файле" } 
+                    } 
+
+                    if (substr(MIDX[a],1,3)=="IRS") { 
+                       if (length(MTXT[a])!=1)      { ERR++; print " Длина поля IRS должна быть 1 символ, строка " MNR[a] " в файле" } 
+                       if (index(LSTIRS,MTXT[a])<1) { ERR++; print " Неизвестный признак резиденства "  MIDX[a] ", строка " MNR[a] " в файле" } 
+                    } 
+
+                    if (substr(MIDX[a],1,4)=="SECO") { 
+                       if (length(MTXT[a])!=1)       {ERR++; print " Длина поля SECO должна быть 1 символ, строка " MNR[a] " в файле"} 
+                       if (index(LSTSECO,MTXT[a])<1) {ERR++; print " Неизвестный сектор экономики "  MIDX[a] ", строка " MNR[a] " в файле"} 
+                    } 
+
+                    if (MIDX[a]=="ASSIGN") { 
+                       if (length(MTXT[a])>52) {ERR++; print " Поле " MIDX[a] " больше 60 символов, строка " MNR[a] " в файле"} 
+                    } 
+
+                    if (MIDX[a]=="ASSIG2") { 
+                       if (length(MTXT[a])>60) {ERR++; print " Поле ASSIGN больше 60 символов, строка " MNR[a] " в файле"} 
+                    } 
+
+                    if (MIDX[a]=="KNP") { 
+                       if (length(MTXT[a])!=3) {ERR++; print " Поле " MIDX[a] " должно состоять их 3 цифр, строка " MNR[a] " в файле"} 
+                    } 
+
+                    # установка признака социальных платежей, 013 пенсионных 
+                    if (MIDX[a]=="KNP") { 
+                       if (MTXT[a]=="012"){isocial=1;}
+                       if (MTXT[a]=="017"){isocial=1;}
+                       if (MTXT[a]=="013"){isocial=0;}
+                    }
+
+                    if ((substr(MIDX[a],1,4)=="NAME")||(MIDX[a]=="MAINBK")||(MIDX[a]=="CHIEF")) { 
+                       if (length(MTXT[a])>54) {ERR++; print " Поле " MIDX[a] " больше 60 символов, строка " MNR[a] " в файле"} 
+                    } 
+
+                    if (MIDX[a]=="D") { 
+                       if (length(MTXT[a])!=20) {ERR++; print " Поле счета должно быть 20 символов, строка " MNR[a] " в файле"} 
+                    }
+
+                    if (MIDX[a]=="NUM") { 
+                       if (length(MTXT[a])>9) {ERR++; print " Номер документа должен быть не более 9 символов, строка " MNR[a] " в файле"} 
+                    }
+
+                    if (substr(MIDX[a],1,3)=="RNN") 
+                    {
+                       if (length(MTXT[a])!=12) {ERR++; print " Поле " MIDX[a] " должно быть 12 цифр, строка " MNR[a] " в файле" } 
+                       #if (testRNN(MTXT[a])=="1") {ERR++; print " Ошибка CRC РНН " MTXT[a] " в поле " MIDX[a] ", строка " MNR[a] " в файле" } 
+                    }
+
+                    if (MIDX[a]=="52B") {
+                       if (index(OURBICS,MTXT[a])<1) {ERR++; print " В Поле " MIDX[a] " не наш МФО банка, строка " MNR[a] " в файле" } 
+                    }
+
+                    if (MIDX[a]=="57B") { F57B=MTXT[a] } 
+                    if (MIDX[a]=="32B") {ERR++; print MTXT[a] ", строка " MNR[a] " в файле"}
+                    if (MIDX[a]=="32A") {ERR++; print MTXT[a] ", строка " MNR[a] " в файле"}   
+                    if (MIDX[a]=="59")  { F59=MTXT[a]  
+                       if (length(MTXT[a])!=20) {ERR++; print " Поле счета п.фонда должно быть 20 символов, строка " MNR[a] " в файле"} 
+                    }
+                    if (MIDX[a]=="AMT") { AMT=MTXT[a]  }
+                    if (MIDX[a]=="SUM") {
+                       if (MTXT[a]!=AMT) { ERR++; print " Ошибка итоговой суммы в поле 32A" }
+                    }
+                    if (MIDX[a]=="ERROR") { ERR++; print MTXT[a]
+                    }
+                  a++ 
+         }
+         END {  
+                lerr=0
+                #проверим правильность реквизитов для ГЦВП, сверяем с массивами FNDRNNS, FNDBICS, FNDACNT 
+                for (j in MIDX) {
+                    if (MIDX[j]=="RNN-FOND") 
+                    {
+                          if (MTXT[j]==FNDRNNS[isocial]) 
+                          {
+                             if (F57B!=FNDBICS[isocial] || F59!=FNDACNT[isocial]) {ERR++; print " В Поле " MIDX[j] " неверные реквизиты ГЦВП с RNN=" MTXT[j] ", " F59 ", " FNDACNT[isocial] ", " F57B "," FNDBICS[isocial] "," isocial ", строка " MNR[j] " в файле" } 
+                          }
+                    }
+		}
+                # проверка наличия необходимых полей
+                for (i in MLST) 
+                {
+                    lerr=0
+                    for (j in MIDX) {
+                            if (MIDX[j]==MLST[i]) {lerr=1}
+                    }
+                    
+                    # если социальный
+                    if (isocial==1) 
+                    { 
+                                     if (lerr==1) {
+                                                    if (MLST[i]=="54C") {ERR++; print " Лишнее поле " MLST[i]} 
+                                                    else {lerr=1}
+                                                  }
+                                     else
+                                     # если была ошибка
+                                                  {
+                                                    if ((MLST[i]!="54C") && (MLST[i]!="PSO") && (MLST[i]!="PRT") ) {ERR++; print " testОтсутствует поле " MLST[i]}
+                                                                   else {lerr=1}
+                                                  } 
+                    }
+                    # если пенсионный
+                    else 
+                    { 
+                    	# если слово PERIOD
+                    	if (MLST[i]=="PERIOD") 
+                    	{
+                    		if (lerr==1) {} 
+                    		else 
+                    		{
+                    			ERR++; print " Отсутствует поле " MLST[i]
+                    		}
+                    	}
+                    	else
+                    	{
+			    	if (MLST[i]=="54C")
+			    	{
+                	    		if (lerr==1) {ERR++; print " Лишнее поле " MLST[i] } 
+			    	}	
+			}
+                     }    
+		}
+
+                if (ERR>0) { print " Всего ошибок в структуре файла: " ERR 
+                             print "-----------------------------------\n\n"}
+         } 
+ ' > $HOME/$1.log
+
+# Проверим СИКи
+# /:21:/{printf ("%4d\|%4s",NR,substr($0,5,length($0)-4))}
+#' | awk 'gsub(" ", "") {print}' > $HOME/${1}.sik
+
+# 01.02.2011 ИИН БИН
+#cat $1 | tr -d '\015' | awk '
+# /:21:/{printf ("%d|%s",NR,substr($0,5,length($0)-4))}
+# /:70:\/OPV\/C/ {printf ("|%16s|",substr($0,11,length($0)-10))}
+# /:70:\/OPV\/S/ {printf ("|%16s|",substr($0,11,length($0)-10))}
+# /:70:\/OPV\/V/ {printf ("|%16s|",substr($0,11,length($0)-10))}
+# /\/\/FM\//,/\/\/NM\// {
+#        tempstr = substr($0,6,length($0)-5)
+#     z = split(tempstr,M,"/"); printf ("%s",M[z])
+#     }
+# /\/\/FT\// {
+#     tempstr = substr($0,6,length($0)-5)
+#     z = split(tempstr,M,"/"); printf ("%s",M[z])
+#     }
+# /\/\/DT\// {printf ("%s\n",substr($0,12,2) substr($0,10,2) substr($0,6,4))}
+#' > $HOME/${1}.sik
+
+#SASCO
+#cat $HOME/${1}.sik|rsh NTMAIN L:/Users/Private/DIT/bin/IBtestR.exe 4 | /pragma/bin/win2koi >> $HOME/$1.log
+#
+#prsic $HOME/${1}.sik $HOME/$1.log 
+
+#ls -l $FF | awk '{MAXFSIZE=75; if (int($5)>MAXFSIZE*1024) {print "\n  Размер файла " $5 " превышает допустимый " MAXFSIZE "кБ!\n"; exit 1} else {exit 0}}' >> $HOME/$1.log
+#SASCO
+#ls -l $HOME/$1.log | awk '{ if (int($5)>0) {exit 1 } else {exit 0}}' 
+#ls -l $HOME/$1.log | awk '{ if (int($5)>1) {exit 1 } else {exit 0}}' 
+
+RESULT=$?
+#Удалим лог если он пуст
+if [ $RESULT -eq 0 ]; then
+ rm -f $HOME/$1.log
+else 
+ #  Если загрузка, то удаляем файл из psjin, если просто проверка то забираем файл из IN
+ if [ $ACTION -eq 1 ]; then
+       wlog "$1 removed from $PSJINDIR"
+       rm -f $PSJINDIR/$1
+       #ssh $PC move /Y C:\\PROV_CIK\\ARCH\\$1 C:\\PROV_CIK\\Error\\ 
+ else  
+       ssh $PC mkdir C:\\PROV_CIK\\Error
+       ssh $PC mkdir C:\\PROV_CIK\\ARCH
+       wlog "$PC move /Y C:\\PROV_CIK\\IN\\$1 to C:\\PROV_CIK\\Error\\"
+       ssh $PC move /Y C:\\PROV_CIK\\IN\\$1 C:\\PROV_CIK\\Error\\ 
+       
+ fi
+
+fi 
+return $RESULT
+}
+
+
+
+
+#Процедура отправки в Прагму
+
+send_to_pr(){
+CNT=0
+for F in $TMPDIR/*
+do
+  if test -f $F; then
+    #CNT=`expr $CNT + 1`
+    FF=`fn`
+    OUTF=$TGTDIR$DRKO"PP"$FF`frm $CNT`
+    while test -f $OUTF
+    do
+      CNT=`expr $CNT + 1`
+      OUTF=$TGTDIR$DRKO"PP"$FF`frm $CNT`
+    done
+    wlog $F" moved to "$OUTF
+#    cat $F|alt2koi >$OUTF
+   
+    # sasco - обработка АТФ банка
+    cat $F | dos2win | awk ' BEGIN { WAS = 0 }
+                       {
+                         # Проверка на корреспондента
+                         if ( substr ($0, 1, 3) == ":54" ) {WAS = 1;}
+                         # Проверка на АТФ Банк
+                         if ( ( substr ($0, 1, 14) == ":57B:190501956") && ( WAS == 0 ) )
+                         { if ( WAS == 0 ) { printf ":54A:190501826\n"; }
+                           WAS = 0;
+                         }
+                         print $0;
+                       } ' >$OUTF
+
+
+#Пишем ленточку
+    lenta $OUTF
+  else
+    #echo "Не найдено ни одного файла для обработки в C:\\PROV_CIK\\IN."
+    echo "Не найдено ни одного файла для обработки."
+  fi
+done
+echo "---------------------------------" >>$HLLOG
+echo "Итого у "  `whoami` "на ленте N" $NLENTA " " $NLNT " пл. на сумму: " $SUMMA >>$HLLOG
+}
+
+######################## DBPSDIR=/home/igor 
+TGTDIR=$DBPSDIR/NB/PSJ
+LOG=$TGTDIR/psj.log
+LLOG=$TGTDIR/psjlnt.log
+HLLOG=$HOME/lnt.txt
+PSJINDIR=$HOME/psjin
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+PC=Administrator@$pc
+echo "MT102 Processing v0.04 07.11.02"
+DRKO="/"
+ACTION=$1
+
+if [ $ACTION -eq 0 ]; then
+  TMPDIR=$HOME/psjtemp
+  MSG="TEST"
+  if test -d $HOME/psjtemp; then
+    echo " "
+    rm -f $TMPDIR/*
+    rmdir $TMPDIR
+  fi
+else
+
+#  TMPDIR=/tmp/psjtemp  u00121 02/10/06
+  TMPDIR=$HOME/psjtemp
+  DEPART=$2
+  if [ $DEPART -ne 0 ]; then 
+    DRKO="/RCO$DEPART/"
+  fi
+  MSG="UPLOAD"
+  NLENTA=`date "+%H%M%S"`
+  NLNT=0
+  echo "Протокол принятых пенсионных отчислений (ленточка) $NLENTA" > $HLLOG
+  SUMMA=0
+#  if test -d /tmp/psjtemp; then u00121 02/10/06
+  if test -d $HOME/psjtemp; then
+     wlog System is busy now Try again later.
+     exit 1
+  fi
+fi
+#########
+wlog $MSG
+
+mkdir $TMPDIR
+chmod 777 $TMPDIR
+
+#25.09.2013 - yerganat для теста копирует из компьютера менеджера, 
+#а для загрузки в pragma копирует из psjin из домашней директории
+if [ $ACTION -eq 0 ]; then
+   scp $PC:c:\\prov_cik\\in\\*.* $TMPDIR
+else
+   cp $PSJINDIR/* $TMPDIR
+fi
+
+ERCP=$?
+CDIR=`pwd`
+
+rm -f $HOME/*.log
+#if [ $ERCP -eq 0 ]; then
+#  Если проверка, то оставим файл в IN
+#if [ $ACTION -eq 1 ]; then 
+#    sleep 2; 
+#    ssh $PC move /Y C:\\PROV_CIK\\IN\\*.* C:\\PROV_CIK\\ARCH\\; 
+#    sleep 4; 
+#    wlog "$PC move IN to ARCH"
+#fi
+# if [ $PC = 'merkur1.texakabank.kz' ] || [ $PC = 'merkur2.texakabank.kz' ] || [ $PC = 'merkur3.texakabank.kz' ] || [ $PC = 'merkur4.texakabank.kz' ] || [ $PC = 'merkur114.texakabank.kz' ]; then DRKO="/RCO1/"
+# fi
+# if [ $PC = 'reiz-1.texakabank.kz' ] || [ $PC = 'reiz-2.texakabank.kz' ] || [ $PC = 'txb-a931.texakabank.kz' ] || [ $PC = 'txb-a975.texakabank.kz' ]  || [ $PC = 'txb-a975.texakabank.kz' ] || [ $PC = 'txb-a1067.texakabank.kz' ]; then DRKO="/RCO2/"
+# fi
+# if [ $PC = 'samal2.texakabank.kz' ] || [ $PC = 'samal3.texakabank.kz' ] || [ $PC = 'samal234.texakabank.kz' ] || [ $PC = 'samal238.texakabank.kz' ]; then DRKO="/RCO3/"
+# fi 
+if [ $ERCP -ne 0 ]; then
+   wlog 'Abnormal termination...'
+   echo "Не найдено ни одного файла для обработки."
+   sleep 2
+   rm -f $TMPDIR/*
+   sleep 2 
+   rmdir $TMPDIR
+   exit 1
+fi
+
+
+#KOVAL Делаем цикл для проверки пенсионки
+cd $TMPDIR
+for FF in *
+do
+  if [ -f $FF ]; then
+        tst_mt102 $FF
+        if [ $? -ne 0 ]; then
+          rm -f $FF
+          wlog 'Delete of ' $TMPDIR"/"$FF  
+        fi
+  fi
+done
+cd $CDIR
+#KOVAL 
+
+if [ $ACTION -eq 1 ]; then
+ send_to_pr
+fi
+
+wlog "End Of Action $ACTION."
+rm -f $TMPDIR/*  
+rmdir $TMPDIR
+
+rm -f $PSJINDIR/*  
+rmdir $PSJINDIR
+
+# KOVAL Создадим протокол проверки из оставшихся логов
+>$HOME/errors.img
+
+for file in $HOME/*.log
+do
+if [ -f $file ]; then
+ echo " Файл " $file " содержит следующие ошибки: ">> $HOME/errors.img 
+ cat $file>> $HOME/errors.img
+
+ if [ $ACTION -eq 0 ]; then
+    wlog $file" moved to C:\\PROV_CIK\\ARCH.ERR\\ " >> $HOME/errors.img
+ fi
+ echo " " >> $HOME/errors.img
+fi
+done
+
+rm -f $HOME/*.log 
+rm -f $HOME/*.sik 
+
+find $HOME/*.img -prune -type f -size 0c -exec rm {} \;
+#test -f $HOME/errors.img && joe -rdonly $HOME/errors.img

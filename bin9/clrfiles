@@ -1,0 +1,28 @@
+﻿#!/bin/sh
+PDIR=/pragma/bin9
+cd $PDIR
+bk()
+{
+while read f1
+do
+  if test -x $PDIR/$1 -a ! "$f1" = "$PDIR/$1"; then
+    echo Found: $f1. Backing up.
+    #echo --------------- 
+    #l $PDIR/$1
+    #l $f1
+    #echo ---------------
+    cp $f1 $f1.old && rm -f $f1 || echo Cannot backup file $f1
+  fi
+done
+}
+
+fn()
+{
+while read f
+do
+  echo File $f. Searching for duplicates.
+  find / -name $f 2>/dev/null|bk $f
+done
+}
+
+ls -1 /pragma/bin9 |fn

@@ -1,0 +1,5 @@
+﻿cp $1 $$.Z 
+uncompress -f $$ 
+tar xvf $$ $2  
+cat $2 >> rpt2.img
+/bin/rm -f  *$$* $2

@@ -1,0 +1,17 @@
+﻿#!/bin/sh
+# Setting up database related variables.
+
+if test .$AIID = .
+then
+  test .$1 != . || { echo "You must supply a database AI id."; exit 1;}
+  AIID=$1
+  export AIID
+  cat /pragma/bin9/ai.cfg|awk '/\['$1'\]/,/\[.+\]/&&($0!~/'$1'/)'|awk '($0!~/\[.*\]/)&&($0!~/^[[:space:]]*#/)&&($0!~/^[[:space:]]*$/)'>/tmp/aienv$$.tmp
+  test -s /tmp/aienv$$.tmp || { echo "You have supplied incorrect database AI id."; exit 1;}
+  set -a
+  . /tmp/aienv$$.tmp
+  set +a
+  rm -f /tmp/aienv$$.tmp
+  shift 1
+  test "$AIID" != "$1" || { echo "You have supplied incorrect database AI id."; exit 1;}
+fi

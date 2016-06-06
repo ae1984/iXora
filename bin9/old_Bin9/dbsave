@@ -1,0 +1,64 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/proenv
+# 15.11.2003 nadejda ЪБЛПННЕОФБТЙМБ ПУОПЧОХА РТПЗТБННХ - УДЕМБМБ ВЬЛБР Ч /data/9/<dbid>/backup Й РПФПН ЛПРЙТПЧБОЙЕ Ч /savedb
+#CPDIR=
+
+#while getopts c: OPT
+#do
+#  case $OPT in
+#    c) CPDIR=$OPTARG;;
+#    ?) echo Unknown option.
+#       exit 1;;
+#  esac
+#done
+
+#shift `echo $OPTIND - 1|bc`
+
+#TIME=`date "+%d-%m-%y.%H-%M"`
+#DB=`dirname $1`/`basename $1 .db`
+#echo `basename $1`
+#test -f $DB.db || { echo "File not found $DB.db"; exit 1; }
+#DB=`fullname $DB.db`
+#DB=`dirname $DB`/`basename $DB .db`
+####TDIR=`dirname $DB`/savedb/$TIME
+#TDIR=/savedb/$DBID/`basename $DB`/$TIME
+#REST=$TDIR/`basename $DB`.res
+#mkdir $TDIR
+#dbbackup $DB $TDIR/`basename $DB` || { rm -f $TDIR/*.*; rmdir $TDIR; exit 1; }
+#echo "/pragma/bin9/dbrest $DB $TDIR/`basename $DB`.Z" >>$REST
+#chmod u+x $REST
+#if test $CPDIR; then
+#   cp $TDIR/`basename $DB`.Z $CPDIR &
+#fi
+TIME=`date "+%d-%m-%y.%H-%M"`
+DB=`dirname $1`/`basename $1 .db`
+echo `basename $1`
+test -f $DB.db || { echo "File not found $DB.db"; exit 1; }
+DB=`fullname $DB.db`
+DB=`dirname $DB`/`basename $DB .db`
+TDIR=`dirname $DB`/backup
+test -d $TDIR || { mkdir $TDIR; chmod 750 $TDIR; }
+CPDIR=/savedb/$DBID/`basename $DB`/$TIME
+#mkdir $CPDIR
+dbbackup $DB $TDIR/`basename $DB` || { rm -f $TDIR/*.*; exit 1; }
+#dbbackup $DB $CPDIR/`basename $DB` || { rm -f $CPDIR/*.*; exit 1; }
+#REST=$CPDIR/`basename $DB`.res
+#chmod u+x $REST
+echo "рЕТЕОПУЙФУС $TDIR/`basename $DB`.Z Ч $CPDIR Ч ЖПОПЧПН ТЕЦЙНЕ..."
+#echo "бТИЙЧЙТПЧБОЙЕ Й РЕТЕОПУ РМБФЕЦЕК ЧТЕНЕООП ПФЛМАЮЕО."
+#echo "бТИЙЧЙТХЕФУС Ч ЖПОПЧПН ТЕЦЙНЕ"
+nice -5 dbarc $TDIR $CPDIR
+# id00024 - РПУМЕ БТИЙЧБГЙЙ ОБ ЬЛТБО ЧЩЧПДЙФУС УПДЕТЦЙНПЕ $CPDIR 
+DBN=`echo $1 | awk -F/ '{print $4}'`
+echo; sleep 1
+echo "================ savedb/$DBID/$DBN/full/$TIME =============="
+LS=`ls -1 /savedb/$DBID/$DBN/full/$TIME` > /tmp/as.txt
+ls -loh  /savedb/$DBID/$DBN/full/$TIME | grep --colour=always "$LS"
+echo "==================================================================="; echo
+#if [ $DBID = "alm" ] && [ `basename $DB` = "bank" ]; then
+#    echo "лПРЙТХАФУС ЙУИПДОЙЛЙ"
+#    nice -5 cp /pragma/lib9/*.Z $CPDIR &
+#fi
+#echo basename:`dirname $DB`/`basename $DB` >$REST
+#echo tomename:$CPDIR/`basename $DB`  >>$REST

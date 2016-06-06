@@ -1,0 +1,59 @@
+﻿#!/bin/bash
+
+lst='/usr/etc/kzprint'
+
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+
+log="/data/log/cptwin/$pc"
+touch $log
+
+echo "[`date +"%Y/%m/%d-%H:%M:%S"`] --------" >> $log
+
+ rdir='c:/tmp'
+ 
+ # rfil=$$.`echo $1 | awk '{D=split($0,M,"."); print M[D] }'`
+ rfil=`date "+%d-%m-%y.%H-%M-%S"`.prt
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: rfil=$rfil" >> $log
+ 
+ if [ -d $3 ]; then
+  if [ -d $2 ]; then
+   from=$1
+  else
+   from=$2
+  fi
+ else
+   from=$3
+ fi
+ 
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: from=$from" >> $log
+ 
+  if [ `cat $lst | grep -ic $pc` -gt 0 ]; then  
+   cp $from $rfil
+ else
+   /pragma/bin9/un-dos $from $rfil
+ fi
+ 
+ echo -n "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: SCP $rfil to $pc ... " >> $log
+ scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>>$log
+ if test $? != 0; then
+  echo "[FAIL]" >> $log
+  echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>/dev/null" >> $log
+  exit 1
+ else
+  echo "[OK]" >> $log
+ fi
+ echo "copy c:\\tmp\\${rfil} lpt1" > run.cmd
+ echo -n "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: SCP run.cmd to $pc ... " >> $log
+ scp -q run.cmd Administrator@$pc:$rdir/run.cmd 1>/dev/null 2>>$log
+ if test $? != 0; then
+  echo "[FAIL]" >> $log
+  echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>/dev/null" >> $log
+  exit 1
+ else
+  echo "[OK]" >> $log
+ fi
+ sleep 2
+#echo "---" >> $log
+rm -f $rfil
+exit
+

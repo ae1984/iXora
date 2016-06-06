@@ -1,0 +1,53 @@
+﻿#!/bin/sh
+
+BANKS="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku comm cards ib alm akt kos url sem"; export BANKS
+for RPM in $BANKS; do
+#	cp -f /drbd1/home/bankadm/bank.repl.properties /drbd2/data/$RPM/
+	scp /data/$RPM/bank.repl.properties 172.16.4.11:/data/$RPM
+done
+
+#BANKS="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku comm cards ib alm akt kos url sem"; export BANKS
+#for RPM in $BANKS; do
+#	mv -f /drbd2/data/$RPM/bank.repl.properties /drbd2/data/$RPM/temp
+#	mv -f /drbd2/data/$RPM/bank.repl.recovery /drbd2/data/$RPM/temp 
+#done
+
+#**************************************************************************************************
+#BANKS="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku comm cards ib alm akt kos url sem"; export BANKS
+#for RPM in $BANKS; do
+#	mkdir -m 770 /drbd2/data/$RPM/temp
+#done
+
+#**************************************************************************************************
+#ME=`whoami`
+#LIST=`ps aux | grep id | grep -v root | grep _progres | grep -ve "grep\id00377\id00343" | grep -v $ME | awk '{print $1}'`
+#for RPM in $LIST; do
+##echo "--------------------------------"
+##echo $RPM
+##pstree $RPM | grep -x "screen---_progres"
+#pstree -p $RPM
+$done
+
+#**************************************************************************************************
+#scp -o PasswordAuthentication=yes -o batchmode=no 172.16.1.11:/savedb/alm/repl/* /savedb/alm/repl/
+
+#if `echo "/drbd/data/bmkb/bank" | grep -i "[\alm|\akt|\kos|\url|\sem]"`
+#then 
+#PTD="no ps-cls "
+#else
+#PTD="ХУЙ ВАМ"
+#fi
+#echo $PTD
+
+#**************************************************************************************************
+#for i in *
+#do
+#echo $i
+#done
+
+#**************************************************************************************************
+#banks="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku comm"
+#for i in $banks
+#do
+#mkdir -m 0770 /savedb/$i/auditing
+#done

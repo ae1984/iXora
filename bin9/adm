@@ -1,0 +1,203 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+
+while true
+do
+  echo    
+  echo "       Closing the DAY"
+  echo "       Database: [ $DBDESCR ]"
+  echo                                 
+  echo "    1. Online backup"
+  echo "    2. Dayclose"
+  echo "    3. Push me"
+  echo "  all. ALL"
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+
+  1)
+# Установка замка для Dayclose
+##	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+# Проверка наличия сервера базы
+   $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+# Проверка наличия lock файла
+##	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS; exit; }
+# Проверка отсутствия юзеров в базе
+##       A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA" | awk '{print $8}'`
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DB -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+# Проверка наличия свободного места для бэкапа
+             if [ $DBID = "alm" ]; then
+	       NEEDSPACE=1228800
+	     else
+	       NEEDSPACE=1536000
+	     fi
+	     dbtstspace /drbd2 $NEEDSPACE
+	     DOIT=$?
+	     if [ $DOIT -eq 0 ]; then
+	      unset INCREMENTAL
+# Онлайн бэкап
+          dbsaveOnline $DBDIR/$DBNAME 
+             fi
+	else
+	export A
+	/pragma/bin9/usrs
+	exit
+	fi
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi
+     ;;
+
+  2)
+# Установка замка для Dayclose
+	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+# Проверка наличия сервера базы
+  $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+# Проверка наличия lock файла
+	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS; exit; }
+# Проверка отсутствия юзеров в базе
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA" | awk '{print $8}'`
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DB -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+# Закрытие дня
+        cd /data/log/$DBID
+#	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -debugalert -logentrytypes 4GLTrace,QryInfo -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t
+	cd ..
+# Снятие замка для Dayclose
+	test -e $DBDIR/.lock-d && { echo "lock-file in $DBDESCR" NOT deleted;}
+       else
+	export A
+	/pragma/bin9/usrs
+	exit
+       fi
+     else
+       echo "Cannot DO. DB is shutted down" 
+     fi
+     ;; 
+   3)
+# Пуш отчеты
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+# Показ пуш отчета
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+# Показ AI
+	echo "================ list of ai files =================="; echo
+	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 5; echo
+     else
+       echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi
+     ;;
+##################################################################################################################################
+  all)
+	if [ $DBDIR = "/drbd/data/bmkb" ]
+	then
+		echo "Лучше не надо так :)"
+		read rvftegbvtr
+		exit
+	else echo
+	fi
+# Проверка статуса замка для Dayclose
+	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+# Проверка наличия сегодняшенго бэкапа базы
+##	LS=`ls /savedb/$DBID/bank/full | grep $TIME`; RCODE=$?
+##	test $RCODE = 0 || { echo; echo "There is no backup of $DBID from today"; read w; exit; }
+# Проверка наличия сервера базы
+  $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+# Проверка наличия lock файла
+	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS; exit; }
+# Проверка отсутствия юзеров в базе
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "superman\|bankadm\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|batch\|0024\|0005" | awk '{print $8}'`
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DB -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+# Закрытие дня
+        cd /data/log/$DBID
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+        cd ..
+# Снятие замка для Dayclose
+	test -e $DBDIR/.lock-d && { echo "Deleting lock-file for $DBDESCR"; rm -v $DBDIR/.lock-d; }
+       else
+	export A
+	/pragma/bin9/usrs
+	exit
+       fi
+     else
+       echo "Cannot DO. DB is shutted down" 
+     fi
+################################################################
+# Пуш отчеты
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+## Показ пуш отчета
+#	PDAY=`date "+%d.%m.20%y"`
+#	echo $PDAY
+#	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+#	echo; 
+#	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+#	echo; echo "Press Enter to continue"; read ANSW; }
+#	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+#	echo "There is pushrep! :)";
+#	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+#	echo;
+#	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+#	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+## Показ AI
+#	echo "================ list of ai files =================="; echo
+#	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 1; echo
+    else
+     echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi
+    ;;
+  zxc) /pragma/bin9/zxc; exit;;
+  zxcv) /pragma/bin9/zxcv; exit;;
+  qwe) /pragma/bin9/qwe; exit;;
+  [Aa]) dbadadm;;
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+  *) echo "Wrong selection. Press 1-6 or all."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

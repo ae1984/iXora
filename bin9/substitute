@@ -1,0 +1,52 @@
+﻿#!/usr/bin/perl -w
+#
+# substitute, Wed Apr 12 2000, Peter Csizmadia < c s p e t e r @  // spam
+#					r m k i . k f k i . h u > // prevention
+# http://www.kfki.hu/~cspeter/util/
+#
+# Comments from KOVAL:
+# --------------------
+# Клевый скрипт для замены содержимого в файлах
+# Например, в пенсионках можно менять ошибочное имя банка в платежной системе
+# набранное по русски (что-то типа tr)
+#
+# substitute '\212\060\065\071\061\064\060\060' 'K0591400' *.txt
+#
+
+use strict;
+
+if($#ARGV < 2) {
+	printf("Usage: substitute regexp replacement files...\n");
+	printf("Example: substitute '#e0e0e0' '#ccffcc' *.html\n");
+	exit 0;
+}
+
+my $regexp = $ARGV[0];
+my $replacement = $ARGV[1];
+
+shift @ARGV;
+shift @ARGV;
+
+for(my $i = 0; $i <= $#ARGV; ++$i) {
+	my $file = $ARGV[$i];
+	my $tmpfile = $file.".substitute.tmp";
+	my $changed = 0;
+	open(IN, $file) or die "$file: cannot open";
+	open(OUT, "> $tmpfile") or die "$tmpfile: cannot open";
+	while(<IN>) {
+		my $prev = $_;
+		if(s/$regexp/$replacement/g) {
+			$changed = 1;
+		}
+		print OUT;
+	}
+	close(OUT) or die "$tmpfile: cannot close";
+	close(IN) or die "$file: cannot close";
+	if($changed) {
+		printf("%s\n", $file);
+		rename($tmpfile, $file) or die "$tmpfile: cannot rename";
+	} else {
+		unlink($tmpfile) or die "$tmpfile: cannot unlink";
+	}
+}
+

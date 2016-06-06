@@ -1,0 +1,6 @@
+﻿#!/bin/bash
+
+/usr/local/ssl/bin/openssl pkcs7 -in $1  -print_certs -noout | grep subject | grep CN=  | awk '{print substr($0, match($0,"CN=") + 3, length($0))}'
+
+
+

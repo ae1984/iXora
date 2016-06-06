@@ -1,0 +1,10 @@
+﻿if [ -f output.914 ]; then
+	test $pc || { export pc=`/usr/local/bin/askhost`; }
+	rhost=$pc:C:/
+	un-win output.914 remtrz.txt
+	rcp remtrz.txt $rhost 
+	/bin/rm -f remtrz.txt
+	/bin/rm -f output.914
+fi
+
+

@@ -1,0 +1,23 @@
+﻿#!/bin/sh
+#echo "чЧЕДЙФЕ чБЫ РБТПМШ Ч рТБЗНХ!"
+#passw=`perl -e 'use Term::ReadKey;                                                                                     
+#         ReadMode("cbreak");                                                                                    
+#         while ($key ne "\n")                                                                                   
+#         {                                                                                                      
+#             $key = ReadKey(0);                                                                                 
+#             if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+#             {                                                                                                  
+#                 $pass = $pass . $key;                                                                          
+#                 print "*";
+#             }                                                                                                  
+#         }                                                                                                      
+#         ReadMode("normal");
+#         print ":$pass";' | awk -F: '{print $2}'`
+
+PLANG=RR;export PLANG
+PM=/pragma/lib9/RX;export PM
+DLC=/usr/dlc9;export DLC
+DBDIR=/data/alm;export DBDIR
+PROPATH=$PROPATH:.:/pragma/source:/pragma/source/fortxk:$PM/RX.pl:$DLC/lib; export PROPATH
+PROTERMCAP=$DLC/protermcap;export PROTERMCAP                     
+$DLC/bin/_progres $DBDIR/bank -d dmy -ld bank -U bankadm -P Gr74OUps -p getastat -b -param $1

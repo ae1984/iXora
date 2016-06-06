@@ -1,0 +1,6 @@
+﻿#!/bin/sh
+DBMON=/data/promon
+PROPATH=.:$DBMON/crc/
+export PROPATH
+DB=pm
+$DLC/bin/_progres $DBMON/$DB -T $DBMON/temp/ -p menu -Bt 4086 -TB 31 -TM 32

@@ -1,0 +1,93 @@
+﻿#!/bin/sh
+TIME=`date "+%d-%m-%y"`
+
+ID=$1
+. /pragma/bin9/rkcenv 
+
+  
+
+while true
+do  
+  echo    
+  echo "       Administrative Tools"
+  echo "       Database: [$DBDESCR]"
+  echo 
+  echo "    1. Start $DBDESCR database server"
+  echo "    2. Start general $DBDESCR servers (COMM)"
+  echo "    3. Stop $DBDESCR database server "
+  echo "    4. Stop general $DBDESCR database servers (COMM)"
+  echo "    5. Backup $DBDESCR database..."
+  echo "    6. Run DAYCLOSE on $DBDESCR"
+  echo "    7. Run NEWMONTH on $DBDESCR"
+  echo "    A. Additional tools..."
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1) 	dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 10 -n 100 -B 50000 -L 128000 -bibufs 25 -aibufs 25 -trig $PTRIGLIB -semsets 4 -spin 2000 -bithold 1000 -bistall -Mxs 250 || echo Cannot start server.
+	$DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $DBSV -Ma 5 -Mi 3 -Mpb 5 $MINPORT $MAXPORT
+
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+
+     ;;
+  2) 
+     dbcheck $DBCOMMDIR/comm 0 && $DLC/bin/_mprosrv $DBCOMMDIR/comm -Mn 10 -n 100  -B 50000 -L 15000 -bibufs 25 -aibufs 25 -semsets 4 -spin 2000   -bithold 1000 -bistall  || echo Cannot start server.
+#     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -S $DBCOMMSV  -Ma 5 -Mi 3 -Mpb 5 -minport 1078 -maxport 1129
+
+     $DLC/bin/prowdog  $DBCOMMDIR/comm
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+
+     ;;
+  3) 
+     dbshut $DBDIR/$DBNAME
+     ;;
+  4) 
+     dbshut $DBCOMMDIR/comm
+     ;;
+  5) 
+     # Сделаем копию БД
+     /pragma/bin9/rkcdbsave
+
+     ;;
+
+  6) if dbcheck $DBDIR/$DBNAME 0
+     then
+       
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME -i -L 128000 -n 4 -Mxs 250 
+
+        $DLC/bin/probiw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        cd $DBID
+
+	$DLC/bin/_progres $DBDIR/$DBNAME  -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+
+        cd ..
+        $DLC/bin/_mprshut $DBDIR/$DBNAME  -by  
+     else
+       echo Cannot RUN. 
+     fi
+     ;; 
+  7) 
+#  if dbcheck $DBDIR/$DBNAME 0
+#     then
+#       $DLC/bin/_progres $DBDIR/$DBNAME -1 -i -L 2000 -d dmy -p newmonth -trig $PTRIGLIB -U bankadm -P $passw
+#     else
+#       echo Cannot RUN.
+#     fi
+;;
+  [Aa]) 
+#  dbadadm
+  ;;
+  [Qq]) exit 0;;
+  *) echo "Wrong selection. Press 1-7 or Q."
+     sleep 2;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

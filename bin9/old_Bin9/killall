@@ -1,0 +1,6 @@
+﻿#!/bin/bash
+
+proshut /data/alm/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+proshut /data/ast/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+proshut /data/url/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+proshut /data/atr/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw'

@@ -1,0 +1,34 @@
+﻿#!/bin/bash
+
+# Проверка СИК'ов через скрипт crric
+# 02/07/2003 SASCO
+# 
+# Вызов скрипта:
+#       siktst <имя файла с СИКами>
+#
+# Вовращает 0 (успех) или 1 (ошибка)
+#
+# Формат строки файла с СИКами:
+# N строки в SWIFT.TXT | N записи в REGS.DBF | SIK | ФИОДДММГГГГ
+#
+
+cat $1 | awk ' 
+
+   BEGIN {  FS="|";
+            SICRET="";
+            CMDL="";
+         } 
+
+   {     
+         if (NF != 4) {
+             print "1";
+         }
+         else {  
+                 CMDL="SICRET=`crrickz " substr($3,1,16)","$4"` ; exit $SICRET;";
+                 SICRET = system (CMDL);
+                 if (SICRET == "0") {print "0";}
+                               else {print "1";}
+         }
+   }
+
+'

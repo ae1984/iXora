@@ -1,0 +1,12 @@
+﻿#!/bin/sh
+DLC=/usr/dlc; export DLC
+$DLC/bin/_dbutil $1 -C holder
+
+case $? in 
+0) echo "Database $1 is not in use. Code: $?"; CODE=$?; export CODE; exit;;
+14) #echo "Database $1 is in use in single-user mode. Code: $?"
+exit;;
+16) #echo "Database $1 is in use in multi-user mode. Code: $?"
+exit;;
+*) echo "Database $1: Unknown error. Code: $?"; exit;; 
+esac

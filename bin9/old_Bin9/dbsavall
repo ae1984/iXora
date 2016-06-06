@@ -1,0 +1,213 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo "            1. Save $DBDESCR BANK database (ONLINE)"
+  echo "            2. Save $DBDESCR BANK database (OFFLINE)"
+  echo "            3. Save $DBDESCR BANK database (INKREMENTAL)"
+  echo "            4. Save general COMM, CARDS, SKLAD databases (ONLINE)"
+  echo "            5. Save general COMM, CARDS, SKLAD databases (OFFLINE)"
+  echo "            6. Save general COMM, CARDS, SKLAD databases (INKREMENTAL)"
+#  echo "            6. Save ALGA database..."
+#  echo "            7. Save ALGA database (INCREMENTAL)..."
+#  echo "            8. Save $DBDESCR database to $DBDIR/stat/data/banks..."
+  echo "	"
+  echo "            7. Roll Forward backup on $DBDESCR..."
+  echo "            Q. Exit"
+  echo 
+  read ans
+  case $ans in
+1)   /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+             if [ $DBID = "alm" ]; then
+	       NEEDSPACE=12288000
+	     else
+	       NEEDSPACE=2048000
+	     fi
+	     dbtstspace /data $NEEDSPACE
+	     DOIT=$?
+	     if [ $DOIT -eq 0 ]; then
+	      unset INCREMENTAL
+        echo "		Start backuping the AI"
+	ai_save;
+        echo "		Finish backuping the AI"
+          rfutil $DBDIR/$DBNAME -C aimage empty
+            dbsaveOnline $DBDIR/$DBNAME 
+#       rfutil $DBCRDIR/cards -C aimage truncate
+            cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+#       		rfutil $DBDIR/$DBNAME -C aimage begin
+#       dbsave $DBSTDIR/stat 
+             fi
+
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi
+	;;
+  2)   /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+   if [ "$?" = "0" ]
+
+     then
+    if [ $DBID = "alm" ]; then
+       NEEDSPACE=12288000
+     else
+       NEEDSPACE=2048000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+        echo "		Start backuping the AI"
+	ai_save;
+        echo "		Finish backuping the AI"
+#       	ai_save_fil $DBID
+        dbsave $DBDIR/$DBNAME 
+#	rfutil $DBDIR/$DBNAME -C aimage begin
+	cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+
+
+#       dbsave $DBSTDIR/stat 
+     fi
+     else
+       echo Cannot DO THIS! Database is started. 
+     fi
+	;;
+  3) if [ $DBID = "alm" ]; then
+       NEEDSPACE=1024000
+     else
+       NEEDSPACE=512000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBDIR/$DBNAME
+#       dbsave $DBSTDIR/stat 
+     fi
+     ;;
+  4)  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder
+     if [ "$?" = "16" ]
+     then
+          dbtstspace /data 1024000
+          DOIT=$?
+          if [ $DOIT -eq 0 ]; then
+          unset INCREMENTAL
+       
+#       		rfutil $DBCOMMDIR/comm -C aimage end
+#       		rfutil $DBCOMMDIR/comm -C aimage truncate
+          rfutil $DBCOMMDIR/comm -C aimage empty
+          rfutil $DBCOMMDIR/comm -C aimage empty
+	  proutil $DBCOMMDIR/comm -C truncate bi -G 0
+          dbsaveOnline $DBCOMMDIR/comm
+          cp $DBCOMMDIR/comm.st /savedb/alm/comm/full
+	  rfutil $DBCOMMDIR/comm -C aimage extent list; sleep 2
+#       		rfutil $DBCOMMDIR/comm -C aimage begin
+
+#       		rfutil $DBCRDIR/cards -C aimage end
+#       		rfutil $DBCRDIR/cards -C aimage truncate
+#       proutil $DBCRDIR/cards -C truncate bi -G 0
+#       dbsave $DBCRDIR/cards
+#       cp $DBCRDIR/cards.st /savedb/alm/cards/full
+#       		rfutil $DBCRDIR/cards -C aimage begin
+
+#       		rfutil $DBSKDIR/sklad -C aimage end
+#       		rfutil $DBSKDIR/sklad -C aimage truncate
+#       proutil $DBSKDIR/sklad -C truncate bi -G 0
+#       dbsave $DBSKDIR/sklad
+#       cp $DBSKDIR/sklad.st /savedb/alm/sklad/full
+#       		rfutil $DBSKDIR/sklad -C aimage begin
+
+     fi
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi
+	;;
+  5)  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder
+     if [ "$?" = "0" ]
+     then
+     dbtstspace /data 1024000
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+
+#       		rfutil $DBCOMMDIR/comm -C aimage end
+#       rfutil $DBCOMMDIR/comm -C aimage truncate -G 0
+#       proutil $DBCOMMDIR/comm -C truncate bi -G 0
+       dbsave $DBCOMMDIR/comm
+	echo "Start truncating AI on $DBCOMMDIR/comm"
+	$DLC/bin/rfutil $DBCOMMDIR/comm -C aimage truncate -G 0
+       cp $DBCOMMDIR/comm.st /savedb/alm/comm/full
+#       		rfutil $DBCOMMDIR/comm -C aimage begin
+
+#       		rfutil $DBCRDIR/cards -C aimage end
+#       		rfutil $DBCRDIR/cards -C aimage truncate
+#       proutil $DBCRDIR/cards -C truncate bi -G 0
+#       dbsave $DBCRDIR/cards
+#       cp $DBCRDIR/cards.st /savedb/alm/cards/full
+#       		rfutil $DBCRDIR/cards -C aimage begin
+
+#       		rfutil $DBSKDIR/sklad -C aimage end
+#       		rfutil $DBSKDIR/sklad -C aimage truncate
+#       proutil $DBSKDIR/sklad -C truncate bi -G 0
+#       dbsave $DBSKDIR/sklad
+#       cp $DBSKDIR/sklad.st /savedb/alm/sklad/full
+#       		rfutil $DBSKDIR/sklad -C aimage begin
+
+     fi
+     else
+       echo Cannot DO THIS! Database is started. 
+     fi
+	;;
+  6) dbtstspace /data 1024000
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBCOMMDIR/comm
+       dbsave $DBCRDIR/cards
+       dbsave $DBSKDIR/sklad
+     fi
+     ;;
+#  6)
+#     dbtstspace /data 512000
+#     DOIT=$?
+#     if [ $DOIT -eq 0 ]; then
+#       unset INCREMENTAL
+#       dbsave $DBALDIR/alga
+#     fi
+#     ;;      
+#  7) 
+#06.06.06 u00121 banks ВПМШЫЕ ОЕ ОХЦЕО  $DLC/bin/procopy $DBDIR/$DBNAME $DBSTDIR/banks
+#     if test $? -eq 0; then
+#       echo "Successfully saved."
+#     else
+#       echo "Error occured during process."
+#     fi
+#	;;
+#
+  7) /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ] 
+     then
+     dbrst
+     else
+       echo Cannot DO THIS! Database is started. Shut down database first!!! 
+     fi;;
+
+#06.06.06 u00121 banks ВПМШЫЕ ОЕ ОХЦЕО RUNDATE=`/usr/bin/date "+%m-%d-%y"`
+#     ai_banks.sh $DBSTDIR/banks $DBSTDIR/ai
+#     if test $? -eq 0; then
+#       echo "Successfully After-Image Applyed."
+#     else
+#       echo "Error occured during process."
+#     fi
+#	;;
+    99)   dbsaveOnline $DBCRDIR/cards;;
+
+  [Qq]) exit;;
+     *) echo "Wrong selection. Press 1-7 or Q."
+     sleep 2;;
+  esac
+done

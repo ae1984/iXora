@@ -1,0 +1,8 @@
+﻿fff=`tar xvfz $1 $2`
+if [ "$3" = "prit" ]
+then
+ prit $fff
+else
+ joe -rdonly $fff
+fi
+/bin/rm -f $fff *.alt

@@ -1,0 +1,13 @@
+﻿#!/bin/sh
+# ЧИПД ОБ ЛПРЙА ВБЪЩ ДМС БХДЙФБ ов тл
+
+. /pragma/bin9/dbenv 
+
+CLIENTMON=/data/log/$DBID/clientmon/`logname`.mon
+export CLIENTMON
+
+PROCMON=/data/log/$DBID/procmon/`logname`.mon
+export PROCMON
+
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -t -T /data/temp -mmax 650 -h 10 -y -yx -p pmenu $@
+

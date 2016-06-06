@@ -1,0 +1,117 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+ 
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+while true
+do  
+  echo    
+  echo 
+  echo "    1. Create LOCK for $DBDESCR"
+  echo
+  echo "    2. Run DAYCLOSE on $DBDESCR"
+  echo "    3. Run NEWMONTH on $DBDESCR"
+  echo "    33. Run PUSH"
+  echo
+  echo "    4. Delete LOCK for $DBDESCR"
+  echo
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  
+ 1)  	# Установка замка для Dayclose
+	test -e $DBDIR/.lock-d && { echo "Lock-file for $DBDESCR is already exist!"; exit; }
+	echo "Createing lock-file for $DBDESCR"
+	touch $DBDIR/.lock-d
+	;;
+
+ 2)
+    # Проверка наличия сервера базы
+    $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+    if [ "$?" = "16" ]
+        then
+        # Проверка наличия lock файла
+	    test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS;  }
+        # Проверка наличия юзеров в базе
+        if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ]
+            then
+            num=9
+        else
+            num=9
+        fi
+        A1=`proshut $DBDIR/$DBNAME -C list | grep superman | wc -l`
+        if [ "$A1" -le $num ] 
+            then
+            A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|bankadm\|superman" | awk '{print $8}'`       
+            if [ "$A" = "" ]
+                then           
+                echo; $DLC/bin/proshut $DB -C list
+	            echo; echo "There is nobody in base $DBDESCR :)"
+                # Закрытие дня
+                cd /data/log/$DBID
+	            $DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+                cd ..
+            else
+	            export A
+	            /pragma/bin9/usrs
+            fi
+        else 
+            echo "WARNING: There are too many superman"
+	    fi
+
+     else
+       echo "Cannot DO. DB is shutted down" 
+     fi
+     ;; 
+  3) 
+ # Проверка наличия сервера базы
+  $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+   if [ "$?" = "16" ]
+     then
+ # Проверка наличия lock файла
+	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; read ANS; }
+ # Проверка наличия юзеров в базе
+ #     A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|bankadm" | awk '{print $8}'`
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch" | awk '{print $8}'`
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DB -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+ # Закрытие месяца
+       $DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/newmonth.log -logginglevel 4 -L 2000 -d dmy -p newmonth -trig $PTRIGLIB -U bankadm -P $passw
+       else
+	export A
+	/pragma/bin9/usrs
+	fi
+
+     else
+       echo "Cannot DO. DB is shutted down" 
+     fi
+     ;; 
+  33) 
+# Пуш отчеты
+	$DLC/bin/_progres  $DBDIR/$DBNAME -p pushbatch -U bankadm -P $passw 
+;;
+
+ 4)  	# Снятие замка для Dayclose
+	test -e $DBDIR/.lock-d || { echo "Lock-file for $DBDESCR is already deleted!"; exit; }
+	echo "Deleting lock-file for $DBDESCR"
+	rm -v $DBDIR/.lock-d
+	;;
+ [Qq]) exit 0;;
+  exit) exit 0;;
+  *) echo "Wrong selection. Press 1-2 or Q."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

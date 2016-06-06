@@ -1,0 +1,5 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+exec $DLC/bin/_progres $DBSKDIR/sklad -e 63 -l 5150 -d dmy -ld sklad $@
+#$DLC/bin/_progres $DBSKDIR/sklad -e 63 -l 5150 -d dmy -ld sklad $@
+

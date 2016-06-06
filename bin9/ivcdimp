@@ -1,0 +1,6 @@
+﻿#!/bin/bash
+
+# Скрипт импорта файла ИВЦ
+
+runcomm alm ivcdimp.p $1
+

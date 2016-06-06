@@ -1,0 +1,5 @@
+﻿#!/bin/bash
+# by Sasco - list of all live Progres sessions on all databases
+/usr/bin/perl /pragma/bin9/prousers.pl $1 | sort -k 1 
+
+

@@ -1,0 +1,4 @@
+﻿#!/bin/bash
+echo "to COMM..."
+runcomm alm mobl333.p $1
+echo "done."

@@ -1,0 +1,25 @@
+﻿#!/bin/sh
+
+DBMON=/data/promon
+DBLOG=$DBMON/log/promon.log
+PROPATH=.:$DBMON/crc/
+DB=pm
+
+export PROPATH DBMON DBLOG DB
+
+#if [ $1 = '' ]  
+#then
+#        echo "Not an amount sample is incorporated!"
+#        exit 1
+#fi
+#
+#if [ $2 = '' ]  
+#then
+#  	echo "Not discrete frequency is incorporated at minute"
+#  	exit 1
+#fi
+
+	
+mbpro $DBMON/$DB -T $DBMON/temp/ -p promon1.p -param "$1,$2" >> $DBLOG
+
+

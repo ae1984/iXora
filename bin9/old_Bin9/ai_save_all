@@ -1,0 +1,33 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+# нлп
+/pragma/bin9/ai_save_fil alm
+/pragma/bin9/ai_save_fil akt
+/pragma/bin9/ai_save_fil kos
+/pragma/bin9/ai_save_fil trz
+/pragma/bin9/ai_save_fil url
+/pragma/bin9/ai_save_fil kar
+/pragma/bin9/ai_save_fil sem
+/pragma/bin9/ai_save_fil kok
+/pragma/bin9/ai_save_fil ast
+
+# вБОЛ
+/pragma/bin9/ai_save_fil balm
+/pragma/bin9/ai_save_fil bakt
+/pragma/bin9/ai_save_fil bkos
+/pragma/bin9/ai_save_fil btrz
+/pragma/bin9/ai_save_fil burl
+/pragma/bin9/ai_save_fil bkar
+/pragma/bin9/ai_save_fil bsem
+/pragma/bin9/ai_save_fil bkok
+/pragma/bin9/ai_save_fil bast
+
+# вБОЛ, ЖЙМЙБМЩ ОБ УФБДЙЙ ПФЛТЩФЙС
+#/pragma/bin9/ai_save_fil bpav
+#/pragma/bin9/ai_save_fil bpet
+#/pragma/bin9/ai_save_fil batr
+#/pragma/bin9/ai_save_fil baku
+#/pragma/bin9/ai_save_fil bzes
+#/pragma/bin9/ai_save_fil bust
+#/pragma/bin9/ai_save_fil bchm

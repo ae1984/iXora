@@ -1,0 +1,26 @@
+﻿#!/bin/sh
+# скрипт написан id00210 (c)
+
+ID=$@
+
+if [[ "$@" = "" ]]; then echo -n "Input id(s): "; read ID; fi
+
+echo "id		IP or DNR	Name"; echo
+for i in $ID
+do
+A=`cat /etc/passwd | grep -w $i | awk -F: '{print $5}'`
+if [ "$A" = "" ]
+then X=1
+else X=0
+fi
+B=`echo $(last | grep -w $i | awk '{print $3}') | awk '{print $1}'`
+none=`echo $B | grep metro`
+if [ $? = "0" ]
+then B=`echo $B | awk -F. '{print $1}'`
+fi
+if [ "$X" = "1" ]
+then echo "$i		No such login on Linux server" | grep --colour=always "No such login on Linux server"
+else
+echo "$i		$B  	$A"
+fi
+done

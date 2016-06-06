@@ -1,0 +1,82 @@
+﻿#!/bin/sh
+. /pragma/bin9/proenv
+
+HELP="Usage: "`basename $0`" [-y] [-t sec] database\nShutes down database\nIf -y option present then shutdown initiated even if there are connected processes.\n-t sec parameter means time waiting\nbefore initiating emergency shutdown (default 10 sec)"
+WARN=1
+WAITTIME=30
+
+while getopts yt: OPT
+do
+  case $OPT in
+    y) WARN=;;
+    t) WAITTIME=$OPTARG;;
+    ?) echo $HELP
+       exit 1;;
+  esac
+done
+
+shift `echo $OPTIND - 1|bc`
+
+DB=`dirname $1`/`basename $1 .db`
+test -f $DB.db || { echo "File $DB.db not found."; echo $HELP; exit 1; }
+
+CHKCMD="$DLC/bin/_dbutil $DB -C holder"
+
+echo `date '+%m/%d/%y %H:%M:%S'` Shutdown database $DB requested by `who -qm`
+$CHKCMD
+case $? in
+   0) # DB is not in use.
+      echo "Database $DB is not busy."
+      exit 0
+      ;;
+  14) # Database $DB is locked.
+      echo "Shutdown cancelled."
+      exit 14
+      ;;
+  16) # Database $DB is in use in multi-user mode.
+      if [ "`whoami`" != "`dbholder $DB`" -a "`whoami`" != "root" ]; then
+        echo In order to perform shutdown you must be logged on as `dbholder $DB` or superuser.
+        exit 2
+      fi
+      PRCCNT=`$DLC/bin/proshut $DB -C list|grep -v "^usr"|awk 'END { print NR}'`
+      test $PRCCNT -eq 0 || echo $PRCCNT processes still connected.
+      if [ $PRCCNT -ne 0 -a "$WARN" ]; then
+#         $DLC/bin/rfutil $DB -C aimage end
+	 $DLC/bin/proshut $DB -C list
+        echo "WARNING!!!"
+        echo "If unconconditional shutdown will not be completed"
+        echo "during $WAITTIME seconds then emergency shutdown (killing all)"
+        echo "automatically will be initiated."
+        echo -n "Execute shutdown anyway [y/n]?"
+        read ANS
+        test $ANS = "y" || { echo Cancelled by user.; exit 3; }
+      fi
+      echo "Initiating shutdown..."
+      $DLC/bin/proshut $DB -by 2>&1 >/dev/null &
+
+      TIME=0
+      while sleep 1
+      do
+        TIME=`expr $TIME + 1`
+
+        $CHKCMD 2>&1 >/dev/null && break
+
+        if [ $TIME -lt $WAITTIME ]; then 
+         continue
+        fi
+        
+        echo "Cannot shutdown during $WAITTIME sec." 
+        echo "Forcing emergency shutdown..."
+        TIME1=`timex $DLC/bin/proshut $DB -by -F 2>&1 |grep real|tr -dc '[:digit:].:'`
+        
+      done
+      test $? -eq 0 || { echo "$DB shutdown error."; exit 2; }
+      $CHKCMD 2>&1 >/dev/null
+      test $? -eq 0 || { echo "$DB shutdown error."; exit 2; }
+      ;;
+
+   *) echo "$DB: unknown error."
+      exit 15
+      ;;
+esac
+echo "Shutdown completed in ${TIME1:-$TIME} sec."

@@ -1,0 +1,3 @@
+﻿#!/bin/sh
+/pragma/bin9/tsklad alm $@
+

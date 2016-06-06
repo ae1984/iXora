@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+if test .$PROENVSET = .
+then
+  PROENVSET=ON
+  export PROENVSET
+  DLC=${DLC:-/usr/dlc}
+  export DLC
+  PROTERMCAP=$DLC/protermcap
+  export PROTERMCAP
+fi

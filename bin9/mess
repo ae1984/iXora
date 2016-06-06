@@ -1,0 +1,63 @@
+﻿#!/bin/sh
+# ЯЙПХОР МЮОХЯЮМ id00024 (c)
+
+M=`/usr/bin/whoami`
+PC=`/usr/local/bin/askhost`
+none=`echo $PC | grep metro`
+if [ $? = "0" ]
+then 
+PC=`echo $PC | awk -F. '{print $1}'`
+fi
+
+test $PC = st33333 && { ME="бНМЦЮИ лХУЮХК"; }
+test $PC = 10.0.0.26 && { ME="бНМЦЮИ лХУЮХК"; } 
+
+test $PC = st00005 && { ME="аХАХЙ лЮПХМЮ"; }
+test $PC = 10.0.0.24 && { ME="аХАХЙ лЮПХМЮ"; } 
+
+test $PC = st00270 && { ME="рНМЙХУ юМЮРНКХИ"; }
+test $PC = 10.0.0.40 && { ME="рНМЙХУ юМЮРНКХИ"; } 
+
+test $PC = st00020 && { ME="йЮЯШЛФЮМНБ лЮДХЪП"; }
+test $PC = 10.0.0.52 && { ME="йЮЯШЛФЮМНБ лЮДХЪП"; } 
+
+
+echo "'ЯЙПХОР НОБЕЫЕМХЪ ОНКЭГНБЮРЕКЕИ iXora Н ГЮЙПШРХЕ ДМЪ (C) id00210"                                                                   > /tmp/mess.vbs
+echo ''                                                                                                                                   >> /tmp/mess.vbs
+echo 'Set fs = CreateObject("Scripting.FileSystemObject")'		                                                                  >> /tmp/mess.vbs
+echo 'MsgBox "мЮ iXora '$DBDESCR' ОПНХГБНДЪРЯЪ ОПНТХКЮЙРХВЕЯЙХЕ ПЮАНРШ." & Chr(13) & "оПНЦПЮЛЛХЯР '$ME' ОПНЯХР бЮЯ БШИРХ ХГ МЕЕ...",0+64,"бМХЛЮМХЕ!"'      >> /tmp/mess.vbs
+echo 'res = MsgBox ("OK - дЮ, Ъ ЯЕИВЮЯ БШИДС" & Chr(13) & "Cansel - оПНЬС ОНДНФДЮРЭ 5 ЛХМСР",1+32,"бЮЬ НРБЕР ОПНЦПЮЛЛХЯРС:")'             >> /tmp/mess.vbs
+echo 'if res=1 then'                                                                                                                      >> /tmp/mess.vbs
+echo '  MsgBox "яОЮЯХАН! :)",,""'                                                                                                         >> /tmp/mess.vbs
+echo 'end if'                                                                                                                             >> /tmp/mess.vbs
+echo ''                                                                                                                                   >> /tmp/mess.vbs
+echo 'if res=2 then'                                                                                                                      >> /tmp/mess.vbs
+echo '  Set a = fs.CreateTextFile("C:\tmp\ren.cmd", True)'                                                                                >> /tmp/mess.vbs
+echo '  a.WriteLine("start C:\tmp\ansver.vbs")'                                                                                           >> /tmp/mess.vbs
+echo '  a.Close'                                                                                                                          >> /tmp/mess.vbs
+echo '   fs.CopyFile "C:\tmp\ansver.vbs", "\\'$PC'\tmp$\ansver.vbs"'                                                                      >> /tmp/mess.vbs
+echo '   fs.CopyFile "C:\tmp\ren.cmd", "\\'$PC'\tmp$\run.cmd"'                                                                            >> /tmp/mess.vbs
+echo '  Set b = fs.CreateTextFile("C:\tmp\run.cmd", True)'                                                                                >> /tmp/mess.vbs
+echo '  b.WriteLine("del C:\tmp\ansver.vbs")'                                                                                             >> /tmp/mess.vbs
+echo '  b.WriteLine("del C:\tmp\ren.cmd")'                                                                                                >> /tmp/mess.vbs
+echo '  b.WriteLine("del C:\tmp\mess.vbs")'                                                                                               >> /tmp/mess.vbs
+echo '  b.Close'                                                                                                                          >> /tmp/mess.vbs
+echo '  msgbox ("оПНЦПЮЛЛХЯР АШК СБЕДНЛКЕМ!")'                                                                                            >> /tmp/mess.vbs
+echo 'end if'                                                                                                                             >> /tmp/mess.vbs
+
+
+A=`proshut $1 -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA" | grep pts | awk -F/ '{print $3"/"$4}' | awk '{print $1}'`
+
+for i in $A
+do
+C=`last | grep -w $i | grep still | grep -v $M | awk '{print $3}'`
+none=`echo $C | grep metro`
+if [ $? = "0" ]
+then 
+C=`echo $C | awk -F. '{print $1}'`
+fi
+U=`who | grep $C | awk '{print $1}'`
+echo -n "/pragma/bin9/sendmess $C $U	"
+/pragma/bin9/sendmess $C $U
+done
+rm /tmp/mess.vbs

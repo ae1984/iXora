@@ -1,0 +1,39 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+clear
+echo -e "From where copy? \t 1 = 172.16.1.11 \t 2 = 172.16.1.12 \t 3 = 172.16.4.11"
+echo -n "Input here: "
+read SERVER
+
+if [ "$SERVER" = "1" ]
+then SERVER="172.16.1.11"
+else
+    if [ "$SERVER" = "2" ]
+    then SERVER="172.16.1.12"
+    else
+	if [ "$SERVER" = "3" ]
+	then SERVER="172.16.4.11"
+	else echo "Input 1 or 2 or 3"
+	fi
+    fi
+fi
+
+echo
+echo -n "What to copy: "
+read SOURCE
+echo
+echo -n "Where place: "
+read TARGET
+test -d $TARGET || { mkdir -v $TARGET; chmod 750 $TARGET; }
+
+
+export ME=`/usr/bin/whoami`
+if [ $ME = "bankadm" ]
+then
+/usr/bin/scp -i ~/.ssh/id_rsa_repl -r bankadm@$SERVER:$SOURCE $TARGET
+else
+scp -o PasswordAuthentication=yes -o batchmode=no -r $SERVER:$SOURCE $TARGET
+fi
+
+

@@ -1,0 +1,23 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+ 
+. /pragma/bin9/proenv
+
+DATE=`date "+%y-%m-%d"`
+
+#STORAGER=/savedb/$DBID/bank/full
+STORAGER=/savedb/$DBID/$DBNAME/full
+cd $STORAGER
+echo; echo "List of STORAGES:"; echo "======================================================================================================"
+ls -tr1 --color=always;  echo "======================================================================================================"
+echo -n "Type here storage name: "
+read DAYDIRR
+#echo "you have chosen $STORAGER/$DAYDIRR/bank0.Z";
+echo "you have chosen $STORAGER/$DAYDIRR/$DBNAME0.Z";
+echo
+#echo "EXEQUTING:	dbrest $DBDIR/$DBNAME $STORAGER/$DAYDIRR/bank0.Z $DBID"; sleep 1;
+echo "EXEQUTING:	dbrest $DBDIR/$DBNAME $STORAGER/$DAYDIRR/$DBNAME0.Z $DBID"; sleep 1;
+
+#rfutil $DBDIR/$DBNAME -C aimage end
+#dbrest $DBDIR/$DBNAME $STORAGER/$DAYDIRR/bank0.Z $DBID
+multirest $DBDIR/$DBNAME $STORAGER/$DAYDIRR

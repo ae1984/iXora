@@ -1,0 +1,26 @@
+﻿#!/bin/sh
+ 
+. /pragma/bin9/proenv
+
+SDIR=$DBDIR/ai
+BDIR=$DBDIR/aibkup
+test -d /savedb/$DBID/aibkup || { mkdir /savedb/$DBID/aibkup; chmod 750 /savedb/$DBID/aibkup; }
+test -d $BDIR || { mkdir $BDIR; chmod 750 $BDIR; }
+cp -f $SDIR/* $BDIR 
+
+cd $BDIR
+	for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		   cp $i $BDIR/
+		   if [ $? = 0 ]
+			 then rm -f $i
+            	      fi
+            else 
+                nice -5 /usr/bin/gzip -qc1 $i > $BDIR/$i".Z"
+		   if [ $? = 0 ]
+                      then rm -f $i
+                   fi
+            fi
+        done

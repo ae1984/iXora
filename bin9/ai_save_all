@@ -1,0 +1,9 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+LIST="alm akt kos url sem bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku comm ib"
+
+for i in $LIST
+do
+/pragma/bin9/ai_save_fil $i
+done

@@ -1,0 +1,86 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/proenv
+. /pragma/bin9/mcset
+
+#$DLC/bin/rfutil $DBDIR/$DBNAME -C truncate bi -G 0
+
+DATE=`date "+%y-%m-%d"`
+
+STORAGE=/savedb/$DBID/aibkup
+cd $STORAGE
+echo; echo "List of STORAGES:"; echo "======================================================================================================"
+ls -tr1 --color=always;  echo "======================================================================================================"
+echo -n "Type here storage name: "
+read DAYDIR
+
+cd $STORAGE/$DAYDIR
+echo; echo "List of FILES:"; echo "------------------------------------------------------------------------------------------------------"
+ls -tr1 --color=always; echo "------------------------------------------------------------------------------------------------------"
+#echo -n "Type here folder name: "
+#read TIMDIR
+
+ABDIR=$DBDIR/log/$DATE
+test -d $ABDIR || { mkdir $ABDIR; chmod 750 $ABDIR; }
+echo; echo "You have chosen directory - $STORAGE/$DAYDIR/"
+	echo; echo "List of FILES:"; echo "------------------------------------------------------------------------------------------------------"
+        ls -1 $STORAGE/$DAYDIR/
+	echo "------------------------------------------------------------------------------------------------------"
+	echo "Are you sure?"
+        echo -n "[y/n]"
+        read ANS
+        test $ANS = "y" || { echo Rolling forward from $STORAGE/$DAYDIR/ on $DBDESCR Cancelled by user.; exit 2; } >> $ABDIR/ai_rest.log
+
+AIADIR=$DBDIR/ai_apply
+test -d $AIADIR || { mkdir $AIADIR; chmod 0777 $AIADIR; }
+rm $AIADIR/*
+
+cp $STORAGE/$DAYDIR/* $AIADIR/
+echo "	 " >> $ABDIR/ai_rest.log
+
+cd $AIADIR
+    for i in `ls  * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		 /usr/bin/gunzip  $i
+		   if [ $? = 0 ]
+			 then                                                                                    
+                              echo "Распаковываем $STORAGE/$DAYDIR" $i " в $AIADIR" >> $ABDIR/ai_rest.log
+                          else 
+			      echo "Ошибка при распаковывании $STORAGE/$DAYDIR/" $i " в $AIADIR !!!" >> $ABDIR/ai_rest.log
+                   fi
+           fi
+        done
+
+        echo "	"
+        echo "Roll forward AI files to a specific point in time?"
+        echo -n "[y - yes / * - no]"
+        read ANS
+        test $ANS = "y" && {	echo "======================================================================================================"
+				echo "You can set time only in choosen diapasone"
+				#echo "Your  diapasone: $DAYDIR:10:10:"
+				echo "Example of input YY:MM:DD:hh:mm:ss"
+				echo -n "Input here: 20"
+				read TTIME
+                 		
+				for i in `ls * | awk '{print $0}'`
+				do 
+				if [ $? = 0 ]                                    
+				#rfutil $DBDIR/bank -C roll forward endtime 20$TTIME -a $AIADIR/$i
+				echo "Начался накат $i на $DBDESCR..." | grep --colour=always "Начался накат $i на $DBDESCR..."
+				/pragma/bin9/airst $i endtime 20$TTIME
+				echo "rfutil $DBDIR/bank -C roll forward endtime 20$TTIME -a $AIADIR/$i"
+				then 
+                                echo "Накат ai-файла " $i " на $DBDESCR до точки $TTIME" >> $ABDIR/ai_rest.log
+                     		else echo "Ошибка при yакате ai-файла " $i " на $DBDESCR до точки $TTIME !!!" >> $ABDIR/ai_rest.log
+               			fi
+			        done
+				exit 1; }
+
+    for i in `ls * | awk '{print $0}'`
+	do 
+	echo "Начался накат $i на TEST DATABASE..." | grep --colour=always "Начался накат $i на TEST DATABASE..."
+	/pragma/bin9/airst $i
+        done

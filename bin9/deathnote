@@ -1,0 +1,138 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/mcset
+
+if [ $ME = "id00004" ]
+then echo
+else
+
+ if [ $ME = "id00333" ]
+ then echo
+ else
+
+ if [ $ME = "id00477" ]
+ then echo
+ else
+
+ if [ $ME = "id00700" ]
+ then echo
+ else
+
+  if [ $ME = "id00020" ]
+  then echo
+  else
+
+   if [ $ME = "id00005" ]
+   then echo
+   else
+   echo "You can't use the DeathNote! Only id00333, id00020, id00005, id00477, id00700 can use it! (c) Ryuk"
+   echo "prass enter"
+   read none
+   exit
+   fi
+  fi
+ fi
+ fi
+fi
+
+while true
+do
+  echo "	1. Kill by ligin"
+  echo "	2. Kill by PID"
+  echo "	3. Show all by login"
+  echo
+  echo "	Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  1) 
+clear
+echo "Input Login:"
+echo -n "id0"
+read ID
+
+ID="id0$ID"
+A=`ps aux | grep -w "$ID"  | grep "_progres" | grep -v "grep" | awk '{print $2}'` 
+PID=`echo $A | awk '{print $1}'`
+test "$PID" || { echo "There is no such user in Linux"; exit; }
+NAME=`ps aux | grep -w "$PID" | grep -v "grep" | awk '{print $1}'`
+EYE=`cat /etc/passwd | grep $NAME | awk -F: '{print $5}'`
+BASE=`ps aux | grep -v "grep" | grep -w "$PID" | awk '{print $12}' | awk -F/ '{print $4}'`
+
+echo "$NAME ( $EYE in database: $BASE ) will die for 40 seconds?"
+echo -n "[y/n] "
+read ans
+if [ $ans = "y" ]
+then
+sudo kill $PID
+if [ $? = 0 ]
+then echo "$NAME is died :D"
+else echo "$NAME didn't died o_O"
+fi
+echo "prass enter"
+read none
+else
+echo "$NAME will live... just now ;)"
+echo "prass enter"
+read none
+fi
+;;
+
+
+  2) 
+clear
+echo "Input pts:"
+echo -n " pts/"
+read ID
+
+ID="pts/$ID"
+A=`ps aux | grep -w "$ID"  | grep "_progres" | grep -v "grep" | awk '{print $2}'` 
+PID=`echo $A | awk '{print $1}'`
+test "$PID" || { echo "There is no such user in Linux"; exit; }
+NAME=`ps aux | grep -w "$PID" | grep -v "grep" | awk '{print $1}'`
+EYE=`cat /etc/passwd | grep $NAME | awk -F: '{print $5}'`
+BASE=`ps aux | grep -v "grep" | grep -w "$PID" | awk '{print $12}' | awk -F/ '{print $4}'`
+
+echo "$NAME ( $EYE in database: $BASE ) will die for 40 seconds?"
+echo -n "[y/n] "
+read ans
+if [ $ans = "y" ]
+then
+sudo kill $PID
+if [ $? = 0 ]
+then echo "$NAME is died :D"
+else echo "$NAME didn't died o_O"
+fi
+echo "prass enter"
+read none
+else
+echo "$NAME will live... just now ;)"
+echo "prass enter"
+read none
+fi
+;;
+
+  3) 
+clear
+echo "Input Login:"
+echo -n "id0"
+read ID
+
+ID="id0$ID"
+A=`ps aux | grep -w "$ID"  | grep "_progres" | grep -v "grep" | awk '{print $1" "$12}'`
+EYE=`cat /etc/passwd | grep $ID | awk -F: '{print $5}'`
+
+echo ""
+echo "$EYE"
+echo ""
+echo "$A"
+echo ""
+;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1 or 2 or Q."
+  esac
+done
+

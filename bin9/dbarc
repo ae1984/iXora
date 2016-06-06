@@ -1,0 +1,79 @@
+﻿#!/bin/sh
+#
+#if [ /bin/df | grep -iw "savedb" > /dev/null ] 
+#then /pragma/bin9/dbarc /savedb/$DBID/tmp /savedb/$DBID/$DBNAME/full $DBDIR/backup
+#
+#then /pragma/bin9/dbarc $TDIR $CPDIR1 $CPDIR2 
+#else /pragma/bin9/dbarc $CPDIR2(bakup) $CPDIR1(savedb)
+#fi
+
+SOURCE=$1
+TARGET1=$2
+TARGET2=$3
+
+if test $1
+then 
+    if test $2
+    then 
+	    if test $3
+	    then 
+        cd $SOURCE
+        test -d $TARGET1 || mkdir $TARGET1
+        for i in `ls * | awk '{print $0}'`
+        do 
+            if [ `echo $i | grep .Z` ]
+            then 
+                mv $i $TARGET1
+                if [ $? = 0 ]
+                   then rm -f $i
+                        echo "Копируем " $i >> /data/log/daycopy30.log
+                   else echo "Ошибка при копировании $i !!!" >> /data/log/daycopy30.log
+                fi
+            else 
+  
+                echo -n "Zipping: /usr/bin/gzip -c1v $SOURCE/$i > $TARGET1/$i.Z	" && /usr/bin/gzip -c1v $i > $TARGET1/$i".Z" 
+		echo -n "Deleting: rm -v $SOURCE/$i	" && rm -v $i 
+		#echo -n "Copying: " && cp -v $TARGET1/$i".Z" $TARGET2/
+		#echo -n "Moveing: " && mv -v $TARGET1/$i".Z" $TARGET2
+                if [ $? = 0 ]
+                   then 
+                        echo "Архивируем " $i >> /data/log/daycopy30.log
+                   else echo "Ошибка при архивации $i !!!" >> /data/log/daycopy30.log
+                fi
+            fi
+        done
+
+	    else
+################### если нет savedb то
+        test -d $TARGET1 || mkdir $TARGET1
+        cd $SOURCE
+        for i in `ls * | awk '{print $0}'`
+        do 
+            if [ `echo $i | grep .Z` ]
+            then 
+                mv $i $TARGET1
+                if [ $? = 0 ]
+                   then rm -f $i
+                        echo "Копируем " $i >> /data/log/daycopy30.log
+                   else echo "Ошибка при копировании $i !!!" >> /data/log/daycopy30.log
+                fi
+            else 
+  
+                echo -n "Zipping: /usr/bin/gzip -c1v $SOURCE/$i > $SOURCE/$i.Z	" && /usr/bin/gzip -c1v $i > $i".Z" 
+		echo -n "Deleting: rm -v $SOURCE/$i	" && rm -v $i 
+		#echo -n "Copying: " && cp -v $SOURCE/$i".Z" $TARGET1/
+		#echo -n "Moveing: " && mv -v $SOURCE/$i".Z" $TARGET1
+                if [ $? = 0 ]
+                   then 
+                        echo "Архивируем " $i >> /data/log/daycopy30.log
+                   else echo "Ошибка при архивации $i !!!" >> /data/log/daycopy30.log
+                fi
+            fi
+        done
+	    fi        
+    else
+        echo "Укажите источник2!!!" >> /data/log/daycopy30.log
+    fi        
+else
+    echo "Укажите получателя1!!!" >> /data/log/daycopy30.log
+fi

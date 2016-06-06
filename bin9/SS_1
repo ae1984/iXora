@@ -1,0 +1,167 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+
+
+while true
+do  
+  echo    
+  echo 
+  echo "    1. AUTOStart $DBDESCR database server"
+  echo "    2. Start $DBDESCR database server + AI + AIMD"
+  echo 
+  echo "    3. Start $DBDESCR database Replication Server (AI and AIMD must be on)"
+  echo
+  echo "    4. Start $DBDESCR database server + Replication Target"
+  echo "    5. Start $DBDESCR database server + AI + AIMD + Replication Target"
+  echo
+  echo "    6. Stop $DBDESCR database"
+  echo 
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+
+  1)  
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+     then
+	RC=0
+	/pragma/bin9/Lenin $DBID
+	test -e $DBDIR/.lock-b && { rm $DBDIR/.lock-b; }
+     else
+        echo Cannot DO THIS.
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder 
+     fi;;
+
+  2)  
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+     then
+	RC=0
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in $DBDESCR!"; RC=1; }
+
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in $DBDESCR!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -aiarcdir $DBDIR/fullai/ -aiarcdircreate -N TCP -S $MAINPORT -minport 40000 -maxport 50000 -Mn 21 -n 200 -B $BPool -L 60000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+       $DLC/bin/prowdog  $DBDIR/$DBNAME 
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+	test -e $DBDIR/.lock-b && { rm $DBDIR/.lock-b; }
+     else
+        echo Cannot DO THIS.
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder 
+     fi;;
+
+  3) 
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+	RC=0
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in $DBDESCR!"; RC=1; }
+
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in $DBDESCR!"; RC=1; }
+
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Source Replication in $DBDESCR!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 -DBService replserv -N TCP -S $REPLPORT || echo Cannot start server.
+     else
+        echo Cannot DO THIS.
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder 
+     fi;;
+
+  4)
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+     then
+	RC=0
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Target Replication in $DBDESCR!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+ 
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -DBService replagent -N TCP -S $REPLPORT -minport 40000 -maxport 50000 -Mn 21 -n 200 -B $BPool -L 60000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+       $DLC/bin/prowdog  $DBDIR/$DBNAME 
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+	test -e $DBDIR/.lock-b && { rm $DBDIR/.lock-b; }
+     else
+        echo Cannot DO THIS.
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder 
+     fi;;
+
+  5)
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+     then
+	RC=0
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "After" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image in $DBDESCR!"; RC=1; }
+
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Mangement/Archiver" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found After Image Mangement Daemon in $DBDESCR!"; RC=1; }
+
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?; test $RETCODE = 0 || { echo "Command didn't found Target Replication in $DBDESCR!"; RC=1; }
+
+        test $RC = 1 && { exit; }
+ 
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -aiarcdir $DBDIR/fullai/ -aiarcdircreate -DBService replagent -N TCP -S $REPLPORT -minport 40000 -maxport 50000 -Mn 21 -n 200 -B $BPool -L 60000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+       $DLC/bin/prowdog  $DBDIR/$DBNAME 
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+	test -e $DBDIR/.lock-b && { rm $DBDIR/.lock-b; }
+     else
+        echo Cannot DO THIS.
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder 
+     fi;;
+
+
+  6)
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+   if [ "$?" = "16" ]
+     then
+	dbshut $DBDIR/$DBNAME 
+	A=`/bin/date`
+	B=`/usr/bin/whoami`
+	C=`/usr/local/bin/askhost`
+	echo "$A $B $C" > $DBDIR/$DBNAME.lock
+     else
+        echo Cannot DO THIS. 
+     fi
+	;;
+ [Qq]) exit 0;;
+  exit) exit 0;;
+  *) echo "Wrong selection. Press 1-8 or Q."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

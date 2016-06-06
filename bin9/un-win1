@@ -1,0 +1,1 @@
+﻿cat $1 | awk -f /pragma/bin9/winentr > $2

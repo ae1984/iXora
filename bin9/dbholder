@@ -1,0 +1,9 @@
+﻿#!/bin/sh
+DLC=${DLC:-/usr/dlc9}
+F=`dirname $1`/`basename $1 .db`.lk
+if [ -f $F ]; then
+  ls -l $F|awk '{print $3}'
+  exit 0
+else
+  exit 1
+fi

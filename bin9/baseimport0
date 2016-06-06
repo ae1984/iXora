@@ -1,0 +1,29 @@
+﻿#!/bin/sh
+
+# Script wich is called from baseimport
+# and * ONLY * from Pragma menu !!!
+# (to be sure that DBDIR, PROPATH etc. are defined)
+
+#PLANG=RR;export PLANG
+#PM=/pragma/lib/RX;export PM
+#DLC=/usr/dlc;export DLC
+#DBDIR=/data/tlm;export DBDIR
+#PROPATH=.:$PROPATH:/pragma/source:/pragma/source/fortxk:$PM/RX.pl:$DLC/lib; export PROPATH
+#PROTERMCAP=$DLC/protermcap;export PROTERMCAP                     
+
+#echo "Введите Ваш пароль в Прагму!"
+#passw=`perl -e 'use Term::ReadKey;                                                                                     
+#         ReadMode("cbreak");                                                                                    
+#         while ($key ne "\n")                                                                                   
+#         {                                                                                                      
+#             $key = ReadKey(0);                                                                                 
+#             if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+#             {                                                                                                  
+#                 $pass = $pass . $key;                                                                          
+#                 print "*";
+#             }                                                                                                  
+#         }                                                                                                      
+#         ReadMode("normal");
+#         print ":$pass";' | awk -F: '{print $2}'`
+
+exec $DLC/bin/_progres $DBDIR/bank -d dmy -ld bank -U bankadm -P Gr74OUps -p $1 -b -param $2

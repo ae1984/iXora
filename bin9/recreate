@@ -1,0 +1,25 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) для пересоздание АИШНИКОВ
+
+#SYSTEM ERROR: Memory violation. (49)
+#** Save file named core for analysis by Progress Software Corporation. (439)
+
+DBDIR=$1
+DBNAME=$2
+test -e $DBDIR/*.db || { echo "NO!"; exit 1; }
+DB="$DBDIR/$DBNAME"
+
+proshut $DB -by > /dev/null
+prostrct list $DB > /dev/null
+
+probkup $DB $DB.tmp -verbose && rm $DB.db $DB.b1 $DB.d1 $DB.d2 $DB.lg
+cd $DBDIR/ai; for i in $(dir); do rm $i; done; cd ~
+
+prostrct create $DB -blocksize 8192
+
+cd $DBDIR; for i in $(dir); do chmod 0777 $i; done
+
+cd ai;for i in $(dir); do chmod 0777 $i; done; cd ~
+
+prorest $DB $DB.tmp -verbose 
+

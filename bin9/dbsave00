@@ -1,0 +1,23 @@
+﻿#!/bin/sh
+. /pragma/bin9/proenv
+
+if test $1 
+then 
+    dbdir=$1
+else
+    dbdir=`pwd`
+fi
+
+ls $dbdir/*.db 2>&1 >/dev/null
+test $? -eq 0 || { echo "Progress data base not found in" $dbdir; exit 1; }
+cd $dbdir
+dbid=`ls *.db | awk -F. '{print $1}'`
+
+test -d $dbdir/backup || { mkdir $dbdir/backup; }
+city=`pwd | awk -F/ '{print $3}'`
+month=`pwd | awk -F/ '{print $5}'`
+targdir=/savedb/month/$city/$month
+
+dbsave $dbdir/$dbid
+dbarc $dbdir/backup $targdir
+rmdir $dbdir/backup

@@ -1,0 +1,27 @@
+﻿/* vcrequesthis.p
+ * MODULE
+        Название Программного Модуля
+ * DESCRIPTION
+        Назначение программы, описание процедур и функций
+ * RUN
+        Способ вызова программы, описание параметров, примеры вызова
+ * CALLER
+        Список процедур, вызывающих этот файл
+ * SCRIPT
+        Список скриптов, вызывающих этот файл
+ * INHERIT
+        Список вызываемых процедур
+ * MENU
+        Перечень пунктов Меню Прагмы
+ * AUTHOR
+        21.01.2011 aigul
+ * BASES
+        BANK COMM
+ * CHANGES
+
+*/
+
+def new shared var s-viewcommand as char.
+
+s-viewcommand = "ps_less".
+run vcrequesthis0.

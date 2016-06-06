@@ -1,0 +1,33 @@
+﻿#!/bin/bash
+
+if [ $1 = 'bank' ]; then DIR=''
+fi
+if [ $1 = 'alga' ]; then DIR='alga/'
+fi
+if [ $1 = 'stat' ]; then DIR='stat/data/'
+fi
+
+if [ $1 = 'comm' ] || [ $1 = 'cards' ]; then DIR=$1'/'
+fi
+
+if [ $1 = 'sklad' ]; then DIR='alm/sklad/'
+fi
+
+if [ $1 = 'bank' ] || [ $1 = 'alga' ] || [ $1 = 'stat' ]; then   
+  echo "Пользователи базы   " $1
+  echo "------------------ Алматы ---------------"
+  proshut /data/9/alm/$DIR$1 -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+  echo "------------------ Астана ---------------"
+  proshut /data/9/ast/$DIR$1 -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+  echo "------------------ Уральск --------------"
+  proshut /data/9/url/$DIR$1 -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+  echo "------------------ Атырау ---------------"
+  proshut /data/9/atr/$DIR$1 -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+fi
+
+
+if [ $1 = 'comm' ] || [ $1 = 'cards' ] || [ $1 = 'sklad' ]; then
+  echo "------------------ Общебанковская база $1 ---------------"
+  proshut /data/9/$DIR$1 -C list | egrep -v 'superman|inbank|wdog|biw|apw'
+fi
+		

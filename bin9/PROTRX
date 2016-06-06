@@ -1,0 +1,311 @@
+﻿# The Protermcap File
+# by KOVAL 30.01.03
+#	:APPEND-LINE(CTRL-A)=^a:\
+#	:BACKSPACE(DEL-CHAR)=\EW:\
+#
+v7kf|version 7 key functions:\
+	:NEXT-WORD(CTRL-W)=^w:\
+	:HELP(ESC-?)=\E?:\
+	:COPY(ESC-C)=\Ec:\
+	:CHOICES(ESC-CTRL-H)=\E^h:\
+	:OPTIONS(ESC-CTRL-O)=\E^o:\
+	:GET(ESC-O)=\Eo:\
+	:MAIN-MENU(ESC-CTRL-M)=\E^m:\
+	:ENTER-MENUBAR(ESC-M)=\Em:\
+	:EDITOR-TAB(CTRL-G)=^g:\
+	:PREV-WORD(CTRL-P)=^p:\
+	:PUT(ESC-S)=\Es:\
+	:EDITOR-BACKTAB(CTRL-B)=^b:\
+	:DELETE-LINE(CTRL-D)=^d:\
+	:END-ERROR(CTRL-E)=^e:\
+	:FIND(CTRL-F)=^f:\
+	:BACKSPACE(CTRL-H)=^h:\
+	:TAB(CTRL-I)=^i:\
+	:CURSOR-DOWN(CTRL-J)=^j:\
+	:CURSOR-UP(CTRL-K)=^k:\
+	:CURSOR-RIGHT(CTRL-L)=^l:\
+	:RETURN(CTRL-M)=^m:\
+	:NEW-LINE(CTRL-N)=^n:\
+	:CURSOR-LEFT(CTRL-O)=^o:\
+	:RESUME-DISPLAY(CTRL-Q)=^q:\
+	:RECALL(CTRL-R)=^r:\
+	:STOP-DISPLAY(CTRL-S)=^s:\
+	:INSERT-MODE(CTRL-T)=^t:\
+	:BACK-TAB(CTRL-U)=^u:\
+	:BLOCK(CTRL-V)=^v:\
+	:GO(CTRL-X)=^x:\
+	:CLEAR(CTRL-Z)=^z:\
+	:SAVE-AS(ESC-A)=\Ea:\
+	:BREAK-LINE(ESC-B)=\Eb:\
+	:DELETE-WORD(ESC-D)=\Ed:\
+	:NEXT-ERROR(ESC-E)=\Ee:\
+	:FIND-NEXT(ESC-F)=\Ef:\
+	:GOTO(ESC-G)=\Eg:\
+	:FIND-PREVIOUS(ESC-I)=\Ei:\
+	:DELETE-END-LINE(ESC-K)=\Ek:\
+	:OPEN-LINE-ABOVE(ESC-L)=\El:\
+	:NEW(ESC-N)=\En:\
+	:COMPILE(ESC-P)=\Ep:\
+	:EXIT(ESC-Q)=\Eq:\
+	:REPLACE(ESC-R)=\Er:\
+	:SCROLL-MODE(ESC-T)=\Et:\
+	:DEFAULT-POP-UP(ESC-U)=\Eu:\
+	:PASTE(ESC-V)=\Ev:\
+	:PAGE-LEFT(ESC-W)=\Ew:\
+	:CUT(ESC-X)=\Ex:\
+	:PAGE-RIGHT(ESC-Y)=\Ey:\
+	:CLOSE(ESC-Z)=\Ez:\
+	:HOME(HOME)=:\
+	:HOME(ESC-<)=\E<:\
+	:HOME(ESC-,)=\E,:\
+	:END(END)=:\
+	:END(ESC->)=\E>:\
+	:END(ESC-.)=\E.:\
+	:REPORTS(ESC-CTRL-A)=\E^a:\
+	:BOTTOM-COLUMN(ESC-CTRL-B)=\E^b:\
+	:DELETE-FIELD(ESC-CTRL-D)=\E^d:\
+	:INSERT-FIELD-LABEL(ESC-CTRL-E)=\E^e:\
+	:INSERT-FIELD-DATA(ESC-CTRL-F)=\E^f:\
+	:INSERT-FIELD(ESC-CTRL-G)=\E^g:\
+	:NEXT-FRAME(ESC-CTRL-I)=\E^i:\
+	:SCROLL-LEFT(ESC-CTRL-L)=\E^l:\
+	:INSERT-COLUMN(ESC-CTRL-N)=\E^n:\
+	:PICK(ESC-CTRL-P)=\E^p:\
+	:PICK-BOTH(ESC-CTRL-Q)=\E^q:\
+	:SCROLL-RIGHT(ESC-CTRL-R)=\E^r:\
+	:SETTINGS(ESC-CTRL-@)=\E^@:\
+	:TOP-COLUMN(ESC-CTRL-T)=\E^t:\
+	:PREV-FRAME(ESC-CTRL-U)=\E^u:\
+	:MOVE(ESC-CTRL-V)=\E^v:\
+	:PICK-AREA(ESC-CTRL-W)=\E^w:\
+	:CANCEL-PICK(ESC-CTRL-X)=\E^x:\
+	:LEFT-END(ESC-LEFT-ARROW)=\E^o:\
+	:RIGHT-END(ESC-RIGHT-ARROW)=\E^l:\
+	:PAGE-UP(ESC-UP-ARROW)=\E^k:\
+	:PAGE-DOWN(ESC-DOWN-ARROW)=\E^j:\
+	:APPEND-LINE(CTRL-A)=^a:\
+	:DELETE-COLUMN(ESC-CTRL-Z)=\E^z:
+#
+#
+vt100|vt100c|ansi:\
+	:DELETE-CHARACTER(DEL)=\E[3~:\
+        :BACKSPACE(BACKSPACE)=\177:\
+	:GET(F5)=\E[16~:\
+	:PUT(F6)=\E[17~:\
+        :RECALL(F7)=\E[18~:\
+        :CLEAR(F8)=\E[19~:\
+	:NEW-LINE(F9)=\E[20~\
+        :CUT(F10)=\E[21~\
+        :START-RESIZE(ESC-1)=\E1:\
+        :GO(F1)=\E[11:\
+	:GO(CTRL-X)=^x:\
+        :HELP(F2)=\E[12:\
+        :ENTER-MENUBAR(F3)=\E[13:\
+        :END-ERROR(F4)=\E[14:\
+#	:GET(F5)=\EOT:\
+#	:PUT(F6)=\EOU:\
+#       :RECALL(F7)=\EOV:\
+#       :CLEAR(F8)=\EOW:\
+#	:NEW-LINE(F9)=\EOX:\
+	:CLEAR(CTRL-Z)=^z:\
+	:INSERT-MODE(CTRL-T)=^t:\
+	:INSERT-MODE(INS)=\E[2~:\
+#       :CUT(F10)=\EOY:\
+        :COPY(F11)=\EOZ:\
+        :PASTE(F12)=\EO[:\
+        :BACKSPACE(DEL-CHAR)=\EW:\
+	:BACKSPACE(BACKSPACE)=\177:\
+	:BLOCK(CTRL-V)=^v:\
+	:HOME(ESC-<)=\E[1~:\
+	:END(ESC->)=\E[4~:\
+	:is=\E>\E[?3l\E[?4l\E[m\E[?7h\E[?8h\E(B\E)0:\
+	:nd=2\E[C:\
+	:do=\E[B:\
+	:cl=50\E[;H\E[2J:\
+	:cm=5\E[%i%d;%dH:\
+	:so=2\E[7m:\
+	:DELETE-COLUMN(ESC-CTRL-Z)=\E[4:\
+	:DELETE-CHARACTER(DEL)=\E[3~:\
+	:se=2\E[m:\
+	:us=2\E[4m:\
+	:ue=2\E[m:\
+	:GS=^N:\
+	:GE=^O:\
+	:G1=k:\
+	:G2=l:\
+	:G3=m:\
+	:G4=j:\
+	:GC=n:\
+	:GD=w:\
+	:GH=q:\
+	:GL=u:\
+	:GR=t:\
+	:GU=v:\
+	:GV=x:\
+	:HS=2\E[1m:\
+	:HR=2\E[m:\
+	:BB=2\E[5m:\
+	:BR=2\E[m:\
+	:ks=\E[?1h\E=:\
+	:ke=\E[?1l\E>:\
+	:cd=10\E[J:\
+	:ce=10\E[K:\
+	:co#110:\
+	:kd=\E[B:\
+	:kl=\E[D:\
+	:kr=\E[C:\
+	:ku=\E[A:\
+	:li#40:\
+	:up=\E[A:\
+	:xi:\
+	:cs=\E[%i%d;%dr:\
+	:sr=\EM:\
+	:sf=\n:\
+	:GO(PF1)=\EOP:\
+	:HELP(PF2)=\EOQ:\
+	:ENTER-MENUBAR(PF3)=\EOR:\
+	:END-ERROR(PF4)=\EOS:\
+	:PAGE-UP(PAGE-UP)=\E[5~:\
+	:PAGE-DOWN(PAGE-DOWN)=\E[6~:\
+	:PAGE-UP(ESC-UP-ARROW)=\E\E[A:\
+	:PAGE-DOWN(ESC-DOWN-ARROW)=\E\E[B:\
+	:LEFT-END(ESC-LEFT-ARROW)=\E\E[D:\
+	:RIGHT-END(ESC-RIGHT-ARROW)=\E\E[C:\
+	:ku=\E[A:	:L_ku=<Up>:\
+	:kd=\E[B:	:L_kd=<Down>:\
+	:kr=\E[C:	:L_kr=<Right>:\
+	:kl=\E[D:	:L_kl=<Left>:\
+	:bc=\177:       :.L_bc:\
+	:kh=\Eh:	:L_kh=<ESC> h:\
+	:EN=\Ee:	:L_EN=<ESC> e:\
+	:PU=^U: 	:L_PU=<CTRL-U>:\
+	:PD=^K: 	:L_PD=<CTRL-D>:\
+	:ki=\Ei:	:L_ki=<ESC> i:\
+	:DL=^X: 	:L_DL=<CTRL-X>:\
+	:ESC=\E\E:	:L_ESC=<ESC> <ESC>:\
+	:bt=\Eb:	:L_bt=<ESC> b:\
+	:fk4=\EOP:	:L_fk4=<PF1>:\
+	:fk1=\EOQ:	:L_fk1=<PF2>:\
+	:fk2=\EOR:	:L_fk2=<PF3>:\
+	:fk3=\EOS:	:L_fk3=<PF4>:\
+	:fk5=\E6:	:L_fk5=<ESC> 6:\
+	:fk6=\E7:	:L_fk6=<ESC> 7:\
+	:fk7=\E8:	:L_fk7=<ESC> 8:\
+        :Aka=^k:      :L_Aka=Ctrl-K:\
+        :Akd=^z:      :L_Akd=Ctrl-Z:\
+        :Akp=^r:      :L_Akp=Ctrl-R:\
+        :Aks=^l:      :L_Aks=Ctrl-L:\
+        :Aku=\Em:      :L_Aku=Esc-M:\
+        :Akw=^g:      :L_Akw=Ctrl-G:\
+        :Aki=^e:      :L_Aki=Ctrl-E:\
+	:tc=v7kf:
+#
+#
+#
+#Putty Terminal Emulation
+#
+putty|putty terminal emulation:\
+	:START-RESIZE(ESC-1)=\E1:\
+	:GO(F1)=\E[11:\
+		:GO(CTRL-X)=^x:\
+	:HELP(F2)=\E[12:\
+	:ENTER-MENUBAR(F3)=\E[13:\
+	:END-ERROR(F4)=\E[14:\
+	:GET(F5)=\EOT:\
+	:PUT(F6)=\EOU:\
+	:RECALL(F7)=\EOV:\
+	:CLEAR(F8)=\EOW:\
+	:NEW-LINE(F9)=\EOX:\
+	:CLEAR(CTRL-Z)=^z:\
+	:INSERT-MODE(CTRL-T)=^t:\
+	:INSERT-MODE(INS)=\E[2~:\
+	:CUT(F10)=\EOY:\
+	:COPY(F11)=\EOZ:\
+	:PASTE(F12)=\EO[:\
+	:BACKSPACE(DEL-CHAR)=\EW:\
+	:BACKSPACE(BACKSPACE)=\177:\
+	:BLOCK(CTRL-V)=^v:\
+	:HOME(ESC-<)=\E[1~:\
+	:END(ESC->)=\E[4~:\
+	:is=\E>\E[?3l\E[?4l\E[m\E[?7h\E[?8h\E(B\E)0:\
+	:nd=2\E[C:\
+	:do=\E[B:\
+	:cl=50\E[;H\E[2J:\
+	:cm=5\E[%i%d;%dH:\
+	:so=2\E[7m:\
+	:DELETE-COLUMN(ESC-CTRL-Z)=\E[4:\
+	:DELETE-CHARACTER(DEL)=\E[3~:\
+	:se=2\E[m:\
+	:us=2\E[4m:\
+	:ue=2\E[m:\
+	:GS=^N:\
+	:GE=^O:\
+	:G1=k:\
+	:G2=l:\
+	:G3=m:\
+	:G4=j:\
+	:GC=n:\
+	:GD=w:\
+	:GH=q:\
+	:GL=u:\
+	:GR=t:\
+	:GU=v:\
+	:GV=x:\
+	:HS=2\E[1m:\
+	:HR=2\E[m:\
+	:BB=2\E[5m:\
+	:BR=2\E[m:\
+	:ks=\E[?1h\E=:\
+	:ke=\E[?1l\E>:\
+	:cd=10\E[J:\
+	:ce=10\E[K:\
+	:co#110:\
+	:kd=\E[B:\
+	:kl=\E[D:\
+	:kr=\E[C:\
+	:ku=\E[A:\
+	:li#40:\
+	:up=\E[A:\
+	:xi:\
+	:cs=\E[%i%d;%dr:\
+	:sr=\EM:\
+	:sf=\n:\
+	:GO(PF1)=\EOP:\
+	:HELP(PF2)=\EOQ:\
+	:ENTER-MENUBAR(PF3)=\EOR:\
+	:END-ERROR(PF4)=\EOS:\
+	:PAGE-UP(PAGE-UP)=\E[5~:\
+	:PAGE-DOWN(PAGE-DOWN)=\E[6~:\
+	:PAGE-UP(ESC-UP-ARROW)=\E\E[A:\
+	:PAGE-DOWN(ESC-DOWN-ARROW)=\E\E[B:\
+	:LEFT-END(ESC-LEFT-ARROW)=\E\E[D:\
+	:RIGHT-END(ESC-RIGHT-ARROW)=\E\E[C:\
+	:ku=\E[A::L_ku=<Up>:\
+	:kd=\E[B::L_kd=<Down>:\
+	:kr=\E[C::L_kr=<Right>:\
+	:kl=\E[D::L_kl=<Left>:\
+	:bc=\177::.L_bc:\
+	:kh=\Eh::L_kh=<ESC>h:\
+	:EN=\Ee::L_EN=<ESC>e:\
+	:PU=^U::L_PU=<CTRL-U>:\
+	:PD=^K::L_PD=<CTRL-D>:\
+	:ki=\Ei::L_ki=<ESC>i:\
+	:DL=^X::L_DL=<CTRL-X>:\
+	:ESC=\E\E::L_ESC=<ESC><ESC>:\
+	:bt=\Eb::L_bt=<ESC>b:\
+	:fk4=\EOP::L_fk4=<PF1>:\
+	:fk1=\EOQ::L_fk1=<PF2>:\
+	:fk2=\EOR::L_fk2=<PF3>:\
+	:fk3=\EOS::L_fk3=<PF4>:\
+	:fk5=\E6::L_fk5=<ESC>6:\
+	:fk6=\E7::L_fk6=<ESC>7:\
+	:fk7=\E8::L_fk7=<ESC>8:\
+	:Aka=^k::L_Aka=Ctrl-K:\
+	:Akd=^z::L_Akd=Ctrl-Z:\
+	:Akp=^r::L_Akp=Ctrl-R:\
+	:Aks=^l::L_Aks=Ctrl-L:\
+	:Aku=\Em::L_Aku=Esc-M:\
+	:Akw=^g::L_Akw=Ctrl-G:\
+	:Aki=^e::L_Aki=Ctrl-E:\
+	:tc=v7kf:
+#

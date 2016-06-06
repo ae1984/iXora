@@ -1,0 +1,66 @@
+﻿#!/bin/bash
+
+lst='/usr/etc/cptwin.ssh'
+
+#touch $log
+
+# всем понятно
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+#pc=$USERHOST
+
+if [ `echo $pc | grep -c -i -F -f $lst` -gt 0 ]; then
+ #
+ # It is one from SSH ready host listed in $lst
+ rdir='c:/tmp'
+ rfil=$$.`echo $1 | awk '{D=split($0,M,"."); print M[D] }'`
+ /pragma/bin9/un-win $1 $rfil
+ scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null
+ if test $? != 0; then
+  exit 1
+ fi
+ echo "start $2 c:\\tmp\\${rfil}" > run.cmd
+ scp -q run.cmd Administrator@$pc:$rdir/run.cmd 1>/dev/null
+ if test $? != 0; then
+  exit 1
+ fi
+ sleep 3
+else
+ #
+ # It is still one from RSH hosts
+
+ # берем переменную %TEMP% с хоста $pc и отрезаем досовский перевод строки
+ RHOST=`rsh $pc echo %TEMP% | tr -d '\15'`
+ if [ ${#RHOST} -eq 0 ]; then
+  RHOST="C:"
+ fi
+
+ # берем первый параметр скрипта, отрезаем то что после последней точки, 
+ # и составляем новое имя файла "типа случайное число"+точка+"то что ранее отрезали"
+
+ rfil=$$.`echo $1 | awk '{D=split($0,M,"."); print M[D] }'`
+
+ # suchkov - Тут я добавил копирование и перекодировку старого файла KOI-8 в новый WIN1251
+ if test $4; then
+  cat $1 > $rfil
+ else
+  /pragma/bin9/un-win $1 $rfil
+ fi
+
+ # понятно
+ rcp $rfil $pc:$RHOST
+
+ # берем третий параметр, делаем из списка с запятыми список с пробелами и в цикле
+ # по новому списку заливаем на клиента
+
+ if test $3; then
+     files=`echo $3 | tr "," " "`
+     for i in $files; do
+        rcp $i $pc:$RHOST
+     done
+ fi
+
+ rsh $pc start $2 $RHOST\\$rfil
+
+fi
+rm -f $rfil
+exit

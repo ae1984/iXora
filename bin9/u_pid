@@ -1,0 +1,7 @@
+﻿hst=$1;export hst
+pid=$2;export pid
+copy=$3;export copy
+pslog=$4;export pslog
+echo  `date` >>  "$pslog"/"$hst"_"$pid"_"$copy"_ps.lg
+pspragma -p "$hst"_"$pid"_"$copy"_ps.p -p ps \
+-b >> "$pslog"/"$hst"_"$pid"_"$copy"_ps.lg&

@@ -1,0 +1,6 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+echo -n "	     хЦЕ ЪБОСФП: "; df -h | grep /data | awk '{print $3}'
+echo -n "	       уЧПВПДОП: "; df -h | grep /data | awk '{print $4}'
+echo; echo -n "чУЕЗП ОБ ЦЕУФЛПН ДЙУЛЕ: "; df -h | grep /data | awk '{print $2}'

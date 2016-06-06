@@ -1,0 +1,27 @@
+﻿#!/bin/sh
+# скрипт переделал id00024 (c)
+
+TIME=`date "+%H.%M.%S_%d.%m.20%y"`
+
+TLOG="/data/log/ibbrokers.log"
+test -e $TLOG && rm $TLOG
+
+
+LIST="bmkb balm bakt bkos btrz burl bkar bkok bast bpet batr bpav bust baku bzes bchm"
+
+for i in $LIST
+do
+LOG="/data/log/$i/ibbroker.log"
+MESS="Broker of $i has stoped. Time = $TIME"
+
+$DLC/bin/_dbutil /data/$i/bank -C holder > /dev/null; RCODE=$?
+test $RCODE -eq 16 && { # test 1 begin
+ test -e /data/$i/.lock-b || { # test 2 begin
+  B=`$DLC/bin/proshut /data/$i/bank -C list | grep xg01 | grep xg01` && { test -e /data/$i/.lock-b && rm /data/$i/.lock-b; }
+  B=`$DLC/bin/proshut /data/$i/bank -C list | grep xg01 | grep xg01` || { touch /data/$i/.lock-b; echo $MESS >> $LOG; echo $MESS >> $TLOG; }
+  } # test 1 end
+} # test 2 end
+
+done
+cat $TLOG
+

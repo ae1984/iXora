@@ -1,0 +1,13 @@
+﻿#!/bin/bash
+# 19/06/02 KOVAL, Parser MT102 (swift.txt)
+
+cat $1 | tr -d '\015' | awk '
+  /:20:/        { RMZ = substr($0,5,length($0)-4)}
+  /:50:\/D\//   { D = substr($0,8,9)}
+  /:32B:KZT/   { N = N + 1 }
+  /:32A:/ { s = substr($0,15,length($0)-14); split (s,W,","); s = W[1] "." W[2]
+            printf ("%.2f ", s)}
+ 
+  END { print RMZ " " D " " N }
+ '  
+

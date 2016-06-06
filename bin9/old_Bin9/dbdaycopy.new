@@ -1,0 +1,242 @@
+﻿#!/bin/sh
+
+TIME=`date "+%d-%m-%y.%H-%M"`
+
+backup_log_path=/data/log/savedb
+log_filename=saved_db.log
+backup_log_filename=bplog.arch
+backup_dir_filename=backup_dir
+move_filename=move_data
+savedb_path=/savedb
+backup_path=$savedb_path/backup
+current_day=`date "+%d"`
+current_date=`date "+%d-%m-%y"`
+hqname="alm"
+brname="ast url atr akt"
+hqdb_name="bank comm cards sklad alga"
+afdb_nam="bank alga"
+dbfull=full #ЛБФБМПЗ РПМОЩИ ВЬЛБРПЧ
+
+
+######################################################
+create_backup () {
+
+# Almaty HEADQUARTER
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ бМНБФЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/alm/backup /savedb/alm/bank/$TIME
+/pragma/bin9/dbarc /data/comm/backup /savedb/alm/comm/$TIME
+/pragma/bin9/dbarc /data/cards/backup /savedb/alm/cards/$TIME
+/pragma/bin9/dbarc /data/alm/sklad/backup /savedb/alm/sklad/$TIME
+/pragma/bin9/dbarc /data/alm/alga/backup /savedb/alm/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/alm/stat/data/backup /savedb/alm/stat/$TIME
+
+echo "лПРЙТХАФУС ЙУИПДОЙЛЙ" >> /data/log/daycopy.log
+if [ -f /pragma/lib/ARCHIVE/*.Z ] #РТПЧЕТЙН ОБМЙЮЙЕ БТИЙЧОЩИ ЖБКМПЧ
+then
+	nice -5 cp /pragma/lib/ARCHIVE/*.Z /savedb/alm/bank/$TIME 
+fi
+if [ -f /pragma/lib/*.Z ] #РТПЧЕТЙН ОБМЙЮЙЕ БТИЙЧОЩИ ЖБКМПЧ
+then
+	nice -5 cp /pragma/lib/*.Z /pragma/lib/ARCHIVE
+fi
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ бМНБФЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Astana BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ бУФБОЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/ast/backup /savedb/ast/bank/$TIME
+/pragma/bin9/dbarc /data/ast/alga/backup /savedb/ast/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/ast/stat/data/backup /savedb/ast/stat/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ бУФБОЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Uralsk BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ хТБМШУЛБ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/url/backup /savedb/url/bank/$TIME
+/pragma/bin9/dbarc /data/url/alga/backup /savedb/url/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/url/stat/data/backup /savedb/url/stat/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ хТБМШУЛБ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Aktobe BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ бЛФПВЕ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/akt/backup /savedb/akt/bank/$TIME
+/pragma/bin9/dbarc /data/akt/alga/backup /savedb/akt/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/akt/stat/data/backup /savedb/akt/stat/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ бЛФПВЕ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Atyrau BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ бФЩТБХ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/atr/backup /savedb/atr/bank/$TIME
+/pragma/bin9/dbarc /data/atr/alga/backup /savedb/atr/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/atr/stat/data/backup /savedb/atr/stat/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ бФЩТБХ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+
+# Karaganda BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ лБТБЗБОДЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/kar/backup /savedb/kar/bank/$TIME
+/pragma/bin9/dbarc /data/kar/alga/backup /savedb/kar/alga/$TIME
+
+#/pragma/bin9/dbarc /data/9/kar/stat/data/backup /savedb/kar/stat/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ лБТБЗБОДЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+# Taldykurgan BRANCH
+
+echo -n "оБЮБМП БТИЙЧБГЙЙ фБМДЩЛХТЗБОБ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/tal/backup /savedb/tal/bank/$TIME
+/pragma/bin9/dbarc /data/tal/alga/backup /savedb/tal/alga/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ фБМДЩЛХТЗБОБ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+#гЕОФТБМШОПЗП ПЖЙУБ Ч бМНБФЩ
+echo -n "оБЮБМП БТИЙЧБГЙЙ гЕОФТБМШОПЗП ПЖЙУБ Ч бМНБФЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+/pragma/bin9/dbarc /data/aaa/backup /savedb/aaa/bank/$TIME
+/pragma/bin9/dbarc /data/aaa/alga/backup /savedb/aaa/alga/$TIME
+
+echo -n "пЛПОЮБОЙЕ БТИЙЧБГЙЙ гЕОФТБМШОПЗП ПЖЙУБ Ч бМНБФЩ:  " >> /data/log/daycopy.log
+date >> /data/log/daycopy.log
+
+echo "=======================================================" >> /data/log/daycopy.log
+echo >> /data/log/daycopy.log
+}
+
+
+######################################################
+path_log () {
+
+if [ ! -d $backup_log_path ]
+then
+ mkdir -p $backup_log_path
+fi
+
+
+for office in $hqname
+{
+  for db_name in $hqdb_name
+  {
+	if [ -d $savedb_path/$office/$db_name/$TIME ] 
+	then 
+		echo $savedb_path/$office/$db_name/$TIME >> $backup_log_path/$log_filename
+		echo "mv $savedb_path/$office/$db_name/$TIME $backup_path/$office/$db_name" >> $backup_log_path/$move_filename
+	fi
+
+	if [ -d $savedb_path/$office/$db_name/$dbfull/$TIME ]
+	then
+		echo $savedb_path/$office/$db_name/$dbfull/$TIME >> $backup_log_path/$log_filename
+		echo "mv $savedb_path/$office/$db_name/$dbfull/$TIME $backup_path/$office/$db_name" >> $backup_log_path/$move_filename
+	fi
+  }
+}
+
+
+for office in $brname
+{
+  for db_name in $afdb_nam
+  {
+	if [ -d $savedb_path/$office/$db_name/$TIME ]
+	then
+		echo $savedb_path/$office/$db_name/$TIME >> $backup_log_path/$log_filename
+		echo "mv $savedb_path/$office/$db_name/$TIME $backup_path/$office/$db_name" >> $backup_log_path/$move_filename
+	fi
+
+	if [ -d $savedb_path/$office/$db_name/$dbfull/$TIME ]
+	then
+		echo $savedb_path/$office/$db_name/$dbfull/$TIME >> $backup_log_path/$log_filename
+		echo "mv $savedb_path/$office/$db_name/$dbfull/$TIME $backup_path/$office/$db_name" >> $backup_log_path/$move_filename
+	fi
+  }
+}
+
+
+}
+
+#######################################################
+init_dir () {
+for office in $hqname
+{
+  for db_name in $hqdb_name
+  {
+    if [ ! -d $backup_path/$office/$db_name ]
+      then
+      mkdir -p $backup_path/$office/$db_name
+    fi
+  }
+}
+
+
+for office in $brname
+{
+  for db_name in $afdb_nam
+  {
+    if [ ! -d $backup_path/$office/$db_name ]
+      then
+      mkdir -p $backup_path/$office/$db_name
+    fi
+  }
+}
+chmod 555 $backup_log_path/$move_filename
+}
+
+########################################################
+
+init_backup () {
+/usr/openv/netbackup/bin/bparchive -8 -L $backup_log_path/$backup_log_filename.$current_date  -S netbackup -f $backup_log_path/$backup_dir_filename
+}
+
+create_backup
+path_log
+#init_backup
+#init_dir
+
+if [ $current_day = 01 ]
+then
+ init_dir
+ $backup_log_path/$move_filename
+ mv $backup_log_path/$move_filename $backup_log_path/$move_filename.$current_date
+ chmod 444 $backup_log_path/$move_filename.$current_date
+ #init_backup
+fi 
+    
+

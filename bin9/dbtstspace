@@ -1,0 +1,13 @@
+﻿#!/bin/sh
+
+OPERDIR=$1
+OPERSPACE=$2
+
+CURSPACE=`df | grep $OPERDIR | awk '{print $4}'`
+
+if [ "$CURSPACE" -lt $OPERSPACE ]
+then
+  echo "Недостаточно места в $OPERDIR для выполнения действия!"
+  exit 1
+fi
+		

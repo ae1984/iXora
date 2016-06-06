@@ -1,0 +1,49 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/proenv
+. /pragma/bin9/mcset
+
+clear
+#echo "================================================================¬"
+echo -e "\a            There is(are) user(s) in Detabase			" | grep --colour=always "There is(are) user(s) in Detabase"
+echo "Detabase: $DBDESCR	Path: $DBDIR/$DBNAME		"  | grep --colour=always "$DBDESCR\|$DBDIR/$DBNAME"
+echo
+#echo "=[IP addr or DNS Name]==T[user id]T=[ Name of human ]===========¦"
+#echo
+A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch" | awk -F/ '{print $3"/"$4}' | awk '{print $1}'`
+USRS=`echo $A | wc -w`
+for i in $A
+do
+ X=`who | grep -w $i | awk '{print $1}'`
+ Y=`who | grep -w $i | awk '{print $2}'`
+  non=`echo $Y | grep metro`
+  if [ $? = 0 ]
+  then
+  Y="$Y"
+  else
+  Y="$Y	"
+  fi
+ Z=`cat /etc/passwd | grep $X | awk -F: '{print $5}'`
+  non=`echo $Z | grep BankAdm`
+  if [ $? = 0 ]
+  then
+  Z="$Z	"
+  else
+  Z="$Z"
+  fi
+
+echo "$Y	$X	$Z"
+done
+echo
+echo "Total nomber of users: $USRS					"
+#echo "================================================================-"
+echo
+echo "Go to kick menu?"
+echo -n "y/n :"
+read ans
+#test $ans || $ans = "y"
+if [[ $ans = "n" ]]
+then exit
+else
+/pragma/bin9/kick
+fi

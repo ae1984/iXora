@@ -1,0 +1,6 @@
+﻿#!/bin/bash
+
+# Скрипт импорта файла транспортных средств    tYYMMDD.Z
+
+runcomm alm tnsimp.p $1
+

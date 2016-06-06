@@ -1,0 +1,99 @@
+﻿#!/bin/sh
+
+ME=`/usr/bin/whoami`
+
+  echo "    1. Kick user"
+  echo "    2. Kick all without user"
+  echo "    3. Kick all"
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+
+  1)    echo -n "Input id for kick: "; read ID
+	test $ID
+	if [ "$?" = "0" ]
+	then
+	PTS=`proshut $DBDIR/$DBNAME -C list | grep -w "$ID" | awk '{print $9}'`
+	if [[ $PTS = "" ]]
+	then echo "NO users!"
+	else
+	 for i in $PTS
+	 do
+	 M=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $8}'`
+	 N=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $1}'`
+	 test $N && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $N && echo "User $M was kicked!"
+
+	 test -e $KM && { rm $KM; } 	 
+
+	 done
+	fi
+	else
+	echo "You inputed wrong id"
+	fi
+	;;
+
+  2)  
+	echo -n "Input id without kicking: "; read ID
+	test $ID
+	if [ "$?" = "0" ]
+	then
+
+	PTS=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|$ME" | awk '{print $9}'`
+
+	if [[ $PTS = "" ]]
+	then echo "NO users!"
+	else
+	 for i in $PTS
+	 do
+	 M=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $8}'`
+	 N=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $1}'`
+	 test $N && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $N && echo "User $M was kicked!"
+
+	 test -e $KM && { rm $KM; } 	 
+
+	 done
+	fi
+	else
+	echo "You inputed wrong id"
+	fi
+	;;
+
+  3)  
+	PTS=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|$ME" | awk '{print $9}'`
+
+	if [[ $PTS = "" ]]
+	then echo "NO users!"
+	else
+	 for i in $PTS
+	 do
+	 M=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $8}'`
+	 N=`proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $1}'`
+	 test $N && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $N &&	echo -n "User $M was kicked!"
+
+	 test -e $KM && { rm $KM; } 	 
+
+	 done
+	fi
+	;;
+  123)  
+	PTS=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|$ME\|xg01" | awk '{print $1}'`
+
+	if [[ $PTS = "" ]]
+	then echo "NO users!"
+	else
+	 for i in $PTS
+	 do
+	 test $i && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $i && echo "User $i was kicked!"
+	 done
+	fi
+	;;
+
+
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+  *) echo "Wrong selection. Press 1 - 3."
+     sleep 1;;
+  esac

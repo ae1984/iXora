@@ -1,0 +1,26 @@
+﻿# example   "sgnget tmpsgn 192.168.1.120:c:/signs/24467603"
+
+rm -rf $1
+err=$?
+st1=1
+if test $err != 0
+        then
+#       exit $err 
+        exit $st1
+fi 
+mkdir $1
+err=$?
+st2=2
+if test $err != 0
+        then
+#       exit $err 
+        exit $st2
+fi
+scp -q $2*.* $1/
+err=$?
+st3=3
+if test $err != 0
+        then
+#       exit $err 
+        exit $st3 
+fi

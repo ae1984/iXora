@@ -1,0 +1,49 @@
+﻿#!/bin/sh
+# УЛТЙРФ РЕТЕДЕМБМ id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+
+while true
+do
+  echo    
+  echo 
+  echo "       Administrative Tools"
+  echo "       вБЪБ: [ $DBDESCR ]"
+  echo 
+  echo "    1. Start/Stop $DBDESCR database server (BANK, ALGA)..."
+  echo "    2. Start/Stop general $DBDESCR servers (COMM, CARDS, SKLAD)..."
+  echo "    3. BKUPUTIL $DBDESCR database..."
+  echo "    4. DAYCLOSE/NEWMONTH on $DBDESCR..."
+  echo "    5. Work with 'AI' on $DBDESCR..."
+  echo "    6. OS Management..."
+  echo "    A. Additional tools..."
+  echo "    Q. чЩИПД"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1) /pragma/bin9/SS_1;;
+  2) /pragma/bin9/SS_2;;
+  3) /pragma/bin9/dbsavall;;
+  4) /pragma/bin9/DM;;
+  5) /pragma/bin9/ai;;
+  6) /pragma/bin9/osman;;
+  [Aa]) dbadadm;;
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+  zxc) /pragma/bin9/adm;;
+  *) echo "Wrong selection. Press 1-6 or A/Q."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

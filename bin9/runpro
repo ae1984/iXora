@@ -1,0 +1,40 @@
+﻿#!/bin/sh
+
+if [ $passw ]; then 
+    tes="yes"
+
+else
+    echo -n "Input PaySystem Administrator Password:"
+    passw=`perl -e 'use Term::ReadKey;                                                                                     
+             ReadMode("cbreak");                                                                                    
+             while ($key ne "\n")                                                                                   
+             {                                                                                                      
+                 $key = ReadKey(0);                                                                                 
+                 if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+                 {                                                                                                  
+                     $pass = $pass . $key;                                                                          
+                     print "*";
+                 }                                                                                                  
+             }                                                                                                      
+             ReadMode("normal");
+             print ":$pass";' | awk -F: '{print $2}'`
+
+    if [ $passw ]; then 
+            res=`awk -F: '/superman/ {print $2}' /pragma/bin9/passwd`
+            tes=`genkey.exe -c $passw $res`
+        else 
+        tes="no"
+    fi
+fi
+   
+if [ $tes = "yes" ]; then 
+
+    echo "OK!"
+   
+    . /pragma/bin9/dbenv
+    exec $DLC/bin/_progres $DBDIR/$DBNAME -mmax 1024 -d dmy -ld bank -U superman -P $passw -b -p $1 -param $2
+
+
+else 
+echo "Password incorrect."
+fi

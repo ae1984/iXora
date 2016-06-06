@@ -1,0 +1,5 @@
+﻿cp $1 $$.Z 
+uncompress -f $$ 
+tar xvf $$ $2  
+joe -rdonly $2 
+/bin/rm -f  *$$* 

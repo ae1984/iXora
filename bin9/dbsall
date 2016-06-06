@@ -1,0 +1,51 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+
+if [[ $1 = "comm" ]]
+then
+	  DBCOMMDIR="/data/comm"
+	  DBCRDIR="/data/cards"
+          /pragma/bin9/dbsaveOnline $DBCOMMDIR/comm
+	  echo "	Backuping last comm ai to the last folder"
+	  /pragma/bin9/ai_save_fil comm
+	  echo; echo "	Finish last ai!"
+
+else
+## Установка замка для Dayclose
+##	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+
+
+# Проверка наличия сервера базы
+   /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+   if [ "$?" = "16" ]
+     then
+	if test `/bin/date +%H` = "05"
+	then 
+		# Проверка отсутствия юзеров в базе
+		PTS=`proshut $DBDIR/$DBNAME -C list | grep -iv "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|$ME\|inbank\|xg01\|0020\|0024\|0004\|0700\|0005" | awk '{print $9}'`
+		if [[ $PTS = "" ]]
+		then echo "NO users!"
+		else
+	 	for i in $PTS
+	 	do
+	 	M=`/usr/dlc/bin/proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $8}'`
+	 	N=`/usr/dlc/bin/proshut $DBDIR/$DBNAME -C list | grep -w $i | awk '{print $1}'`
+	 	test $N && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $N &&	echo "User $M was kicked!"
+
+	 	done
+		fi
+	fi
+# Бэкап ai
+	echo "	Backuping last ai to last folder"
+	/pragma/bin9/ai_save_fil $DBID
+	echo; echo "	Finish last ai!"
+# Онлайн бэкап
+          /pragma/bin9/dbsaveOnline $DBDIR/$DBNAME 
+#          cp $DBDIR/$DBNAME.st /savedb/$DBID/$DBNAME/full
+     else
+       echo "Cannot DO THIS! Database is stoped." 
+     fi
+fi

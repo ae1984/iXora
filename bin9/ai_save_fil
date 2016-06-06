@@ -1,0 +1,61 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+ID=$1
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+###BDIR=/savedb/$DBID/aibkup
+###test -d $BDIR || { mkdir $BDIR; chmod 750 $BDIR; }
+
+SDIR=$DBDIR/fullai
+test -d $SDIR || { exit; }
+
+ FLS=`ls $SDIR`
+ if [[ $FLS = "" ]]
+  then exit
+ fi
+
+chmod 0777 $SDIR/*
+sleep 1
+###mv $SDIR/* $BDIR 
+
+TIME=`date "+%H:%M:%S %d-%m-20%y"`
+OLD=`ls /savedb/$DBID/$DBNAME/full/ -t | grep -iv "$DBNAME" `
+OLD=`echo $OLD | awk '{print $2}'` 
+
+DAY=/savedb/$DBID/$DBNAME/full/$OLD/ai/
+test -d $DAY || { mkdir $DAY; chmod 750 $DAY; }
+test -d $DBLOGDIR/ai || { mkdir $DBLOGDIR/ai; chmod 750 $DBLOGDIR/ai; }
+echo "	 " $i >> $DAY/ai.log
+
+cd $SDIR
+	for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		   cp $i $DAY/
+		   if [ $? = 0 ]
+			then rm -f $i
+			  echo "$DATE Копируем $i в $DAY" >> $DAY/ai.log
+               		else 
+			  echo "$DATE Ошибка при копировании $i !!!" >> $DAY/ai.log
+            	      fi
+            else 
+		echo
+                /usr/bin/gzip -c1v $i > $DAY/$i".Z"
+		   if [ $? = 0 ]
+			then rm -f $i
+                          echo "$DATE Архивируем $i в $DAY" >> $DAY/ai.log
+			else 
+			  echo "$DATE Ошибка при архивации $i !!!" >> $DAY/ai.log
+                   fi
+            fi
+        done
+
+
+DBN=`echo $1 | awk -F/ '{print $4}'`
+echo; sleep 1
+echo "================ $DAY =============="
+ls -loh  $DAY
+echo "==================================================================="; echo

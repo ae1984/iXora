@@ -1,0 +1,47 @@
+﻿#!/bin/sh
+
+
+while true
+do
+  echo
+  echo
+  echo "            1. Stop kar/trz/kok/ast DBs"
+  echo "            2. Start kar/trz/kok/ast DBs"
+  echo
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+  1) 
+	echo "proshut /data/kar/bank -by"
+	proshut /data/kar/bank -by
+	echo
+	echo "proshut /data/trz/bank -by"
+	proshut /data/trz/bank -by
+        echo
+	echo "proshut /data/kok/bank -by"
+	proshut /data/kok/bank -by
+        echo
+	echo "proshut /data/ast/bank -by"
+	proshut /data/ast/bank -by
+	;;
+
+  2)
+	echo "proserve /data/kar/bank"
+	proserve /data/kar/bank
+        echo
+	echo "proserve /data/trz/bank"
+	proserve /data/trz/bank
+        echo
+	echo "proserve /data/kok/bank"
+	proserve /data/kok/bank
+        echo
+	echo "proserve /data/ast/bank"
+	proserve /data/ast/bank
+	;;
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-2 or Q."
+     ;;
+  esac
+done

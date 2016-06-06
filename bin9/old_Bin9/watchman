@@ -1,0 +1,91 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+#   if [ $DBID = "alm" ]
+#   then
+	while true
+	do
+	echo    
+	  echo 
+		STS=`cat /pragma/bin9/watchsrc | grep OK`
+		if [ "$STS" = "#OK" ]
+		then
+		STS="Watchcat ЛПТТЕЛФЕО! :)"
+		else
+		STS="Watchcat ОЕ ЛПТТЕЛФЕО! :|"
+		fi
+	  echo "       Managing WATCHCAT"
+	  echo "       фЕЛХЭЕЕ УПУФПСОЙЕ: $STS"
+	  echo 
+	  echo "    1. уЛПРЙТПЧБФШ ЛПТТЕЛФОЩК ЖБКМ-ЙУФПЮОЙЛ ДМС watchcat"
+	  echo "    2. уЛПРЙТПЧБФШ ое ЛПТТЕЛФОЩК ЖБКМ-ЙУФПЮОЙЛ ДМС watchcat"
+	  echo "    3. рПЛБЪБФШ УПДЕТЦЙНПЕ ЖБКМБ-ЙУФПЮОЙЛБ ДМС watchcat"
+	  echo "    4. рПЛБЪБФШ ТБУРЙУБОЙЕ cron У ЧЩВПТЛПК watch (bankadm)"
+	  echo "    5. рТПЧЕТЙФШ УФБФХУ ВБЪ. (ЙУРПМШЪХЕФУС ЖБКМ-ЙУФПЮОЙЛ Р.3)"
+	  echo "    6. рТПЧЕТЙФШ УФБФХУ чуеи ВБЪ"
+	  echo "    Q. чЩИПД"
+	  echo 
+	  read ans
+	  case $ans in
+	  1) /home/bankadm/old_bin9/watchOn/watchOn;;
+	  2) /home/bankadm/old_bin9/watchOff/watchOff;;
+	  3) echo; cat -n /pragma/bin9/watchsrc | grep --colour=always "$1"; echo;;
+	  4) if [ whoami = "bankadm" ]
+	      then
+	       echo; crontab -l | grep watch; echo;
+	      else
+	     echo -n "рП ХНПМЮБОЙА ЪБДБОЙЕ ЧЩРПМОСЕФУС РПД ВБОЛБДНПН. Б ФЩ: "; whoami
+	     fi;;
+	  5) FLAG=1; export FLAG; /pragma/bin9/watchsrc; FLAG=0; export FLAG;; 
+	  6) 
+		FLAG=1; export FLAG; clear
+		echo " 	фпп тлг-1"
+		/pragma/bin9/watchcat rkc/bank
+		echo
+		echo " 	нлп ТБВПЮЙЕ ВБЪЩ"
+		/pragma/bin9/watchcat alm/bank
+		/pragma/bin9/watchcat akt/bank
+		/pragma/bin9/watchcat kos/bank
+		/pragma/bin9/watchcat trz/bank
+		/pragma/bin9/watchcat url/bank
+		/pragma/bin9/watchcat kar/bank
+		/pragma/bin9/watchcat sem/bank
+		/pragma/bin9/watchcat kok/bank
+		/pragma/bin9/watchcat ast/bank
+		echo
+		echo " 	нефтплпнвбол ТБВПЮЙЕ ВБЪЩ"
+		/pragma/bin9/watchcat balm/bank
+		/pragma/bin9/watchcat bakt/bank
+		/pragma/bin9/watchcat bkos/bank
+		/pragma/bin9/watchcat btrz/bank
+		/pragma/bin9/watchcat burl/bank
+		/pragma/bin9/watchcat bkar/bank
+		/pragma/bin9/watchcat bsem/bank
+		/pragma/bin9/watchcat bkok/bank
+		/pragma/bin9/watchcat bast/bank
+		echo
+		echo " 	нефтплпнвбол жЙМЙБМЩ ОБ УФБДЙЙ ПФЛТЩФЙС"
+		/pragma/bin9/watchcat bpav/bank
+		/pragma/bin9/watchcat bpet/bank
+		/pragma/bin9/watchcat batr/bank
+		/pragma/bin9/watchcat baku/bank
+		/pragma/bin9/watchcat bzes/bank
+		/pragma/bin9/watchcat bust/bank
+		/pragma/bin9/watchcat bchm/bank
+		echo
+		echo " 	пВЭЙЕ ВБЪЩ ТБВПФБАЭЙЕ 24/7"
+		/pragma/bin9/watchcat comm/comm
+		/pragma/bin9/watchcat cards/cards
+
+		FLAG=0; export FLAG;; 
+	  [Qq]) exit;;
+	  exit) exit;;
+	  quit) exit;;
+	  *) echo "Wrong selection. Press 1-5"; sleep 1;;
+	  esac
+	done
+#   else
+#	echo "йЪНЕОЕОЙЕ РБТБНЕФТПЧ ХФЙМЙФЩ УМЕЦЕОЙС watchcat(У) ЪБ ВБЪБНЙ, ЧПЪНПЦОП ФПМШЛП РПД ЬМЙБУПН <alm>. фЕЛХЭЙК ЬМЙБУ <$DBID>" | grep --colour=always "$DBID" 
+#	exit  
+#   fi
+		

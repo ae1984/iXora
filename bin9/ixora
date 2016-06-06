@@ -1,0 +1,60 @@
+﻿#!/bin/sh
+#. /pragma/bin9/dbenv2
+
+
+#CLIENTMON=$DBDIR/log/clientmon/`logname`.mon
+CLIENTMON=/data/$DBID/log/clientmon/`whoami`.mon
+export CLIENTMON
+
+#PROCMON=$DBDIR/log/procmon/`logname`.mon
+PROCMON=/data/$DBID/log/procmon/`whoami`.mon
+export PROCMON
+DLC=/usr/dlc
+PROMSGS=${PROMSGS:-$DLC/prolang/rus/promsgs.rus}; export PROMSGS
+#if [ $ID = "alm" ]; then exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -H texaka1-backup -S pragma -t -T /data/9/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+#else 
+################### Проверка на наличае Dayclose #####################
+ME=`/usr/bin/whoami`
+test -e $DBDIR/.lock-d || { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@; exit; }
+clear
+echo
+echo
+echo 	"	ВНИМАНИЕ!!!"
+echo 	"	НА 'iXora $DBDESCR' ПРОИЗВОДИТСЯ ПЕРЕХОД НА СЛЕДУЮЩИЙ ОПЕРАЦИОННЫЙ ДЕНЬ!"
+if [ $ME = "bankadm" ]
+ then
+ echo
+ echo	"	bankadm'у вход не ограничен, просто предупреждение. Жми ENTER..." | grep --colour=always "bankadm"
+ read none
+ exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+  else
+
+if [ $ME = "superman" ]
+ then
+ echo
+ echo	"	superman'у вход не ограничен, просто предупреждение. Жми ENTER..." | grep --colour=always "superman"
+ read none
+ exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+fi
+  echo 	"	После окончания процедур перехода Вы незамедлительно войдете в 'iXora $DBDESCR'"
+  echo 	"	Со всеми проьбами обращайтесь на 'support@metrobank.kz'"
+  echo 	"	Пожалуйста подождите..."
+  echo -n "	"
+  while true
+   do
+     test -e $DBDIR/.lock-d || { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@; exit; }
+     echo -n "."
+     i=$i.
+     sleep 1
+     if [ $i = "............................................................" ]
+	then
+        i=.
+	echo
+	echo -n "	Прошло 60 секунд. Продолжить ожидание? (1-ДА / любой другой символ-НЕТ) "
+	read ANS
+        test $ANS = "1" || { clear; exit; }
+	echo -n "	"
+     fi
+   done
+fi
+exit                      

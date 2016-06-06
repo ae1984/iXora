@@ -1,0 +1,4 @@
+﻿#!/bin/sh
+# KANAT запуск процедур на CARDS
+. /pragma/bin9/dbenv
+exec $DLC/bin/_progres $DBCRDIR/cards -mmax 1024 -d dmy -ld cards -U superman -P $passw -b -p $1 -param $2

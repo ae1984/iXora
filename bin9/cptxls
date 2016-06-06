@@ -1,0 +1,10 @@
+﻿#test $pc || { export pc=`/usr/local/bin/askhost`; }
+#rhost=C:/WINNT/Temp
+#rfil=$$.$1 
+#/bin/rm -f /tmp/$rfil 
+#un-win $1 /tmp/$rfil
+#rcp /tmp/$rfil $pc:$rhost
+#rsh $pc start excel.exe $rhost/$rfil 
+#/bin/rm -f /tmp/$rfil
+
+cptwin $1 excel

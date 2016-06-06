@@ -1,0 +1,63 @@
+﻿#!/bin/sh
+# Все ошибки принадлежат id00363 :-)
+
+#man
+#newuser idxxxxx Name_Name2 key bash_profile_name
+
+ID=$@
+if [[ "$@" = "" ]]; then 
+clear 
+###################
+echo -n "login: id0"
+read login
+test $login || { echo "input login :("; exit; }
+login=id0$login
+test -d /home/$login && { echo "there is such login in linux"; exit; } 
+fi 
+
+if [[ "$@" != "" ]]; then
+test $@ || { echo "input login :("; exit; }
+login=$@
+test -d /home/$login && { echo "there is such login in linux"; exit; } 
+fi
+##########################
+echo -n "Fname_Sname: "
+read name
+test $name || { echo "input name :("; exit; }
+
+#################
+echo ""
+#A=`echo "Aktau hq alm_kc sp1 sp2 sp3 sp4 sp5 sp6 sp7 sp8 sp9 Aktobe Astana Atyrau Karaganda Kokshetau Kostanai Pavlodar Petropavlovsk Semey Shymkent Taraz Uralsk Ustkaman Zhezkazgan"`
+#A=`echo "Aktau hq Aktobe Astana Atyrau Karaganda Kokshetau Kostanai Pavlodar Petropavlovsk Semey Shymkent Taraz Uralsk Ustkaman Zhezkazgan"`
+A=`echo "baku bakt all balm bast batr bkar bkok bkos bpav bpet bsem bchm btrz burl bust bzes"`
+echo
+for i in $A
+do
+echo $i
+done
+echo -n "input: "; read point
+test $point || { echo "input point :("; exit; }
+B=`echo "$A" | grep -w "$point"` || { echo "NO"; exit; }
+#################
+echo ""
+A=`echo "baku bakt all balm bast batr bkar bkok bkos bpav bpet bsem bchm btrz burl bust bzes"`
+#A=`echo "Aktau hq Aktobe Astana Atyrau Karaganda Kokshetau Kostanai Pavlodar Petropavlovsk Semey Shymkent Taraz Uralsk Ustkaman Zhezkazgan"`
+echo
+for i in $A
+do
+echo $i
+done
+
+echo -n "input: "; read profile
+test $profile || { echo "input profile :("; exit; }
+
+B=`echo "$A" | grep -w "$profile"` || { echo "NO"; exit; }
+
+sudo cruser $login $name $point	#id00700 Ivan_Karasev Aktau
+#cruser
+#/usr/sbin/useradd -d /home/$1 -m -g bank -c "$2" -p \$1\$gzX0v8mf\$laAuQCdHh8bjzK88QCDqE0 $1
+#/usr/local/bin/keycp $1 $3
+#cp /root/profiles/$3/.bash_profile /home/$1/.bash_profile
+
+sudo profilecp $login $profile	#id00700 baku
+echo "#Done!!!"

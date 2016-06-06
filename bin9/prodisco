@@ -1,0 +1,61 @@
+﻿#!/usr/bin/sh
+
+# @(#) TIME_OUT
+
+. /pragma/bin9/dbenv
+
+PLANG=RR;export PLANG
+PM=/pragma/lib9/RX;export PM
+DLC=/usr/dlc9;export DLC
+PROPATH=$PROPATH:.:/pragma/source:/pragma/source/fortxk:$PM/RX.pl:$DLC/lib; export PROPATH
+PROTERMCAP=$DLC/protermcap;export PROTERMCAP                     
+TERM=vt100;export TERM
+
+# DBNAME=/data/9/alm/bank     
+# DBDIR=/data/9/alm
+
+: ${DBNAME?'You must first set DLC'} # Only V7.3C or later and V8
+
+# Calculate minutes
+time2min()
+{
+        HOUR=`echo $1 | cut -d: -f1`
+        MIN=`echo $1 | cut -d: -f2`
+        MINUTES=`expr $MIN + $HOUR \* 60`
+        #echo USR=$USR TIME=$TIME HOUR=$HOUR MIN=$MIN MINUTES=$MINUTES
+
+}
+> /tmp/prodisco.$DBID.out
+
+        if [ ! -f "$DBDIR/$DBNAME.lk" ]
+        then
+                exit
+        fi
+        tput clear
+        echo  "R&D\n1\n4\n3\n\n\n\n\n\n\n\n\n\n\nX\n" |
+                $DLC/bin/promon $DBDIR/$DBNAME 2> /dev/null > /tmp/prodisco.$DBID.out
+
+        # Only look at local clients. (SELF)
+        egrep "SELF|Usr" /tmp/prodisco.$DBID.out | sort +7 > /tmp/prodisco.$DBID.out2
+        #date
+        #head -15 /tmp//tmp/prodisco.$DBID.out2
+        #echo -------------------------------------------------------------------
+        if [ `wc -l < /tmp/prodisco.$DBID.out2` -lt 2 ]
+        then
+                continue
+        fi
+        USR=`head -1 /tmp/prodisco.$DBID.out2 | awk '{ print $1 }'`
+        TIME=`head -1 /tmp/prodisco.$DBID.out2 | awk '{ print $7 }'`
+        time2min $TIME ; MIN1=$MINUTES
+        time2min `date '+%H:%M'` ; MIN2=$MINUTES
+        MINDIFF=`expr $MIN2 - $MIN1`
+        if [ "$MINDIFF" -gt "$TIME_OUT" ]
+        then
+                # Disconnect the user now:
+                exec $DLC/bin/_progres $DBDIR/$DBNAME -d dmy -ld bank -U bankadm -P $passw -p prodisco -b -param $USR
+                #echo $USR
+                sleep 2
+        fi
+        rm /tmp/prodisco.$DBID.out2
+    rm /tmp/prodisco.$DBID.out
+    

@@ -1,0 +1,73 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+if [ "$FLAG" = "1" ]
+ then
+  ALS=`echo "$1" | awk -F/ '{print $1}'`
+  /usr/dlc/bin/_dbutil /data/$1 -C holder > /tmp/as.txt 
+  if [ "$?" = "0" ]
+    then
+     echo -n " :( "
+    else
+     echo -n " :) " 
+   fi
+     test -e /data/$ALS/.lock-b && { echo -n " B "; } 
+     test -e /data/$ALS/.lock-b || { echo -n "   "; }       
+
+     R=`/usr/dlc/bin/dsrutil /data/$1 -C status -detail | awk '{print $1}'`
+	if [ $R = 6021 ]
+	then RC=1
+	else
+	 if [ $R = 2083 ]
+	 then RC=1
+	 else
+	  if [ $R = 3049 ]
+	  then RC=1
+	  else RC=2
+	  fi
+	 fi
+	fi
+     test $RC = 1 && { echo -n "   "; }
+     test $RC = 2 && { echo -n " R "; }
+
+     test -e /data/$ALS/.lock-d && { echo -n " D  "; } 
+     test -e /data/$ALS/.lock-d || { echo -n "    "; }
+
+	USR=`proshut /data/$1 -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLA\|RPLS" | awk '{print $8}'`
+	USRS=`echo $USR | wc -w`
+ 
+	NON=`/usr/dlc/bin/_dbutil /data/$1 -C holder`
+	case $? in 
+	0) ANS="	Database $ALS is shuted down	"; USRS="0";;
+	14) ANS="	Database $ALS in single-user mode";;
+	16) ANS="	Database $ALS in multi-user mode";;
+	*) ANS="		Database $ALS: Unknown error. Code: ($?)"; echo "[$NON]";;
+	esac
+	echo -n "$USRS  $ANS  		$CAI" | grep --colour=always "$ALS" 
+
+ else
+ID=$1
+. /pragma/bin9/dbenv 
+
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+ if [ "$?" = "0" ]
+  then
+   TIME=`date "+%y.%m.%d %H:%M:%S"`
+   DAY=`date "+%y.%m.%d"`
+   MNTH=`date "+%y.%m"`
+   DOG=/data/log/_dog
+   test -d $DOG || { mkdir $DOG; chmod 750 $DOG; }
+   test -d $DOG/20$MNTH || { mkdir $DOG/20$MNTH; chmod 750 $DOG/20$MNTH; }
+   echo -n "[20$TIME] ALARM! The database '$DBDESCR' ($DBDIR/$DBNAME) has stopped!!!" >> $DOG/20$MNTH/20$DAY.log
+   test -e $DBDIR/.lock-bb && { exit; }
+   test -e $DBDIR/.lock-b && exit
+
+	echo "[20$TIME] The database '$DBDESCR' has stopped!!! Batman will help :) Contact to AIS please!" | /usr/lib/sendmail -F Cron support@metrobank.kz
+
+	TME=`date "+%H-%M-%S"` 
+	echo " + Batman wil help :)!!! Log in $DOG/20$MNTH/20$DAY.$TME.$DBID.log" >> $DOG/20$MNTH/20$DAY.log 
+	/pragma/bin9/batnan $1 >> $DOG/20$MNTH/20$DAY.$TME.$DBID.log
+   else
+  exit
+ fi
+fi

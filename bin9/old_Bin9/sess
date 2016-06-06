@@ -1,0 +1,40 @@
+﻿#!/bin/sh
+
+ME=`/usr/bin/whoami`
+if [ "$ME" = "bankadm" ]
+then
+echo "ьФПФ УЛТЙРФ ОЕ НПЦЕФ ВЩФШ ЪБРХЭЕО РПД bankadm'ПН!"
+sleep 1; exit
+else
+ echo "Shows sessions"
+  echo -n "Type login:	id00"
+   read U
+  USR=`ps -eaf | grep id00$U | grep _pro | awk '{print " "$1"    "$2"    "$9}'`
+  PID=`ps -eaf | grep id00$U | grep _pro | awk '{print $2}'`
+ MNTH=`date "+%d-%m-20%y"`
+ TIME=`date "+%d-%m-20%y_%H-%M-%S"`
+ LOG=/data/log/sesskill/$MNTH/sesskill.log
+
+ test -d /data/log/sesskill || { mkdir /data/log/sesskill; chmod 0777 /data/log/sesskill; }  
+ test -d /data/log/sesskill/$MNTH || { mkdir /data/log/sesskill/$MNTH; chmod 0777 /data/log/sesskill/$MNTH; }  
+ echo >> $LOG
+ echo "=========================================" >> $LOG
+ echo >> $LOG
+ echo "[$TIME]	$ME try to kill id00$U" >> $LOG
+ echo "   user      pid      database" >> $LOG
+ echo "$USR" >> $LOG
+ echo  >> $LOG
+ cat $LOG | grep -A 10 "$TIME"
+   for i in $PID 
+    do
+     echo -n "executing: sudo kill $i (y/n)" | grep --colour=always "sudo kill $i"
+     read ANS
+	if [ $ANS = "y" ]
+	 then
+	  sudo kill $i
+	  echo "sudo kill $i - executed" >> $LOG
+	 else
+	  echo "sudo kill $i - canceled" >> $LOG
+	fi
+    done
+fi

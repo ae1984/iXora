@@ -1,0 +1,9 @@
+﻿#!/bin/bash
+export PROMSGS=$DLC/prolang/eng/promsgs.eng
+export TERM=vt100
+export PROTERMCAP=/pragma/bin9/PROMC
+export EDITOR="mcedit -c"
+export DLC=/usr/dlc
+export ME=`/usr/bin/whoami`
+export LANG=ru_RU.cp1251
+test $pc || export pc=`/usr/local/bin/askhost`

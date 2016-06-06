@@ -1,0 +1,2 @@
+﻿#!/bin/sh
+/usr/java/jdk1.6.0_26/bin/java -Dfile.encoding=UTF8 -jar /Certex/Transfers/unistream/ForteUnistream.jar $1 $2 $3 $4 $5 $6

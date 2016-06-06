@@ -1,0 +1,3 @@
+﻿#!/bin/sh
+test "$1" = "" && { echo "Can't work with null input"; exit; }
+/bin/ps aux | grep -iw "$1" | grep -iv "grep\|/pragma/bin9/p" | grep -iw "_progres"

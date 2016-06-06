@@ -1,0 +1,13 @@
+﻿#!/bin/bash
+# KOVAL
+#
+# Запуск прогрессовых процедур с TEXAKA1
+# Не удалять !
+# 
+DBDIR=/data/9/alm
+DBNAME=bank
+DBSV=pragma
+DBCOMMSV=comm
+DBCOMMDIR=/data/9/comm
+#exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -mmax 1024 -d dmy -U superman -S $DBSV -H texaka1 -P Svfy02 -b -db $DBCOMMDIR/comm -ld comm -S $DBCOMMSV -H texaka1 -p $1 -param $2
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -H texaka1 -S $DBSV -mmax 1024 -Mm 16300  -d dmy -U superman -P $passw -b -db $DBCOMMDIR/comm -H texaka1 -S $DBCOMMSV -ld comm -p $1 -param $2

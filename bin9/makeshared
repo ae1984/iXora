@@ -1,0 +1,6 @@
+﻿#!/bin/sh
+if test -f /drbd/pragma/lib/RX/RXstd.pl; then
+rm /drbd/pragma/lib/RX/RXstd.pl 
+fi
+mv /drbd/pragma/lib/RX/RX.pl /drbd/pragma/lib/RX/RXstd.pl
+prolib /drbd/pragma/lib/RX/RXstd.pl -makeshared /drbd/pragma/lib/RX/RX.pl -cpinternal undefined -cpstream basic

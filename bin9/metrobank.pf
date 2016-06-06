@@ -1,0 +1,10 @@
+﻿-Mn 21 
+-n 200 
+-B 4096 
+-L 140000 
+-bibufs 25 
+-aibufs 25 
+-spin 16000 
+-semsets 5 
+-bithold 1650 
+-bistall

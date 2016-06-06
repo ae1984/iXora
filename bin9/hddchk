@@ -1,0 +1,6 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+echo -n "	     Уже занято: "; df -h | grep /data | awk '{print $3}'
+echo -n "	       Свободно: "; df -h | grep /data | awk '{print $4}'
+echo; echo -n "Всего на жестком диске: "; df -h | grep /data | awk '{print $2}'

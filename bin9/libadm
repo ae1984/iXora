@@ -1,0 +1,3 @@
+﻿#!/bin/sh
+#/sbin/tfadmin libadmin $@
+libadmin $@

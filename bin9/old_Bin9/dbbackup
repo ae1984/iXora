@@ -1,0 +1,59 @@
+﻿#!/bin/sh
+PATH=/pragma/bin9:$PATH; export PATH
+. proenv
+
+#LOG2=`dirname $1`/log/dcls.log
+LOG2=/data/log/$DBALIAS/`basename $1 .db`-backup.log
+wlog(){
+    echo `date "+%d/%m/%y %H:%M:%S"` `whoami` " " $1 $2 $3 $4 |tee -a $LOG2
+}
+
+HELP="Usage: "`basename $0`" database [store]\nBackups database to store (default database.Z).\nTo restore database use dbrest."
+
+test -n "$1" || { echo "You must supply a database name."; echo $HELP; exit 1; }
+DB=`dirname $1`/`basename $1 .db`
+test -f $DB.db || { echo "File $DB.db not found."; echo $HELP; exit 1; }
+
+BAK=${2:-$DB}
+BAK=`dirname $BAK`/`basename $BAK .Z`
+
+LOG=backup$DBID.log
+
+echo '***********************************************' >>$LOG
+(
+#echo `date '+%m/%d/%y %H:%M:%S'` Backup datatabase $DB started by `who -qm`
+wlog Start Backup $DB 
+dbshut $DB
+if [ $? -ne 0 ]; then
+  wlog "Backup $DB cancelled due shutdown error."
+  exit 2
+fi
+
+#echo $DBID
+#echo Starting backup $DB. 
+#$DLC/bin/_proutil $DB -C truncate bi -G 0
+rm /tmp/$DBID.tome
+for i in `echo '1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z' | awk '{print $0}'`; do echo $BAK$i >> /tmp/$DBID.tome ; done
+                    
+tome1=$BAK"0"
+#PIPEFILE=/tmp/bakup.$$
+#mkfifo $PIPEFILE
+
+#$DLC/bin/probkup $DB $tome1 -com -vs 21072 -verbose < /tmp/$db.$DBID.tome
+
+if [ $INCREMENTAL ]; then 
+#    if `date | awk '{print $1}'` = "
+    $DLC/bin/probkup $DB $tome1"inc" incremental -com -vs 262143 -verbose -io 6 < /tmp/$DBID.tome
+else 
+    $DLC/bin/probkup $DB $tome1 -com -vs 262143 -verbose < /tmp/$DBID.tome
+fi
+
+#ls -al $BAK* > /tmp/$DB.size
+#gzip -1 $BAK* &
+#compress <$PIPEFILE >$BAK
+#gzip -1 <$PIPEFILE >$BAK
+#rm -f $PIPEFILE
+wlog End compress $DB 
+
+ls -l $BAK*|awk '{print $9 "\t" $7 " " $6 " " $8 " " $5}'
+) 2>&1 | tee -a $LOG

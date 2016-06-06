@@ -1,0 +1,70 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+# Умный скрипт пля закрытия опердня. id00024 (c)
+export ME=`/usr/bin/whoami`
+test $ME = "bankadm" || { echo "-bash: $0: Permission denied"; exit; }
+
+# Определение переменной базы данных
+ID=$1
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+ 
+# Установка замка для Dayclose
+	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+# Проверка наличия сервера базы
+   $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+   if [ "$?" = "16" ]
+     then
+
+# Проверка наличия lock файла
+	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS; exit; }
+# Проверка отсутствия юзеров в базе
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "bankadm\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|id00640\|id00477\|id00700\|superman" | awk '{print $8}'`
+       if [ "$A" = "" ]                             
+       then
+	echo; echo "There is nobody in base $DBDESCR :)"
+	else
+	export A
+	/pragma/bin9/usrs
+	fi
+
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "bankadm\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|id00640\|id00477\|id00700\|superman" | awk '{print $8}'`
+       if [ "$A" = "" ]                             
+       then
+	echo; echo "There is nobody in base $DBDESCR :)"
+	else
+	export A
+	/pragma/bin9/usrs
+	fi
+
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "bankadm\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|id00640\|id00477\|id00700\|superman" | awk '{print $8}'`
+       if [ "$A" = "" ]                             
+       then
+	echo; echo "There is nobody in base $DBDESCR :)"
+	else
+	export A
+	/pragma/bin9/usrs
+	exit
+	fi
+# Бэкап ai
+	echo ; echo -n "Backuping last ai to bkup folder."
+	ai_save_fil $DBID
+	echo; echo "Finish last ai!"
+# Онлайн бэкап
+          dbsaveOnline $DBDIR/$DBNAME 
+	echo; echo " Press Enter"
+	read w
+# Закрытие дня
+        cd /data/log/$DBID
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+# Пуш отчерты
+
+test `echo "$DBID" | wc -m` = "4" && $DLC/bin/_progres  $DBDIR/$DBNAME -p pushbatch -U bankadm -P $passw
+        cd ..
+
+# Снятие замка для Dayclose
+##	test -e $DBDIR/.lock-d && { echo "Deleting lock-file for $DBDESCR"; rm -v $DBDIR/.lock-d; }
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi

@@ -1,0 +1,216 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+DBDIR=$1
+
+if [ `/usr/bin/tty | grep -i "dev"` ]
+then
+BD=`/usr/bin/tput smso`
+UB=`/usr/bin/tput rmso`
+DATE=`date "+%d/%m/%y"`
+fi
+
+if [ `test -e /drbd; echo $?` = 0 ]
+then
+	DB="$1"
+	ALS=`echo "$DB" | awk -F/ '{print $4}'`
+	DBDATA="$1"
+else
+	DB="$1"
+	ALS=`echo "$DB" | awk -F/ '{print $3}'`
+
+	if [ `echo "$1" | grep -i "drbd" > /dev/null; echo $?` = 0 ]
+	then DBDATA=`echo "$1" | awk -F/ '{print "/"$3"/"$4"/"$5}'`
+	else DBDATA=`echo "$1" | awk -F/ '{print "/"$2"/"$3"/"$4}'`
+	fi
+fi
+        SHUT=`/usr/dlc/bin/_mprshut $DBDATA -C list`
+	USR=`echo "$SHUT" | grep -iv "tty\|WDOG\|BIW\|AIW\|APW\|RPLA\|RPLS" | awk '{print $8}'`
+	USRS=`echo $USR | wc -w`
+	test `echo $USRS | wc -m` = 2 && USRS="   $USRS"
+	test `echo $USRS | wc -m` = 3 && USRS="  $USRS"
+	test `echo $USRS | wc -m` = 4 && USRS=" $USRS"
+
+  NON=`/usr/dlc/bin/_dbutil $DBDATA -C holder`
+  RET=$?
+
+ if [ $RET = "2" ]
+  then
+   echo "        O_o $1 (code: -2)" | grep --colour=always "$1 (code: -2)"
+  else
+  
+  if [ `test -e $DBDATA"_7.d1"; echo $?` -eq 0 ]
+	then 
+  
+  if [ `test -e $DBDATA"_7.d1"; echo $?` -eq 0 ]
+	then 
+	D1=`ls $DBDATA"_7.d1" -l | awk '{print $5}'`; D1=`let "D1=$D1/1024/1024"; echo $D1`
+	test `echo $D1 | wc -m` = 2 && D1="    $D1"
+	test `echo $D1 | wc -m` = 3 && D1="   $D1"
+	test `echo $D1 | wc -m` = 4 && D1="  $D1"
+    test `echo $D1 | wc -m` = 5 && D1=" $D1"
+	else D1="    -"
+  fi 
+
+  test -e $DBDATA"_7.d2" || { test $D1 != "-" -a $D1 != "0" && D1="$BD$D1$UB"; }
+
+  if [ `test -e $DBDATA"_7.d2"; echo $?` -eq 0 ]
+	then 
+	D2=`ls $DBDATA"_7.d2" -l | awk '{print $5}'`; D2=`let "D2=$D2/1024/1024"; echo $D2`
+	test `echo $D2 | wc -m` = 2 && D2="    $D2"
+	test `echo $D2 | wc -m` = 3 && D2="   $D2"
+	test `echo $D2 | wc -m` = 4 && D2="  $D2"
+    test `echo $D2 | wc -m` = 5 && D2=" $D2"
+	else D2="    -"
+  fi 
+  
+  else
+
+  if [ `test -e $DBDATA.d1; echo $?` -eq 0 ]
+	then 
+	D1=`ls $DBDATA.d1 -l | awk '{print $5}'`; D1=`let "D1=$D1/1024/1024"; echo $D1`
+	test `echo $D1 | wc -m` = 2 && D1="    $D1"
+	test `echo $D1 | wc -m` = 3 && D1="   $D1"
+	test `echo $D1 | wc -m` = 4 && D1="  $D1"
+    else D1="   -"
+  fi 
+  
+  test -e $DBDATA.d2 || { test $D1 != "-" -a $D1 != "0" && D1="$BD$D1$UB"; }
+  if [ `test -e $DBDATA.d2; echo $?` -eq 0 ]
+	then 
+	D2=`ls $DBDATA.d2 -l | awk '{print $5}'`; D2=`let "D2=$D2/1024/1024"; echo $D2`
+	test `echo $D2 | wc -m` = 2 && D2="    $D2"
+	test `echo $D2 | wc -m` = 3 && D2="   $D2"
+	test `echo $D2 | wc -m` = 4 && D2="  $D2"
+    else D2="   -"
+  fi 
+  
+  fi    
+
+  #test -e $DBDATA.d7 || { test $D6 != "-" -a $D6 != "0" && D6="$BD$D6$UB"; }
+  #test -e $DBDATA"_7.d7" || { test $D6 != "-" -a $D6 != "0" && D6="$BD$D6$UB"; }
+
+
+  Bi=`test -e $DBDATA.b1 && { ls $DBDATA.b1 -l | awk '{print $5}'; }`
+	Bi=`let "Bi=Bi/1024/1024"; echo $Bi`
+	test `echo $Bi | wc -m` = 2 && Bi="  $Bi"
+	test `echo $Bi | wc -m` = 3 && Bi=" $Bi"
+
+  D=" "; test -e /data/$ALS/.lock-d && D=$BD"D"$UB
+
+###################################################################################
+
+#if [[ $2 = "-a" ]]
+#then
+REPL=`/usr/dlc/bin/rprepl $DBDATA -C status -detail | awk '{print $1}'`
+R=$BD"R"$UB
+test $REPL = 6021 -o $REPL = 2083 -o $REPL = 3049 -o $REPL = 3048 -o $REPL = 3049 -o $REPL = 3050 -o $REPL = 6005 && R=" "
+
+     VOL=`/usr/dlc/bin/prostrct statistics $DBDATA | grep -A 3 -i "Summary" | grep -i "Active"`
+     if [ $? = "0" ]
+     then VOL=`echo $VOL | awk '{print $3}'`
+	VOL=`let "x=$VOL*8192/1024/1024"; echo $x`
+	test `echo $VOL | wc -m` = 2 && VOL="    $VOL"
+	test `echo $VOL | wc -m` = 3 && VOL="   $VOL"
+	test `echo $VOL | wc -m` = 4 && VOL="  $VOL"
+	test `echo $VOL | wc -m` = 5 && VOL=" $VOL"
+     else VOL="can't"
+     fi
+
+     DESCRIBE=`/usr/dlc/bin/_dbutil $DB -T /drbd/data/temp -C describe`
+     A=$BD"A"$UB; echo "$DESCRIBE" | grep -i "After Imaging" > /dev/null && A=" "
+     M=$BD"M"$UB; echo "$DESCRIBE" | grep -i "Mangement/Archiver" > /dev/null && M=" "
+
+
+        LG=`test -e $DBDATA.lg && ls $DBDATA.lg -l | awk '{print $5}'`; RETCODE=$?
+	if [ $RETCODE = 0 ]
+	then LG=`let x="$LG/1024/1024"; echo $x`
+	test `echo $LG | wc -m` = 2 && LG="    $LG"
+	test `echo $LG | wc -m` = 3 && LG="   $LG"
+	test `echo $LG | wc -m` = 4 && LG="  $LG"
+	test `echo $LG | wc -m` = 5 && LG=" $LG"
+	else LG="Can't"
+	fi
+
+	AIVOL=`/usr/dlc/bin/_dbutil $DB -T /drbd/data/temp  -C aimage extent list | grep -A 5 -iw "Busy" | grep -iw "Used" | awk '{print $2}'`; RETCODE=$?
+	test $RETCODE = 0 && AIVOL=`let x="AIVOL/1024"; echo $x`
+	test $RETCODE = 0 || AIVOL="can't"
+	test `echo $AIVOL | wc -m` = 2 && AIVOL="  $AIVOL"
+	test `echo $AIVOL | wc -m` = 3 && AIVOL=" $AIVOL"
+
+#########################################################
+	if [ $RET -eq 16 ] 
+	then 
+		SHM=`/usr/dlc/bin/_dbutil -T /drbd/data/temp  -C dbipcs | grep $1 | awk '{ print $1}'`
+		SHM=`/usr/bin/ipcs -m | grep -iw "$SHM" | awk '{ print $5}'`
+		SHM=`let "x=$SHM/1024/1024"; echo $x`; RETCODE=$?
+		if [ $RETCODE = 0 ]
+		then
+		test `echo $SHM | wc -m` = 2 && SHM="   $SHM"
+		test `echo $SHM | wc -m` = 3 && SHM="  $SHM"
+		test `echo $SHM | wc -m` = 4 && SHM=" $SHM"
+		else "   -"
+		fi
+
+		GT=`/usr/dlc/bin/_progres $1 -T /drbd/data/temp -p /pragma/lib/RX/rcode_debug/dbi.r -b | grep -iv "TERM"`
+		if [[ `echo $GT | grep -i "bank not connected"` ]]
+		then
+			GTD="n gtoday"
+			PTD="n ps-cls"
+		else
+			GTD=`echo "$GT" | grep "today" | awk '{print $2}'`
+			PTD=`echo "$GT" | grep "ps" | awk '{print $2}'`
+		fi
+
+		if echo $DBDIR | grep -Eiv 'bmkb|bakt|bkos|btrz|burl|bkar|bsem|bkok|bast|bpav|bpet|batr|baku|bzes|bust|bchm|balm' > /dev/null;
+		then
+		PTD="n ps-cls"
+		fi
+
+
+
+if ! `echo "$DBDATA" | grep -i "comm\|cards\|ib" > /dev/null`
+then
+	if [ "$PTD" != "$GTD" ]
+	then
+	test `echo "$ALS" | wc -m` = "5" && PTD="$BD$PTD$UB"
+	fi
+
+	if [ "$GTD" != "$DATE" ]
+	then
+	GTD="$BD$GTD$UB"
+	fi
+fi
+
+	else
+	GT=`/usr/dlc/bin/_progres $DB -1 -T /drbd/data/temp -p /pragma/lib/RX/rcode_debug/dbi.r -b | grep -iv "TERM"`
+	GTD=`echo "$GT" | grep -i "today" | awk '{print $2}'`
+	PTD=`echo "$GT" | grep -i "ps" | awk '{print $2}'`
+        SHM="   -"
+	fi
+fi
+#########################################################
+	test `echo $ALS | wc -m` = 2 && ALS="     $ALS"
+	test `echo $ALS | wc -m` = 3 && ALS="    $ALS"
+	test `echo $ALS | wc -m` = 4 && ALS="   $ALS"
+	test `echo $ALS | wc -m` = 5 && ALS="  $ALS"
+	test `echo $ALS | wc -m` = 6 && ALS=" $ALS"
+#########################################################
+  if [ `test -e $DBDATA"_7.d1"; echo $?` -eq 0 ]
+	then 
+	AT=$BD"AT2"$UB 
+	else 
+	AT="AT1"
+  fi
+#########################################################
+
+
+	case $RET in 
+	 0) ANS="$ALS $BD:($UB"; USRS="   -";;
+	14) ANS="$ALS $BD:|$UB";;
+	16) ANS="$ALS :)";;
+	 *) ANS="$ALS: Unknown error. Code: ($?)"; echo "[$NON]   ";;
+	esac
+
+	 echo "$D$R$A$M $USRS $ANS $VOL $SHM $Bi $AIVOL  $GTD $PTD  $LG  $D1 $D2    $AT"
+#	 echo "$D    $USRS $ANS $VOL $SHM $Bi $AIVOL  $GTD $PTD  $LG  $D1  $D2  $AT"

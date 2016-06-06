@@ -1,0 +1,29 @@
+﻿#                                   
+#       This scrip for move pf{mmyy}.txt files to recepient's
+#       directory c:\gcvp\ with file pf{mmyy}.dos
+#
+#       Service from Proper, 20.10.1999
+#       Note: directory c:\gcvp\ must exist into 
+#	      recepient's PC...
+#
+#       Synopsis
+#       cppf
+#
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+rhost=$pc:C:/GCVP
+for ff in /home/lee/pf*.txt  
+	do  
+	if [ -e $ff ] 
+	then
+		export ft=${ff:10:6}
+		echo $ff... c:\\gcvp\\${ft}.dos... ok!
+		awk -f /usr/bin/unixdos $ff | unix2dos > $ft.dos
+		# awk -f /usr/bin/unixdos $ff | xtod > $ft.dos
+		rcp $ft.dos $rhost 
+		rm -f $ft.dos
+		rm -f $ff
+	else
+		echo "Nothing to do..."
+	fi
+	done
+

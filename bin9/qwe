@@ -1,0 +1,67 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+# Умный скрипт пля закрытия опердня. id00024 (c)
+export ME=`/usr/bin/whoami`
+test $ME = "bankadm" || { echo "-bash: $0: Permission denied"; exit; }
+
+# Определение переменной базы данных
+SERVER=`/bin/uname -n`
+if [ `echo "$SERVER" | grep -i "ixora03" > /dev/null; echo $?` = "0" ]
+then 
+echo "Are you shure ?"
+read w
+
+echo -n "Stop target db on $SERVER"
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+if [ $? = "16" ]
+then $DLC/bin/proshut $DBDIR/$DBNAME -by > /dev/null
+fi
+echo "		is done"
+echo -n "Turn off all repl on $SERVER"
+
+ANS="/home/`/usr/bin/whoami`/answer"
+echo "y" > $ANS
+echo "y" >> $ANS
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication target > /dev/null < $ANS
+echo "	is done"
+echo -n "Turn off ai and am on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "	is done"
+echo -n "Lening $DBDIR/$DBNAME on $SERVER"
+/pragma/bin9/Lenin $DBID > /dev/null
+echo "	is done"
+echo
+
+
+# Проверка отсутствия юзеров в базе
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "bankadm\|tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA\|batch\|id00005\|id00477" | awk '{print $8}'`
+       if [ "$A" = "" ]                             
+       then
+	 echo; echo "There is nobody in base $DBDESCR :)"
+# Закрытие дня
+         cd /data/log/$DBID
+	 $DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+         cd ..
+# Снятие замка для Dayclose
+	 test -e $DBDIR/.lock-d && { echo "Deleting lock-file for $DBDESCR"; rm -v $DBDIR/.lock-d; }
+	else
+	export A
+	/pragma/bin9/usrs
+	exit
+	fi
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+if [ $? = "16" ]
+then $DLC/bin/proshut $DBDIR/$DBNAME -by > /dev/null
+fi
+
+else 
+echo "ARE YOU NUTS ???? This is `/bin/uname -n` server"
+echo ":("
+sleep 1
+fi

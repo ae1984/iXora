@@ -1,0 +1,18 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+#while true 
+#do
+  rfutil $1 -C roll forward retry $3 -a $2
+  RCODE=$?
+   if [ $RCODE = 0 ]
+    then 
+     echo -n $1 "Успешно накатился на $DBDESCR"
+     echo "$ ? = $RCODE"
+#    rm $DBDIR/ai_apply/$1
+    exit
+    else
+	echo -n "Не удалось накатить ai-файл $1 на $DBDESCR!"
+	echo "$ ? = $RCODE"
+   fi
+#done

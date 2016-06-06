@@ -1,0 +1,15 @@
+﻿. /pragma/bin9/dbenv2
+
+CLIENTMON=/data/log/$DBID/clientmon/`whoami`.mon
+export CLIENTMON
+
+PROCMON=/data/log/$DBID/procmon/`whoami`.mon
+export PROCMON
+
+UPID=$$;export UPID
+
+exec $DLC/bin/_progres $DBDIR/$DBNAME "$@" -s 256 -D 50 -mmax 2048 -h 10 -y -yx -d dmy  -ld bank -U superman -P $passw "$@"  -t -T /savedb/stemp  -Mm 16300
+
+
+
+

@@ -1,0 +1,96 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+  echo
+  echo
+  echo "            1. After Image begin"
+  echo "           11. Management Daemon enable"
+  echo "            2. After Image end"
+  echo "           22. Management Daemon disable"
+  echo
+  echo "            3. Backup ai files"
+  echo "            4. Roll forward ai on $DBDESCR from backup"
+  echo "           44. Roll forward ai on $DBDESCR from $DBDIR/ai_apply/"
+  echo             
+  echo "            5. rfutil $DBDESCR -C aimage extent list (only after ai begin)"
+  echo "            6. rfutil COMM BASE -C aimage extent list (only after ai begin)"
+  echo "            7. Info of ai extents (only offline)..."
+  echo "            8. Check for full ai extents (only after ai begin)"
+  echo "            A. ADDING AI TO $DBDESCR..."
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  1) 	echo; echo "Start Aftar Image on $DBDESCR + truncate bi..."
+        rfutil $DBDIR/$DBNAME -C aimage begin;;
+
+ 11)    test -d $DBDIR/fullai/ || { echo "Создаю директорию $DBDIR/fullai/ для after-image Management Daemon"; mkdir $DBDIR/fullai/; chmod 777 $DBDIR/fullai/; }
+        echo; echo "Enabling after-image Management Daemon..."
+	rfutil $DBDIR/$DBNAME -C aiarchiver enable;;
+	
+  2)  	echo; echo "End Aftar Image on $DBDESCR..."
+	$DLC/bin/rfutil $DBDIR/$DBNAME -C aimage end;;
+
+ 22)	echo; echo "Disabling after-image Management Daemon..."
+	rfutil $DBDIR/$DBNAME -C aiarchiver disable;;
+	
+
+  3)   while true
+	do
+	  echo
+	  echo
+	  echo            
+	  echo "            1. Backup from $DBDIR/ai"
+	  echo "            2. Backup from $DBDIR/fullai"
+	  read ans
+	  case $ans in
+
+	  1) SDIR=$DBDIR/ai
+	export SDIR 
+	ai_save
+	exit;;
+
+	  2) SDIR=$DBDIR/fullai
+	export SDIR 
+	ai_save
+	exit;;
+	  *) echo "Wrong selection. Press 1-2"
+	     sleep 1;;
+	  esac
+	done;;
+
+  4) ai_rest;;
+
+
+ 44) 
+  cd $DBDIR/ai_apply
+  for i in `ls * | awk '{print $0}'`
+  do
+  echo "Начался накат $i на TEST DATABASE..." | grep --colour=always "Начался накат $i на TEST DATABASE..."
+  /pragma/bin9/airst $i
+  done;;
+
+
+  5) rfutil $DBDIR/$DBNAME -T /data/temp -C aimage extent list; sleep 2;;
+
+  6) rfutil $DBCOMMDIR/comm -T /data/temp -C aimage extent list; sleep 2;;
+
+  7) ai_scan;;
+
+  8) $DLC/bin/rfutil $DBDIR/$DBNAME -C aimage full;;
+ 
+
+  A) ai_prostr;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-8 or A / Q."
+     sleep 2;;
+  esac
+done

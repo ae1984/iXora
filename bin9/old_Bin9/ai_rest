@@ -1,0 +1,84 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+. /pragma/bin9/proenv
+
+#$DLC/bin/rfutil $DBDIR/$DBNAME -C truncate bi -G 0
+
+DATE=`date "+%y-%m-%d"`
+
+STORAGE=/savedb/$DBID/aibkup
+cd $STORAGE
+echo; echo "List of STORAGES:"; echo "======================================================================================================"
+ls -tr1 --color=always;  echo "======================================================================================================"
+echo -n "Type here storage name: "
+read DAYDIR
+
+cd $STORAGE/$DAYDIR
+echo; echo "List of FOLDERS:"; echo "------------------------------------------------------------------------------------------------------"
+ls -tr1 --color=always; echo "------------------------------------------------------------------------------------------------------"
+echo -n "Type here folder name: "
+read TIMDIR
+
+ABDIR=$DBDIR/log/$DATE
+test -d $ABDIR || { mkdir $ABDIR; chmod 750 $ABDIR; }
+echo; echo "You have chosen directory - $STORAGE/$DAYDIR/$TIMDIR/"
+        echo " "
+        echo "Are you sure?"
+        echo -n "[y/n]"
+        read ANS
+        test $ANS = "y" || { echo Rolling forward from $STORAGE/$DAYDIR/$TIMDIR on $DBDESCR Cancelled by user.; exit 2; } >> $ABDIR/ai_rest.log
+
+AIADIR=$DBDIR/ai_apply
+test -d $AIADIR || { mkdir $AIADIR; chmod 0777 $AIADIR; }
+rm $AIADIR/*
+
+cp $STORAGE/$DAYDIR/$TIMDIR/* $AIADIR/
+echo "	 " >> $ABDIR/ai_rest.log
+
+cd $AIADIR
+    for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		 /usr/bin/gunzip  $i
+		   if [ $? = 0 ]
+			 then                                                                                    
+                              echo "тБУРБЛПЧЩЧБЕН $STORAGE/$DAYDIR/$TIMDIR" $i " Ч $AIADIR" >> $ABDIR/ai_rest.log
+                      else echo "пЫЙВЛБ РТЙ ТБУРБЛПЧЩЧБОЙЙ $STORAGE/$DAYDIR/$TIMDIR" $i " Ч $AIADIR !!!" >> $ABDIR/ai_rest.log
+                   fi
+           fi
+        done
+
+        echo "	"
+        echo "Roll forward AI files to a specific point in time?"
+        echo -n "[n - no / * - yes]"
+        read ANS
+        test $ANS = "n" || {	echo "======================================================================================================"
+				echo "You can set time only in choosen diapasone"
+				echo "Your  diapasone: $DAYDIR=$TIMDIR"
+				echo "Example of input YY:MM:DD:hh:mm:ss"
+				echo -n "Input here: 20"
+				read TTIME
+                 		
+				for i in `ls * | awk '{print $0}'`
+				do 
+				if [ $? = 0 ]                                    
+				rfutil $DBDIR/bank -C roll forward endtime 20$TTIME -a $AIADIR/$i
+				echo "rfutil $DBDIR/bank -C roll forward endtime 20$TTIME -a $AIADIR/$i"
+				then 
+                                echo "оБЛБФ ai-ЖБКМБ " $i " ОБ $DBDESCR ДП ФПЮЛЙ $TTIME" >> $ABDIR/ai_rest.log
+                     		else echo "пЫЙВЛБ РТЙ yБЛБФЕ ai-ЖБКМБ " $i " ОБ $DBDESCR ДП ФПЮЛЙ $TTIME !!!" >> $ABDIR/ai_rest.log
+               			fi
+			        done
+				exit 1; }
+
+    for i in `ls * | awk '{print $0}'`
+	do 
+		 rfutil $DBDIR/bank -C roll forward -a $AIADIR/$i
+		  if [ $? = 0 ]
+			 then 
+                              echo "оБЛБФ ai-ЖБКМБ " $i " ОБ $DBDESCR" >> $ABDIR/ai_rest.log
+                      else echo "пЫЙВЛБ РТЙ yБЛБФЕ ai-ЖБКМБ " $i " ОБ $DBDESCR !!!" >> $ABDIR/ai_rest.log
+                 fi
+        done

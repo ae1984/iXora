@@ -1,0 +1,24 @@
+﻿#!/bin/sh
+#скрипт для очищение каталога /pragma/lib/RX/rcode id00477(c)
+
+LOG_RCODE=/data/log/rcode/rcode_cleaning.log
+DAY_RCODE=`date "+%d.%m.20%y"`
+
+test -d /data/log/rcode || { mkdir /data/log/rcode; chmod 774 /data/log/rcode; } 
+test -d /savedb/rcode || { mkdir /savedb/rcode; chmod 774 /savedb/rcode; }
+test -d /savedb/rcode/$DAY_RCODE || { mkdir /savedb/rcode/$DAY_RCODE; chmod 774 /savedb/rcode/$DAY_RCODE; }
+ 
+echo                                                                                                                      >> $LOG_RCODE
+echo "=========================================== RCODE cleaning $DAY_RCODE ==========================================="  >> $LOG_RCODE
+echo                                                                                                                      >> $LOG_RCODE
+
+#кто и когда подкинул прогу
+ls -l  /pragma/lib/RX/rcode/ >> $LOG_RCODE
+echo                                                                                                                      >> $LOG_RCODE
+
+#Копирование всех r-ок в savedb перед удалением и при удачном завершении удаление всего содержимого rcode
+cp /pragma/lib/RX/rcode/* /savedb/rcode/$DAY_RCODE && rm -v /pragma/lib/RX/rcode/* >>$LOG_RCODE 
+
+
+
+

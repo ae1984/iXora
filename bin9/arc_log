@@ -1,0 +1,19 @@
+﻿#!/bin/bash
+
+echo Начинаем упаковку логов
+LAST=`sed -n '$p' /savedb/data_log/arc.log | awk -F" " '{print $3}'`
+TEK=`date | awk -F" " '{print $2}'`
+
+echo $LAST $TEK
+
+if [ $LAST = $TEK ]; then 
+    echo Упаковка логов в этом месяце уже была произведена
+else 
+    for CATALOG in `cat /savedb/data_log/spisok.txt`
+    do echo $CATALOG
+       ls -alct $CATALOG | grep $LAST #Тарим все это
+       ls -alct $CATALOG | grep $LAST #Удаляем все это
+    done
+    #echo Last archive $TEK >> /savedb/data_log/arc.log
+fi
+

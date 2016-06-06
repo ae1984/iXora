@@ -1,0 +1,30 @@
+﻿/* dcls58.p
+ * MODULE
+        Название Программного Модуля
+ * DESCRIPTION
+        Назначение программы, описание процедур и функций
+ * RUN
+        Способ вызова программы, описание параметров, примеры вызова
+ * CALLER
+        Список процедур, вызывающих этот файл
+ * SCRIPT
+        Список скриптов, вызывающих этот файл
+ * INHERIT
+        Список вызываемых процедур
+ * MENU
+        Перечень пунктов Меню Прагмы 
+ * AUTHOR
+        31/12/99 pragma
+ * CHANGES
+*/
+
+/* epsbat.p
+*/
+
+{global.i}
+
+for each eps:
+  eps.pdr[month(g-today)] = eps.dam[1] - eps.mdam[1].
+  eps.pcr[month(g-today)] = eps.cam[1] - eps.mcam[1].
+end.
+return.

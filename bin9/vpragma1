@@ -1,0 +1,13 @@
+﻿PLANG=RR;export PLANG
+PM=/pragma/;export PM
+DLC=/usr/dlc;export DLC
+#DBDIR=/data/9/alm/stat/data;export DBDIR
+#DBDIR=/savedb/alm/bank/01-11-03.00-00;export DBDIR
+DBDIR=/images/bank;export DBDIR
+#DBDIR=/images/testbank;export DBDIR
+#DBDIR=/home/marinav/1;export DBDIR
+PROPATH=${PROPATH-$DLC/:.:/pragma/lib/RX/RX.pl:/pragma/lib/RX/src:/pragma/source:$DLC/lib};export PROPATH
+#PROPATH=${PROPATH-$DLC/:.:/home/alex/src/1/RX.pl:/pragma/source:$DLC/lib};export PROPATH
+ROTERMCAP=$DLC/protermcap;export PROTERMCAP
+exec $DLC/bin/_progres $DBDIR/bank -mmax 1024 -d dmy -ld bank  -t -T /data/9/temp -mmax 1024 -h 10 -y -yx -p pmenu "$@"
+

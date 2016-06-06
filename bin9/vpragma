@@ -1,0 +1,22 @@
+﻿#!/bin/bash
+echo 1-alm, 2-ast, 3-url, 4-atr, 5-akt, 6-kar
+  read ans
+    case $ans in
+    1) DBDIR=/data/9/alm/stat/data;export DBDIR;;
+    2) DBDIR=/data/9/ast/stat/data;export DBDIR;;
+    3) DBDIR=/data/9/url/stat/data;export DBDIR;;
+    4) DBDIR=/data/9/atr/stat/data;export DBDIR;;
+    5) DBDIR=/data/9/akt/stat/data;export DBDIR;;
+    6) DBDIR=/data/9/kar/stat/data;export DBDIR;;
+    esac
+PLANG=RR;export PLANG
+PM=/pragma/;export PM
+DLC=/usr/dlc;export DLC
+#DBDIR=/data/9/test_comm;export DBDIR
+#DBDIR=/data/9/$1/stat/data;export DBDIR
+PROPATH=${PROPATH-$DLC/:.:/pragma/lib9/RX/rcode:/pragma/lib9/RX/RX.pl:/pragma/lib9/RX/src:$DLC/lib9};export PROPATH
+ROTERMCAP=$DLC/protermcap;export PROTERMCAP
+PROMSGS=/home/bankadm/promsgs.eng;export PROMSGS
+#exec $DLC/bin/_progres $DBDIR/banks -i -mmax 1024 -d dmy -ld bank "$@"
+exec $DLC/bin/_progres $DBDIR/banks -i -mmax 1024 -d dmy -ld bank "$@" -L 65000 -spin 80000 -n 4 -Mxs 250
+#exec $DLC/bin/_progres $DBDIR/comm -mmax 1024 -d dmy -ld comm "$@"

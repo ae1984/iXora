@@ -1,0 +1,76 @@
+﻿#!/bin/sh
+#написан id00700
+
+BD=`/usr/bin/tput smso`
+UB=`/usr/bin/tput rmso`
+banks="bmkb balm bakt bkos burl bkar bsem btrz bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"
+users="bankadm"
+ME=`/usr/bin/whoami`
+
+clear
+
+echo $users | grep -iw "$ME" > /dev/null || { echo "Вам запрещено запускать даный скрипт"; read; clear; exit; }
+
+echo  "Введите колличество дней (>10 и <45)"
+echo -n "Все архивы старше указанного колличества дней будут удалены >"
+read days
+#******************************************************************************
+if [ "$days" = "" ]; then 
+echo "Число не введено. Отмена." 
+read
+clear
+exit 
+fi
+
+if [ "$days" -gt "10" ]; then
+	if [ "$days" -lt "45" ]; then
+
+clear
+
+echo "**********************************************"
+echo "*                Внимание!!!                 *"
+echo "*                                            *"
+echo "* Вы запускаете скрипт удаления всех бэкапов *"
+echo "*            старше $days дней.                 *"
+echo "*                                            *"
+echo "*  Вы уверены что хотите продолжить? (y/n)   *"
+echo "*                                            *"
+echo "**********************************************"
+echo -n ">"
+read
+#******************************************************************************
+if [ "$REPLY" = "y" ]; then
+for i in $banks
+do
+echo "$BD$i$UB"
+find /savedb/$i/bank/full -maxdepth 1 -ctime +$days
+echo -n "Нажмите любую кнопку для удаления списка. <press any key>"
+read
+find /savedb/$i/bank/full -maxdepth 1 -ctime +$days -exec rm -r {} \;
+clear
+done
+
+else
+echo "Отменено, нажмите любую клавишу. <any key>"
+read
+clear
+exit
+fi
+#******************************************************************************
+else
+echo "Вы попытались указать более 45 дней. Недопустимо. Отменено."
+read
+clear
+exit
+fi
+#******************************************************************************
+else
+echo "Вы попытались указать менее 10 дней. Недопустимо. Отменено."
+read
+clear
+exit
+fi
+#******************************************************************************
+echo "Все архивы старше $days дней удалены!"
+read
+clear

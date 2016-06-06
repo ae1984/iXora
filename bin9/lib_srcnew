@@ -1,0 +1,17 @@
+﻿#!/bin/sh
+
+# --== Начало самой программы ==--
+
+if test $1
+then 
+    for i in `ls /pragma/lib/$1/src_new/*`
+    do libadm $1 -r $i
+    if [ $? = 2 ]
+    then 
+        libadm $1 -a $i
+    fi
+    done
+else
+    echo "Укажите библиотеку!"
+fi
+

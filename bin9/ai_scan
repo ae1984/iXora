@@ -1,0 +1,55 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo "======== WORK WITH AI EXTENT ========"
+  echo "	1.-st ai extent"
+  echo "	2. 2 ai extent"
+  echo "	3. 3 ai extent"
+  echo "	4. 4 ai extent"
+  echo "	A. ALL  ai extent"
+  echo "	Q. Exit"
+  echo
+  read ans
+  case $ans in
+  1) clear
+	echo "------------------------------1-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a1;sleep 3
+	;;
+  2) clear
+	echo "------------------------------2-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a2;sleep 3
+	;;
+  3) clear
+	echo "------------------------------3-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a3;sleep 3
+	;;
+  4) clear
+	echo "------------------------------4-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a4;sleep 3
+	;;
+  [Aa]) clear
+	echo "------------------------------1-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a1;sleep 3
+	echo
+	echo "------------------------------2-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a2;sleep 3
+	echo
+	echo "------------------------------3-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a3;sleep 3
+	echo
+	echo "------------------------------4-st ai extent------------------------------"
+	rfutil $DBDIR/$DBNAME -C aimage scan verbose -a $DBDIR/ai/bank.a4;sleep 5
+        echo
+	;;
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-4 or A/Q."
+     sleep 2;;
+  esac
+done

@@ -1,0 +1,21 @@
+﻿#!/bin/bash
+
+
+# всем понятно
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+#pc=$USERHOST
+
+ #
+ # It is one from SSH ready host listed in $lst
+ if [ "$1" = "-put" ]; then
+   scp -q $2 Administrator@$pc:$3 1>/dev/null
+ elif [ "$1" = "-get" ]; then
+   scp -q Administrator@$pc:$2 $3 1>/dev/null
+ else
+   echo "wrong argument"
+ fi
+ if test $? != 0; then
+  exit 1
+ fi
+
+exit

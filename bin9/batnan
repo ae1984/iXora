@@ -1,0 +1,57 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+ID=$1
+. /pragma/bin9/dbenv 
+$DLC=/usr/dlc/bin
+
+	test -e $DBDIR/.lock-b && { exit; }
+	touch $DBDIR/.lock-b
+
+  $DLC/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+ then
+        TIME=`date "+%y.%m.%d %H:%M:%S"`
+	echo "[			20$TIME			]"
+	echo "[			Detabase $DBID				]"
+        echo
+	echo "==================================================="
+
+	echo "[			Backup AI				]"
+	/pragma/bin9/ai_save_fil $DBID 
+
+	echo "[			Switch to next AI ]"
+	$DLC/_dbutil $DBDIR/$DBNAME -C aimage empty
+
+	echo "[			Starting detabase				]"
+	$DLC/_mprosrv $DBDIR/$DBNAME -aiarcdir $DBDIR/fullai/ -aiarcinterval 3600 -DBService replserv -N TCP -S $MAXPORT -Mn 21 -n 200 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall
+	RETCODE=$?
+	if [ $RETCODE = "1" ]
+	then
+	$DLC/bin/_mprosrv $DBDIR/$DBNAME -aiarcdir $DBDIR/fullai/ -aiarcinterval 3600 -N TCP -S $MAXPORT -Mn 21 -n 200 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall
+        fi
+	$DLC/_mprosrv $DBDIR/$DBNAME -m3 -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+	$DLC/prowdog  $DBDIR/$DBNAME
+	$DLC/probiw   $DBDIR/$DBNAME
+	$DLC/proaiw   $DBDIR/$DBNAME
+	$DLC/proapw   $DBDIR/$DBNAME
+	$DLC/proapw   $DBDIR/$DBNAME
+
+	echo "==================================================="
+	echo "[			List processes by Linux			]"
+
+	ps -eaf | grep $DBDIR/$DBNAME
+
+	echo "==================================================="
+	echo "[			List processes by Progress		]"
+
+	/usr/dlc/bin/proshut $DBDIR/$DBNAME -C list
+
+	echo "==================================================="
+	echo "[			List AI					]"
+	/usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C aimage extent list
+  else
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+ fi
+
+

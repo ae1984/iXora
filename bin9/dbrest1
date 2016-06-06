@@ -1,0 +1,38 @@
+﻿#!/bin/sh
+
+if test $1
+then 
+    if test $2
+    then 
+        cd $1
+        db=`ls * | grep 0 | awk -F"0" '{print $1}'`
+        if [ `ls * | grep inc` ] 
+        then 
+            inc=inc
+        else
+            unset inc
+        fi
+        test -f $2"/"$db".db" || { echo "Не найдена база " $2/$db "\nСоздайте структуру в " $2 | tee -a /data/log/dbrestore.log ; exit 1;}
+        #rm /tmp/tome.rest
+        echo y>/tmp/tome.rest
+        for i in 1 2 3 4 5 6 7 8 9
+            do echo $1"/"$db$i >> /tmp/tome.rest
+        done
+        date
+        gzip -vd $db*
+        if [ $? = 1 ]
+        then 
+            echo "Ошибка при разархивации!" | tee -a /data/log/dbrestore.log
+            exit 1
+        fi
+        prorest $2"/"$db $1"/"$db"0"$inc < /tmp/tome.rest
+        gzip -v -S .Z $db*
+        date
+    else
+        echo "Укажите файл бэкапа!!!" | tee -a /data/log/dbrestore.log
+    fi        
+else
+    echo "Укажите путь к базе!!!" | tee -a /data/log/dbrestore.log
+fi
+
+echo "Смотрите логи в /data/log/dbrestore.log"

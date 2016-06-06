@@ -1,0 +1,58 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+SKIPDAY=`date "+%d-%m-%y"`
+cat /pragma/bin9/skipdays | grep -v "#" | grep $SKIPDAY && exit
+
+DAY=`date "+%H.%M.%S_%d.%m.20%y"`
+LOG=/data/log/nightbackup/$DAY.log
+test -d /data/log/nightbackup || { mkdir /data/log/nightbackup; chmod 750 /data/log/nightbackup; }                                                                                
+
+echo > $LOG
+/pragma/bin9/dbi all 				                                                                 >> $LOG
+/pragma/bin9/dba all ai size			                                                                 >> $LOG
+
+if test `/bin/date +%H` = "05"
+then
+LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku comm ib alm akt kos url sem"
+TO="To: Madiyar.Kassymzhanov@fortebank.com Alexandr.Korzhov@fortebank.com Ivan.Karasev@fortebank.com Anton.Marchenko@fortebank.com"
+
+else
+LIST="bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku alm akt kos url sem"
+TO="To: Alexandr.Korzhov@fortebank.com Ivan.Karasev@fortebank.com Anton.Marchenko@fortebank.com"
+
+fi 
+
+for i in $LIST
+do
+TIME=`date "+%H:%M:%S %d.%m.20%y"`
+echo                                                                                                              >> $LOG
+echo "=========================================== Start $i in $TIME ==========================================="  >> $LOG
+echo                                                                                                              >> $LOG
+/pragma/bin9/dbsall $i                                                                                            >> $LOG
+echo                                                                                                              >> $LOG
+echo                                                                                                              >> $LOG
+echo "=========================================== Finish $i in $TIME ===========================================" >> $LOG
+echo                                                                                                              >> $LOG
+
+done
+
+	 LOG2="/tmp/LOG2"
+	 test -e $LOG2 && { rm $LOG2; } 
+	 echo "From: iXora@metrobank.kz"                                                                       >> $LOG2
+	 echo "$TO"											       >> $LOG2
+	 echo "Subject: =?windows-1251?Q? БЭКАПЫ! ?="                      	   		       >> $LOG2
+    	 echo 'Content-Type: text/plain; charset="windows-1251"'                                               >> $LOG2
+         echo "Это сообщение было сформировано автоматически."                                                 >> $LOG2
+         echo "---------------------------------------------------------------------------------------------"  >> $LOG2
+	 cat $LOG >> $LOG2
+	 cat $LOG2 | /usr/lib/sendmail -t
+	 test -e $LOG2 && { rm $LOG2; }
+
+
+
+
+
+
+
+

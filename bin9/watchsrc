@@ -1,0 +1,43 @@
+﻿#!/bin/sh
+
+# ТОО РКЦ-1
+/pragma/bin9/watchcat rkc
+
+# МКО рабочие базы
+/pragma/bin9/watchcat alm
+/pragma/bin9/watchcat akt
+/pragma/bin9/watchcat kos
+/pragma/bin9/watchcat trz
+/pragma/bin9/watchcat url
+/pragma/bin9/watchcat kar
+/pragma/bin9/watchcat sem
+/pragma/bin9/watchcat kok
+/pragma/bin9/watchcat ast
+
+# МЕТРОКОМБАНК рабочие базы
+/pragma/bin9/watchcat bmkb
+/pragma/bin9/watchcat balm
+/pragma/bin9/watchcat bakt
+/pragma/bin9/watchcat bkos
+/pragma/bin9/watchcat btrz
+/pragma/bin9/watchcat burl
+/pragma/bin9/watchcat bkar
+/pragma/bin9/watchcat bsem
+/pragma/bin9/watchcat bkok
+/pragma/bin9/watchcat bast
+/pragma/bin9/watchcat bpet
+
+# МЕТРОКОМБАНК Филиалы на стадии открытия
+#/pragma/bin9/watchcat bpav
+#/pragma/bin9/watchcat batr
+#/pragma/bin9/watchcat baku
+#/pragma/bin9/watchcat bzes
+#/pragma/bin9/watchcat bust
+#/pragma/bin9/watchcat bchm
+
+# Общие базы работающие 24/7
+/pragma/bin9/watchcat comm
+/pragma/bin9/watchcat cards
+
+#END
+#OK

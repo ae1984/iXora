@@ -1,0 +1,398 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+
+while true
+do
+  echo    
+  echo "       Closing the DAY"
+  echo "       Database: [ $DBDESCR ]"
+  echo                                 
+  echo "    1. Stop $DBDESCR database server"
+  echo "    2. Backup AI"
+  echo "    3. Dayclose"
+  echo "    4. Offline backup $DBDESCR + Start + Push"
+  echo "    5. Start $DBDESCR database server + Push"
+  echo "    6. Push me"
+  echo "  all. ALL"
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1)
+# рТПЧЕТЛБ ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+      then
+        A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW" | awk '{print $8}'`
+
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DBDIR/$DBNAME -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+# хУФБОПЧЛБ ЪБНЛБ ДМС вЬФНБОБ
+	touch $DBDIR/.lock-b
+# пУФБОПЧЛБ ВБЪЩ
+	$DLC/bin/proshut $DBDIR/$DBNAME -by
+       else
+           echo "                                                            Ё"
+           echo -e "\a            There is(are) user(s) in Detabase               Ў" | grep --colour=always "There is(are) user(s) in Detabase"
+           echo "  Detabase: $DBDESCR 	Path: $DBDIR/$DBNAME.db"  | grep --colour=always "$DBDESCR\|$DBDIR/$DBNAME.db"
+           echo "            List of connected logins to Detabase            µ"
+           U=`last | grep still | awk '{print $6" "$5" Ў "$7"-"$8" Ў "$1" Ў "$3}'`
+           echo "$A" | grep --colour=always "$A"
+           echo "                                                            µ"
+           echo "  List of all connected sessions with matching that logins  Ў"
+           echo "[date] ё [connected] ё[user id]ё[ip addres or DNS Name]     µ"
+           echo "$U" | grep --colour=always "$A"
+           echo "       »             »         »                            ®"
+	   echo; echo -e "\aPress Enter to EXIT" | grep --colour=always "Press Enter to EXIT"
+           read ANS
+	   exit 1
+	 fi
+       fi;;
+  2)
+# вЬЛБР БЙЫОЙЛПЧ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+        echo "Start backuping the AI"
+	ai_save;
+        echo "Finish backuping the AI"
+     else
+       echo -e "Cann...ot backup AI correct. Detabase is not stopped." | grep --colour=always "Cannot backup AI correct. Detabase is not stopped."
+     fi;;
+  3)
+# ъБЛТЩФЙЕ ПРЕТДОС
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+	rfutil $DBDIR/$DBNAME -C aimage end
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME  -i -L 65000 -spin 16000 -n 4 -Mxs 250 
+        $DLC/bin/probiw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+# юЕЛРПЙОФ
+	test -e /home/bankadm/Press_enter_to_continue || { mkdir /home/bankadm/Press_enter_to_continue; chmod 777 /home/bankadm/Press_enter_to_continue; }
+	OK=`ls -tr1 --color=always /home/bankadm/ | grep Press_enter_to_continue`
+	echo; echo -e "\a$OK dayclose on $DBDESCR | Ctrl+C to abort"
+        read AOK
+	echo "Contining..."
+	sleep 1
+        cd /data/log/$DBID
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+        cd ..
+        $DLC/bin/_mprshut $DBDIR/$DBNAME  -by
+	rm -rfv /home/bankadm/Press_enter_to_continue
+     else
+       echo -e "Cannot do offline backup. Detabase is not stopped." | grep --colour=always "Cannot do offline backup. Detabase is not stopped."
+     fi;;
+
+  4)
+# пЖЖМБКО ВЬЛБР ПУФБОПЧМЕООПК ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+     if [ $DBID = "alm" ]; then
+       NEEDSPACE=12288000
+     else
+       NEEDSPACE=2048000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+        dbsave $DBDIR/$DBNAME 
+	cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+     fi
+     else
+       echo -e "Cannot do offline backup. Detabase is not stopped." | grep --colour=always "Cannot do offline backup. Detabase is not stopped."
+     fi
+
+# ъБРХУЛ ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+ 	echo "Truncating AI on $DBDESCR..."
+	$DLC/bin/rfutil $DBDIR/$DBNAME -C aimage truncate -G 0
+
+	echo; echo "Start Aftar Image on $DBDESCR + truncate bi"
+	rfutil $DBDIR/$DBNAME -C aimage begin
+
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       echo -e "\a DONE. Database is sucsesfull started."
+     else
+       echo -e "\a Cannot DO THIS. Database is already started." 
+     fi
+# рХЫ ПФЮЕФЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+# рПЛБЪ РХЫ ПФЮЕФБ
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+# рПЛБЪ AI
+	echo "================ list of ai files =================="; echo
+	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 5; echo
+# хДБМЕОЙЕ ЪБНЛБ ДМС вЬФНБОБ
+	rm $DBDIR/.lock-b
+     else
+       echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi;;
+
+  5)
+# ъБРХУЛ ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+ 	echo "Truncating AI on $DBDESCR..."
+	$DLC/bin/rfutil $DBDIR/$DBNAME -C aimage truncate -G 0
+
+	echo; echo "Start Aftar Image on $DBDESCR + truncate bi"
+	rfutil $DBDIR/$DBNAME -C aimage begin
+
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       echo -e "\a DONE. Database is sucsesfull started."
+     else
+       echo -e "\a Cannot DO THIS. Database is already started." 
+     fi
+# рХЫ ПФЮЕФЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+# рПЛБЪ РХЫ ПФЮЕФБ
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+# рПЛБЪ AI
+	echo "================ list of ai files =================="; echo
+	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 5; echo
+# хДБМЕОЙЕ ЪБНЛБ ДМС вЬФНБОБ
+	rm $DBDIR/.lock-b
+     else
+       echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi;;
+
+  6)
+# рХЫ ПФЮЕФЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+# рПЛБЪ РХЫ ПФЮЕФБ
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+# рПЛБЪ AI
+	echo "================ list of ai files =================="; echo
+	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 5; echo
+# хДБМЕОЙЕ ЪБНЛБ ДМС вЬФНБОБ
+	rm $DBDIR/.lock-b
+     else
+       echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi;;
+##################################################################################################################################
+  all)
+# хНОЩК УЛТЙРФ РМС ЪБЛТЩФЙС ПРЕТДОС. id00024 (c)
+
+# рТПЧЕТЛБ ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+      then
+       A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW" | awk '{print $8}'`
+
+       if [ "$A" = "" ]
+       then
+        echo; $DLC/bin/proshut $DB -C list
+	echo; echo "There is nobody in base $DBDESCR :)"
+# хУФБОПЧЛБ ЪБНЛБ ДМС вЬФНБОБ
+	touch $DBDIR/.lock-b
+# пУФБОПЧЛБ ВБЪЩ
+	$DLC/bin/proshut $DBDIR/$DBNAME -by
+       else
+           echo "                                                            Ё"
+           echo -e "\a            There is(are) user(s) in Detabase               Ў" | grep --colour=always "There is(are) user(s) in Detabase"
+           echo "  Detabase: $DBDESCR 	Path: $DBDIR/$DBNAME.db"  | grep --colour=always "$DBDESCR\|$DBDIR/$DBNAME.db"
+           echo "            List of connected logins to Detabase            µ"
+           U=`last | grep still | awk '{print $6" "$5" Ў "$7"-"$8" Ў "$1" Ў "$3}'`
+           echo "$A" | grep --colour=always "$A"
+           echo "                                                            µ"
+           echo "  List of all connected sessions with matching that logins  Ў"
+           echo "[date] ё [connected] ё[user id]ё[ip addres or DNS Name]     µ"
+           echo "$U" | grep --colour=always "$A"
+           echo "       »             »         »                            ®"
+	   echo; echo -e "\aPress Enter to EXIT" | grep --colour=always "Press Enter to EXIT"
+           read ANS
+	   exit 1
+	 fi
+       fi
+# вЬЛБР БЙЫОЙЛПЧ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+        echo "Start backuping the AI"
+	ai_save;
+        echo "Finish backuping the AI"
+     else
+       echo -e "Cann...ot backup AI correct. Detabase is not stopped." | grep --colour=always "Cannot backup AI correct. Detabase is not stopped."
+     fi
+# ъБЛТЩФЙЕ ПРЕТДОС
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+	rfutil $DBDIR/$DBNAME -C aimage end
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME  -i -L 65000 -spin 16000 -n 4 -Mxs 250 
+        $DLC/bin/probiw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+# юЕЛРПЙОФ
+	test -e /home/bankadm/Press_enter_to_continue || { mkdir /home/bankadm/Press_enter_to_continue; chmod 777 /home/bankadm/Press_enter_to_continue; }
+	OK=`ls -tr1 --color=always /home/bankadm/ | grep Press_enter_to_continue`
+	echo -e "\a$OK dayclose on $DBDESCR | Ctrl+C to abort"
+        read AOK
+	echo "Contining..."
+	sleep 1
+        cd /data/log/$DBID
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4 -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+        cd ..
+        $DLC/bin/_mprshut $DBDIR/$DBNAME  -by
+     else
+       echo -e "Cannot do offline backup. Detabase is not stopped." | grep --colour=always "Cannot do offline backup. Detabase is not stopped."
+     fi
+# рТПЧЕТЛБ
+	echo; echo -e "\a$OK offline backup on $DBDESCR. | Ctrl+C to abort"
+	rm -rf /home/bankadm/Press_enter_to_continue
+        read AOK
+	echo "Contining..."
+	sleep 1
+# пЖЖМБКО ВЬЛБР ПУФБОПЧМЕООПК ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+     if [ $DBID = "alm" ]; then
+       NEEDSPACE=12288000
+     else
+       NEEDSPACE=2048000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+        dbsave $DBDIR/$DBNAME 
+	cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+     fi
+     else
+       echo -e "Cannot do offline backup. Detabase is not stopped." | grep --colour=always "Cannot do offline backup. Detabase is not stopped."
+     fi
+
+# ъБРХУЛ ВБЪЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ]
+     then
+ 	echo "Truncating AI on $DBDESCR..."
+	$DLC/bin/rfutil $DBDIR/$DBNAME -C aimage truncate -G 0
+
+	echo; echo "Start Aftar Image on $DBDESCR + truncate bi"
+	rfutil $DBDIR/$DBNAME -C aimage begin
+
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       echo -e "\a DONE. Database is sucsesfull started."
+     else
+       echo -e "\a Cannot DO THIS. Database is already started." 
+     fi
+# рХЫ ПФЮЕФЩ
+     /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "16" ]
+     then
+        /pragma/bin9/pragma $1 -U bankadm -P $passw 
+# рПЛБЪ РХЫ ПФЮЕФБ
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; }
+# рПЛБЪ AI
+	echo "================ list of ai files =================="; echo
+	rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 5; echo
+# хДБМЕОЙЕ ЪБНЛБ ДМС вЬФНБОБ
+	rm $DBDIR/.lock-b
+     else
+       echo "Cannot open iXora. Database $DBDESCR is stoped" 
+     fi;;
+
+  zxc) /pragma/bin9/zxc;;
+  [Aa]) dbadadm;;
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+  *) echo "Wrong selection. Press 1-6 or all."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

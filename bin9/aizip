@@ -1,0 +1,123 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) 
+
+FIRST="1 parametr is what to do - ZIP or UNZIP ( -z | -u | -fz | -fu | -dz | -du | --help )"
+SECOND="\t When use -z or -u then 2 parametr is Database's alias (bmkb, balm, bakt...comm, cards.\n\t When use -fz or -fu then 2 parametr is file. \n\t When use -dz or -du then 2 parametr is directory."
+
+
+test -n "$1" || { echo "$FIRST"; exit; }
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" ]
+then
+echo "How to:"; echo "$LINE"; echo "$FIRST"; echo -e "$SECOND"; echo "$LINE"; echo
+exit
+fi
+
+test -n "$2" || { echo "$SECOND"; exit; }
+LINE="---------------------------------"
+
+
+echo "Begin"
+echo "$LINE"
+
+#######################################################
+
+if [ "$1" = "-z" ]
+then
+SOURCE="/drbd/data/$2/ai"
+TARGET="/savedb/$2/aibkup"
+
+rm -f $TARGET/*
+echo "Zipping ai from $SOURCE to $TARGET:"
+for i in `ls $SOURCE/`
+do
+/usr/bin/gzip -c1v $SOURCE/$i > $TARGET/$i".Z"
+done
+fi
+
+#######################################################
+
+if [ "$1" = "-u" ]
+then
+SOURCE="/savedb/$2/aibkup"
+TARGET="/drbd/data/$2/ai_apply"
+
+echo "UNzipping ai $SOURCE to $TARGET:"
+for i in `ls $SOURCE`
+do
+UNZIP=`echo $i | awk -F. '{print $1"."$2}'`
+/bin/gunzip -cv $SOURCE/$i > $TARGET/$UNZIP
+done
+fi
+
+#######################################################
+
+if [ "$1" = "-fz" ]
+then
+test -f "$2" || { echo '$2 must be file!'; exit; }
+test -f "$3" && { echo '$3 already exist!'; exit; }
+
+SOURCE="$2"
+TARGET="$3"
+
+echo "Zipping $SOURCE to $TARGET:"
+/usr/bin/gzip -c1v $SOURCE > $TARGET
+fi
+
+#######################################################
+
+if [ "$1" = "-fu" ]
+then
+test -f "$2" || { echo '$2 must be file!'; exit; }
+test -f "$3" && { echo '$3 already exist!'; exit; }
+
+SOURCE="$2"
+TARGET="$3"
+
+echo "UNzipping $SOURCE to $TARGET:"
+/bin/gunzip -cv $SOURCE > $TARGET
+fi
+
+#######################################################
+
+if [ "$1" = "-dz" ]
+then
+
+test -d "$2" || { echo '$2 must be directory!'; exit; }
+test -d "$3" && { echo '$3 already directory!'; exit; }
+
+SOURCE="$2"
+TARGET="$3"
+
+rm -f $TARGET/*
+echo "Zipping ai from $SOURCE to $TARGET:"
+for i in `ls $SOURCE/`
+do
+/usr/bin/gzip -c1v $SOURCE/$i > $TARGET/$i".Z"
+done
+fi
+
+#######################################################
+
+if [ "$1" = "-du" ]
+then
+
+test -d "$2" || { echo '$2 must be directory!'; exit; }
+test -d "$3" && { echo '$3 already directory!'; exit; }
+
+SOURCE="$2"
+TARGET="$3"
+
+echo "UNzipping ai $SOURCE to $TARGET:"
+for i in `ls $SOURCE`
+do
+UNZIP=`echo $i | awk -F. '{print $1"."$2}'`
+/bin/gunzip -cv $SOURCE/$i > $TARGET/$UNZIP
+done
+fi
+
+#######################################################
+
+echo "$LINE"
+echo "Done"
+echo

@@ -1,0 +1,3 @@
+﻿#!/bin/bash
+cat $1 | /pragma/bin9/dos2win > $2
+

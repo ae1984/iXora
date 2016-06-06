@@ -1,0 +1,59 @@
+﻿#!/bin/sh
+# скрипт переделал id00024 (c)
+
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+while true
+do
+  echo  
+  echo 
+  echo "       Administrative Tools"
+  echo "       База: [ $DBDESCR ]"
+  echo 
+  echo "    1. Start/Stop $DBDESCR database server (BANK)..."
+  echo "    2. Start/Stop general $DBDESCR servers (COMM, CARDS)..."
+  echo "    3. BKUPUTIL $DBDESCR database..."
+  echo "    4. DAYCLOSE/NEWMONTH on $DBDESCR..."
+  echo "    5. AI Management..."
+  echo "    6. Fantom Management..."
+  echo "    7. OS Management..."
+  
+  if [ `whoami` = "superman" ]
+	then
+        echo "    8. Payment System" ;
+  fi
+  
+  echo "    A. Additional tools..."
+  echo "    Q. Выход"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1) /pragma/bin9/SS_1;;
+  2) /pragma/bin9/SS_2;;
+  3) /pragma/bin9/dbsavall;;
+  4) /pragma/bin9/DM;;
+  5) /pragma/bin9/ai;;
+  6) /pragma/bin9/fathom;;
+  7) /pragma/bin9/osman;;
+  8) /pragma/bin9/psman;;
+ [Aa]) dbadadm;;
+  kz) kz1048 $1;;
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+# zxc) /pragma/bin9/adm; exit;;
+  zxc) /pragma/bin9/adm;;
+  *) echo "Wrong selection. Press 1-8 or A/Q."
+     sleep 1;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

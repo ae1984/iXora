@@ -1,0 +1,32 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo "            1. Manage watchcat"
+  echo "            2. Manage Batman"
+#  echo "            1. Database monitor for $DBDESCR"
+#  echo "            2. Connected user list"
+#  echo "            3. Disconnect user"
+#  echo "            4. Database statistic for $DBDESCR"
+#  echo "            5. Grep only users in $DBDESCR and show there ip or DNS"
+#  echo "            6. Manadge watchcat"
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  1) /pragma/bin9/watchman;;
+
+  2) /pragma/bin9/batman;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-2 or Q."
+     sleep 2;;
+  esac
+done

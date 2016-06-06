@@ -1,0 +1,94 @@
+﻿#!/bin/bash
+
+lst='/usr/etc/cptwin.ssh'
+
+#touch $log
+
+# всем понятно
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+#pc=$USERHOST
+
+log="/data/log/cptwin/$pc"
+touch $log
+
+echo "[`date +"%Y/%m/%d-%H:%M:%S"`] --------" >> $log
+
+
+if [ `echo $pc | grep -c -i -F -f $lst` -gt 0 ]; then
+ #
+ # It is one from SSH ready host listed in $lst
+ rdir='c:/tmp'
+ rfil=$$.`echo $1 | awk '{D=split($0,M,"."); print M[D] }'`
+ /pragma/bin9/un-win $1 $rfil
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: rfil=$rfil" >> $log
+ echo -n "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: SCP $rfil to $pc ... " >> $log
+ scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>>$log
+ if test $? != 0; then
+  echo "[FAIL]" >> $log
+  echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>/dev/null" >> $log
+  exit 1
+ else
+  echo "[OK]" >> $log
+ fi
+ echo "start $2 c:\\tmp\\${rfil}" > run.cmd
+ echo -n "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: SCP run.cmd to $pc ... " >> $log
+ scp -q run.cmd Administrator@$pc:$rdir/run.cmd 1>/dev/null 2>>$log
+ if test $? != 0; then
+  echo "[FAIL]" >> $log
+  echo "[`date +"%Y/%m/%d-%H:%M:%S"`] SSH: scp -q $rfil Administrator@$pc:$rdir/$rfil 1>/dev/null 2>/dev/null" >> $log
+  exit 1
+ else
+  echo "[OK]" >> $log
+ fi
+ sleep 3
+else
+ #
+ # It is still one from RSH hosts
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] pc=$pc" >> $log
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] Param1=$1" >> $log
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] Param2=$2" >> $log
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] Param3=$3" >> $log
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] Param4=$4" >> $log
+
+ # берем переменную %TEMP% с хоста $pc и отрезаем досовский перевод строки
+ RHOST=`rsh $pc echo %TEMP% | tr -d '\15'`
+ if [ ${#RHOST} -eq 0 ]; then
+  RHOST="C:"
+ fi
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] RHOST=$RHOST" >> $log
+
+ # берем первый параметр скрипта, отрезаем то что после последней точки, 
+ # и составляем новое имя файла "типа случайное число"+точка+"то что ранее отрезали"
+
+ rfil=$$.`echo $1 | awk '{D=split($0,M,"."); print M[D] }'`
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] rfil=$rfil" >> $log
+
+ # suchkov - Тут я добавил копирование и перекодировку старого файла KOI-8 в новый WIN1251
+ if test $4; then
+  cat $1 > $rfil
+ else
+  /pragma/bin9/un-win $1 $rfil
+ fi
+
+ # понятно
+ rcp $rfil $pc:$RHOST
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] rcp $rfil $pc:$RHOST" >> $log
+
+ # берем третий параметр, делаем из списка с запятыми список с пробелами и в цикле
+ # по новому списку заливаем на клиента
+
+ if test $3; then
+     files=`echo $3 | tr "," " "`
+     for i in $files; do
+        rcp $i $pc:$RHOST
+	echo "[`date +"%Y/%m/%d-%H:%M:%S"`] rcp $i $pc:$RHOST" >> $log
+     done
+ fi
+
+ rsh $pc start $2 $RHOST\\$rfil
+ echo "[`date +"%Y/%m/%d-%H:%M:%S"`] rsh $pc start $2 $RHOST\\$rfil" >> $log
+
+fi
+#echo "---" >> $log
+rm -f $rfil
+exit

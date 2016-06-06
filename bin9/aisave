@@ -1,0 +1,38 @@
+﻿#!/bin/sh
+#########################################
+#
+# aisave: make backup of DB for AI needs
+#
+# PARAMETERS: <DB_path> <SAVEDB_path>
+#
+#########################################
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/aienv
+
+
+CPDIR=
+
+while getopts c: OPT
+do
+  case $OPT in
+    c) CPDIR=$OPTARG;;
+    ?) echo Unknown option.
+       exit 1;;
+  esac
+done
+
+shift `echo $OPTIND - 1|bc`
+
+DB=`dirname $1`/`basename $1 .db`
+test -f $DB.db || { echo "File not found $DB.db"; exit 1; }
+TDIR=$2
+mkdir $TDIR
+REST=$TDIR/`basename $DB`.res
+aibackup $DB.db $TDIR/`basename $DB` || { rm -f $TDIR/*.*; rmdir $TDIR; exit 1; }
+
+echo "airest $DB.db $TDIR/`basename $DB`.Z" >>$REST
+chmod u+x $REST
+if test $CPDIR; then
+   cp $TDIR/`basename $DB`.Z $CPDIR &
+fi

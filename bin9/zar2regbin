@@ -1,0 +1,119 @@
+﻿#!/bin/bash
+# 20/12/01 Koval Igor, Parser swift.txt into regs.txt
+# 08/09/06 u00121 заменил комбинацию символов `\|' на `|', т.к. 
+#		  linux не понимает "экранирование" и так ругается: awk: cmd. line:32: warning: escape sequence `\|' treated as plain `|'
+# 26.02.2013 damir - заменил заменил наименование "Метрокомбанк" на "ForteBank". Внедрено Т.З. № 1732.
+
+echo "@Ps0¤0x0\n" $1 > $1.txt # print RMZ
+#echo $1 > $1.txt # print RMZ
+
+cat $2 | tr -d '\015' | 
+awk ' BEGIN {
+        LINE = "-------------------------------------------------------------------------------------------------------------------------------------" 
+        print ("")
+        print ("                СПИСОК НА ПЕРЕЧИСЛЕНИЕ ОТЧИСЛЕНИЙ ПО ЗАРАБОТНОЙ ПЛАТЕ ") 
+        records = 0 
+      }
+
+  /:50:\/D\//   { ORGACCOUNT = substr($0,8,20) } 
+  /\/NAME\//    { if (NR<10) { ORGNAME = substr($0,7,length($0)-6) }
+                        else { FNDNAME = substr($0,7,length($0)-6) }
+                }
+  /\/CHIEF\//   { ORG1  = substr($0,8,length($0)-7) }
+  /\/MAINBK\//  { ORG2  = substr($0,9,length($0)-8) }
+  /:52B:/       { f52B  = substr($0,6,9) }
+  /:54C:/       {
+                  f54C1 = substr($0,6,9) 
+                  f54C2 = substr($0,16,9) 
+                }
+  /:57B:/       { f57B  = substr($0,6,9) }
+  /:59:/        { f59   = substr($0,5,20) }
+  /\/IDN\//     { if (NR<10) { ORGRNN = substr($0,6,12) }
+                        else {
+                              if (NR<25) { FNDRNN = substr($0,6,12) }
+                                    else { MANRNN = substr($0,6,12) }
+                             }
+                } 
+  /:70:\/NUM\// { fNUM  = substr($0,10,length($0)-9) }
+  /\/DATE\//    { fDATE = substr($0,11,2) "." substr($0,9,2) "." substr($0,7,2) }
+  /:21:/        { 
+                  if (( NR > 23 ) && ( records != 0 )) {
+                     if (length(FIO1)>32) { 
+                            printf("%5d|%16s|%-32s|%-32s|%10s|%12s|%20s\n",MAN21,MANRIC,FM[1],FM[2],MANDTR,MANRNN,MANSUM)
+                            printf("%5s|%16s|%-32s|%-32s|%10s|%12s|\n","","",NM[1],NM[2],"","")
+                            printf("%5s|%16s|%-32s|%-32s|%10s|%12s|\n","","",FT[1],FT[2],"","")
+                     }
+                     else { printf("%5d|%16s|%-32s|%-32s|%10s|%12s|%20s\n",MAN21,MANRIC,FIO1,FIO2,MANDTR,MANRNN,MANSUM) }
+                  }  
+                  records = records + 1 
+                  MANRNN = ""; FIO1= ""; FIO2=""; FM[1]=""; NM[1]=""; FT[1]=""; FM[2]=""; NM[2]=""; FT[2]=""; DTR=""
+                  MAN21  = substr($0,5,length($0)-4)
+                }
+  /:32A:/       { ORGSUM = substr($0,15,length($0)-14) }
+  /:32B:KZT/    { MANSUM = substr($0,9,length($0)-8) }
+
+  /:70:\/OPV\/C/{ MANRIC = substr($0,11,length($0)-10) }
+
+  /\/LA\//    {  
+                  MANRIC = substr($0,5,length($0)-4)
+                  
+                    
+                }
+
+  /\/FM\//    {  
+                  tempstr = substr($0,5,length($0)-3)
+                  split(tempstr,FM,"/")
+                    
+                }
+  /\/NM\//    { 
+                  tempstr = substr($0,5,length($0)-4)
+                  split(tempstr,NM,"/")
+                }
+  /\/FT\//    {
+                  tempstr = substr($0,5,length($0)-4)
+                  split(tempstr,FT,"/")
+                }
+
+  /\/LA\//    { 
+                  FIO1 = FM[1] " " NM[1] " " FT[1]   
+                  FIO2 = FM[2] " " NM[2] " " FT[2]
+                }
+
+ NR == 24 {
+ print ("              К платежному поручению N " fNUM " от " fDATE)
+ print ("")
+ print (ORGNAME)
+ print ("БИН:" ORGRNN)
+ print ("Счет N " ORGACCOUNT " в АО \"ForteBank\" ")
+ print ("БИК " f52B)
+ print ("")
+ print (FNDNAME)
+ print ("БИН:" FNDRNN)
+ print ("Счет N " f59 "  ")
+ print ("БИК " f57B)
+ print (LINE)
+ print ("  N  |  # счета           |            Фамилия             | Фамилия, Имя, Отчество         |   Дата   |    ИИН     |")
+ print (" п/п |                    |         Имя, Отчество          | в рег. карточке для получения  | pождения | получателя |        Сумма")
+ print ("     |                    |                                |     (указывать,если изменялись)|          |            |")
+ print (LINE)
+}
+
+END {
+                     if (length(FIO1)>32) { 
+                            printf("%5d|%16s|%-32s|%-32s|%10s|%12s|%20s\n",MAN21,MANRIC,FM[1],FM[2],MANDTR,MANRNN,MANSUM)
+                            printf("%5s|%16s|%-32s|%-32s|%10s|%12s|\n","","",NM[1],NM[2],"","")
+                            printf("%5s|%16s|%-32s|%-32s|%10s|%12s|\n","","",FT[1],FT[2],"","")
+                     }
+                     else { printf("%5d|%16s|%-32s|%-32s|%10s|%12s|%20s\n",MAN21,MANRIC,FIO1,FIO2,MANDTR,MANRNN,MANSUM) }
+ print (LINE)
+ print ("Всего записей:           " records)
+ printf ("%s %20s\n\n","Общая сумма:             ",ORGSUM)
+ print ("Руководитель:            " ORG1)
+ print ("Главный бухгалтер:       " ORG2)
+ print ("")
+ print ("")
+ print (LINE)
+ print ("")
+} '   >> $1.txt
+echo @ >>$1.txt # print RMZ
+ 

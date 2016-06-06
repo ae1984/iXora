@@ -1,0 +1,68 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/rkcenv
+
+while true
+do
+  echo
+  echo
+  echo "            1. Save $DBDESCR BANK database..."
+  echo "            2. Save $DBDESCR BANK database (INCREMENTAL)..."
+  echo "            3. Save general COMM databases..."
+  echo "            4. Save general COMM databases (INCREMENTAL)..."
+  echo "            Q. Exit"
+  echo 
+  read ans
+  case $ans in
+  1) if [ $DBID = "alm" ]; then
+       NEEDSPACE=12000
+     else
+       NEEDSPACE=2000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+       proutil $DBDIR/$DBNAME -C truncate bi -G 0
+       dbsave $DBDIR/$DBNAME 
+       cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+     fi
+     ;;
+  2) if [ $DBID = "alm" ]; then
+       NEEDSPACE=1000
+     else
+       NEEDSPACE=500
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBDIR/$DBNAME
+     fi
+     ;;
+  3) dbtstspace /data 1000
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+
+       proutil $DBCOMMDIR/comm -C truncate bi -G 0
+       dbsave $DBCOMMDIR/comm
+       cp $DBCOMMDIR/comm.st /savedb/alm/comm/full
+     fi
+     ;;
+  4) dbtstspace /data 1000
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBCOMMDIR/comm
+       dbsave $DBCRDIR/cards
+       dbsave $DBSKDIR/sklad
+     fi
+     ;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-4 or Q."
+     sleep 2;;
+  esac
+done

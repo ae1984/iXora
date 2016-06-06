@@ -1,0 +1,24 @@
+﻿#!/bin/bash                                                                                                       
+# 04/12/01 Koval Igor, Parser MT102 (swift.txt)                                                                   
+
+cat $1 | tr -d '\015' | awk ' 
+  /:61:/ { if (index(substr($0,7,4),"C") > 0 ) { 
+             i = index($0,"S100");
+             if (i <= 0) { i = index($0,"S102") }
+	     i = i + 13; 
+             s = index($0,"//");
+	     if (s <=0) { s = length($0); }
+             print substr($0,i, s - i);
+	    }
+	   }
+' | while read LINE
+     do {
+        echo  Reference: $LINE
+        find *.E* -exec egrep -F -l ${LINE} {} \; | while read LIN 
+	  do {
+	    echo -n $LIN
+	    cat $LIN | sed '2q' | awk ' /\{2:/ { print " type: " substr($0,5,3) }'
+          }
+	  done
+      }
+     done

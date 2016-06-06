@@ -1,0 +1,119 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+  echo
+  echo
+  echo "            S. Start iXora $DBDESCR"
+  echo "            D. Start pragma on $DBDESCR"
+  echo "	    P. Show push for today"
+  echo
+  echo "	    0. Show all started databases"
+  echo "            1. Database monitor for $DBDESCR"
+  echo
+  echo "            2. Connected user list"
+  echo "           22. Servers"
+  echo "            3. Disconnect user"
+  echo "            4. Grep only users in $DBDESCR and show there ip or DNS"
+  echo
+  echo "            5. Database statistic for $DBDESCR"
+  echo "            6. Database describe for $DBDESCR"
+  echo
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  [Ss]) 
+	if [ $ME = "superman" ]
+	then 
+		if [ `echo "$DBDIR" | grep -i "bmkb" > /dev/null ; echo $?` = "0" ]
+		then A=`ls /data/bmkb/ps/NB/IN/*.950 2> /dev/null`; RCODE=$?
+			if [ $RCODE = 0 ]
+			then WC=`echo $A | wc -w`; test $WC = "1" || { KEY="BAD"; echo "There are a lot of 950!!!"; echo "$WC"; read none; }
+			else KEY="BAD"; echo "There is NO 950 form!!!"; echo; echo $A; read none
+			fi
+		fi
+	fi
+
+	if [ "$KEY" = "BAD" ]
+	then 
+	echo; echo -n "Are you shure for enter? "; read none
+	echo; echo -n "Are you REALLEY want enter? "; read none
+	fi
+
+	spragma $1 -U $ME -P $passw;;
+
+  [Dd])
+	if [ $ME = "superman" ]
+	then
+        if [ `echo "$DBDIR" | grep -i "bmkb" > /dev/null ; echo $?` = "0" ]
+		then A=`ls /data/bmkb/ps/NB/IN/*.950 2> /dev/null`; RCODE=$? ; 
+			if [ $RCODE = 0 ]
+			then WC=`echo $A | wc -w`; test $WC = "1" || { KEY="BAD"; echo "There are a lot of 950!!!"; echo "$WC"; read none; }
+			else KEY="BAD"; echo "There is NO 950 form!!!"; echo; echo $A; read none
+			fi
+		fi
+	fi
+
+	if [ "$KEY" = "BAD" ]
+	then 
+	echo; echo -n "Are you shure for enter? "; read none
+	echo; echo -n "Are you REALLEY want enter? "; read none
+	fi
+
+	dpragma $1 -U $ME -P $passw;;
+
+  0) $DLC/bin/proutil -C dbipcs;;
+
+  [Pp]) # Показ пуш отчета
+	PDAY=`date "+%d.%m.20%y"`
+	echo $PDAY
+	test -e /data/log/$DBID/pushrep.$PDAY.log || { 
+	echo; 
+	echo "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(" | grep --colour=always "There is NO pushrep! in /data/log/$DBID/pushrep.$PDAY.log :(";
+	echo; echo "Press Enter to continue"; read ANSW; }
+	test -e /data/log/$DBID/pushrep.$PDAY.log && { 
+	echo "There is pushrep! :)";
+	chmod 0744 /data/log/$DBID/pushrep.$PDAY.log;
+	echo;
+	echo "===================== cat /data/log/$DBID/pushrep.$PDAY.log =====================" | grep --colour=always "$DBID"; 
+	cat /data/log/$DBID/pushrep.$PDAY.log; echo; };;
+
+
+  1) $DLC/bin/promon $DBDIR/$DBNAME;;
+
+  2) $DLC/bin/proshut $DBDIR/$DBNAME -C list;;
+
+  22) ps aux | grep $DBDIR/$DBNAME | grep mprosrv | awk '{print $2"	"$11" "$12" "$13" "$14" "$15" "$16" "$17" "$18" "$19" "$20" "$21" "$22" "$23" "$24" "$25" "$26" "$27" "$28" "$29" "$30}';;
+
+  3) echo -n "Enter user number:"
+     read UN
+     test $UN && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $UN;;
+  4)
+    A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW\|RPLS\|RPLA" | awk '{print $8}'`
+
+  if [ "$A" = "" ]
+   then
+    echo ":) There is nobody in base $DBDESCR"
+   else
+	export A
+	/pragma/bin9/usrs
+  fi;;
+
+  5) $DLC/bin/prostrct statistics $DBDIR/$DBNAME;;
+
+  6) $DLC/bin/proutil $DBDIR/$DBNAME -C describe;;
+
+  add) addbase $DBDIR $DBNAME $DBID;;
+  cp) scp -o PasswordAuthentication=yes -o batchmode=no 172.16.1.53:/pragma/lib/RX/RX.pl /pragma/lib/RX/;;
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-5 or S/D/Q."
+     sleep 2;;
+  esac
+done

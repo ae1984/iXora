@@ -1,0 +1,90 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) для пересоздание Базы и АИШНИКОВ
+
+#SYSTEM ERROR: Memory violation. (49)
+#** Save file named core for analysis by Progress Software Corporation. (439)
+# Вход: addai $DBDIR $DBNAME $DBID
+
+test $1 || { echo "No 1 parametr"; exit 1; }
+test $2 || { echo "No 2 parametr"; exit 1; }
+test $3 || { echo "No 3 parametr"; exit 1; }
+
+DBDIR=$1
+DBNAME=$2
+DBID=$3
+test -e $DBDIR/$DBNAME.db || { echo "NO such DB! Exiting..."; exit 1; }
+DB="$DBDIR/$DBNAME"
+ANS="/home/`/usr/bin/whoami`/answer"
+
+TMPDIR="/savedb/$DBID/tmp"
+test -d $TMPDIR || mkdir $TMPDIR
+test -d $TMPDIR && { for i in $(dir $TMPDIR); do rm $TMPDIR/$i; done; }
+
+echo "=================== Disabling repl ==================="
+echo "y" > $ANS
+ 	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+	 if [ $? -eq 0 ]
+	 then
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication source < $ANS
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication target < $ANS
+	 else
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication source < $ANS
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication target < $ANS
+	 fi
+echo
+echo "=================== DB backuping ==================="
+test -e /tmp/$DBID.tome && rm /tmp/$DBID.tome
+for i in `echo '2 3 4 5 6 7 8 9 11 12 13 14 15 16 17 18 19 20' | awk '{print $0}'`; do echo $TMPDIR/$DBID$i".bak" >> /tmp/$DBID.tome ; done
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+RET=$?
+if [ $RET = "16" ]
+then ONLINE="online"
+else ONLINE=" "
+fi
+
+$DLC/bin/probkup $ONLINE $DBDIR/$DBNAME $TMPDIR/$DBID"1".bak -vs 262143 -verbose  < /tmp/$DBID.tome || { echo "NOT!!!"; exit 1; }
+echo "		is done"
+
+$DLC/bin/_dbutil $DB -C holder > /dev/null
+if [ "$?" = "16" ]
+then 
+echo "=================== Stoping db ==================="
+	proshut $DB -by 
+	if [ "$?" = "0" ]
+	then echo "Done"
+	else echo "NOT!!!"; exit 1
+	fi	
+else echo "DB is already stoped. Contining..."
+fi
+#prostrct list $DB > /dev/null
+echo "=================== Removing files ==================="
+rm -v $DB.db $DB.b1 $DB.d1 $DB.d2 $DB.d3 $DB.d4 $DB.d5 $DB"_7".d1 $DB"_7".d2 $DB"_7".d3 $DB"_7".d4 $DB"_7".d5
+cd $DBDIR/ai; for i in $(dir); do rm -v $i; done; cd ~
+echo
+echo "=================== Creating DB ==================="
+prostrct create $DB -blocksize 8192
+echo
+cd $DBDIR
+
+echo "=================== CHMOd dbs ==================="
+for i in $(dir); do chmod -v 0777 $i; done
+echo
+echo "=================== CHMOd ais ==================="
+cd ai;for i in $(dir); do chmod -v 0777 $i; done; cd ~
+echo
+echo "=================== Restore ==================="
+multirest $DB $TMPDIR -verbose 
+echo
+echo "=================== Ai and Am on ==================="
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage begin 
+test -d $DBDIR/fullai/ || { echo "Создаю директорию $DBDIR/fullai/ для after-image Management Daemon"; mkdir $DBDIR/fullai/; chmod 777 $DBDIR/fullai/; }
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver enable 
+echo
+echo "=================== Disabling repl ==================="
+echo "y" > $ANS
+echo "y" >> $ANS
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication source < $ANS
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication target < $ANS
+echo
+echo "=================== Starting DB ==================="
+/pragma/bin9/Lenin $DBID

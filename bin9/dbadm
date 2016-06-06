@@ -1,0 +1,16 @@
+﻿#!/bin/sh
+# скрипт переделал id00024 (c)
+
+ID=$1
+. /pragma/bin9/dbenv2
+PROMSGS=$DLC/prolang/eng/promsgs.eng; export PROMSGS
+
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+SESS=`screen -list | grep -w "Detached" | awk '{print $1}' | awk '{print $1}'`
+if [[ $SESS = "" ]]
+then
+screen -T putty -c /pragma/bin9/screenrc -t "$ID " /pragma/bin9/dbsadm
+exit
+else
+screen -r $SESS
+fi

@@ -1,0 +1,51 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo            
+  echo "            1. rfutil $DBDESCR -C aimage begin"
+  echo "            2. rfutil $DBDESCR -C aimage end"
+  echo
+  echo "            3. Backup ai files"
+  echo "            4. Roll forward ai on $DBDESCR"
+  echo  
+  echo "            5. rfutil $DBDESCR -C aimage extent list (only after ai begin)"
+  echo "            6. rfutil COMM BASE -C aimage extent list (only after ai begin)"
+  echo "            7. Info of ai extents (only offline)..."
+  echo "            8. Check for full ai extents (only after ai begin)"
+  echo "            A. ADDING AI TO $DBDESCR..."
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  1) $DLC/bin/rfutil $DBDIR/$DBNAME -C aimage begin;;
+
+  2) $DLC/bin/rfutil $DBDIR/$DBNAME -C aimage end;;
+
+  3) ai_save;;
+
+  4) ai_rest;;
+
+  5) rfutil $DBDIR/$DBNAME -C aimage extent list; sleep 2;;
+
+  6) rfutil $DBCOMMDIR/comm -C aimage extent list; sleep 2;;
+
+  7) ai_scan;;
+
+  8) $DLC/bin/rfutil $DBDIR/$DBNAME -C aimage full;;
+ 
+
+  A) ai_prostr;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-8 or A / Q."
+     sleep 2;;
+  esac
+done

@@ -1,0 +1,42 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+if [ "$FLAG" = "1" ]
+ then
+  ALS=`echo "$1" | awk -F/ '{print $1}'`
+  /usr/dlc/bin/_dbutil /data/$1 -C holder > /tmp/as.txt 
+  if [ "$?" = "0" ]
+    then
+     echo -n " :( "
+    else
+     echo -n " :) " 
+   fi
+     test -e /data/$ALS/.lock-b && { echo -n " X  "; } 
+     test -e /data/$ALS/.lock-b || { echo -n "    "; }       
+     /pragma/bin9/dbcheck /data/$1 | grep --colour=always "$ALS"
+ else
+ID=$1
+. /pragma/bin9/dbenv 
+
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+ if [ "$?" = "0" ]
+  then
+   TIME=`date "+%y.%m.%d %H:%M:%S"`
+   DAY=`date "+%y.%m.%d"`
+   MNTH=`date "+%y.%m"`
+   DOG=/data/log/_dog
+   test -d $DOG || { mkdir $DOG; chmod 750 $DOG; }
+   test -d $DOG/20$MNTH || { mkdir $DOG/20$MNTH; chmod 750 $DOG/20$MNTH; }
+   echo -n "[20$TIME] ALARM! The database '$DBDESCR' ($DBDIR/$DBNAME) has stopped!!!" >> $DOG/20$MNTH/20$DAY.log
+   test -e $DBDIR/.lock-b && { echo " + batman is locked!!!" >> $DOG/20$MNTH/20$DAY.log; echo "[20$TIME] ALARM! The database '$DBDESCR' has stopped!!! Batman locked :(" | /usr/lib/sendmail -F Cron id00024@metrobank.kz; exit; }
+
+	echo "[20$TIME] The database '$DBDESCR' has stopped!!! Batman will help :) Contact to AIS please!" | /usr/lib/sendmail -F Cron support@metrobank.kz
+
+	TME=`date "+%H-%M-%S"` 
+	echo " + Batman wil help :)!!! Log in $DOG/20$MNTH/20$DAY.$TME.$DBID.log" >> $DOG/20$MNTH/20$DAY.log 
+	/pragma/bin9/batnan $1 >> $DOG/20$MNTH/20$DAY.$TME.$DBID.log
+	cat $DOG/20$MNTH/20$DAY.$TME.$DBID.log | /usr/lib/sendmail -F Batman id00024@metrobank.kz
+   else
+  exit
+ fi
+fi

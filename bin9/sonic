@@ -1,0 +1,14 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c) 
+
+echo "executing Stoping adaptman -i sonicMQ1 -e"
+Stoping adaptman -i sonicMQ1 -e
+echo
+echo "proadsv -stop"
+proadsv -stop
+echo
+echo "proadsv -start"
+proadsv -start
+echo
+echo "adaptman -i sonicMQ1 -x"
+adaptman -i sonicMQ1 -x

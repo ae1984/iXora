@@ -1,0 +1,10 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+  sleep 5
+  echo -n "Waiting"
+   while true
+    do
+    ps -eaf | grep _rfutil | grep $1 > /tmp/a || { exit; }	
+    echo -n "."
+    sleep 1
+   done

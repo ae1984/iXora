@@ -1,0 +1,323 @@
+﻿#!/bin/sh
+
+# /pragma/bin9/repls $i trg1 way1
+
+CHOO="$2"; echo $2 | grep -i "srs\|trg1\|trg2" > /dev/null || { echo '2 parametr is invalid "srs/trg1/trg2"'; exit 1; }
+WAY="$3"; echo $3 | grep -i "way1\|way2" > /dev/null || { echo '3 parametr is invalid "way1/way2"'; exit 1; }
+
+. /pragma/bin9/dbenv 
+. /pragma/bin9/mcset
+
+test -e /savedb/$DBID || { mkdir /savedb/$DBID; chmod 777 /savedb/$DBID; }
+
+TMPDIR="/savedb/$DBID/tmp"
+test -d $TMPDIR || mkdir $TMPDIR
+test -d $TMPDIR && { for i in $(dir $TMPDIR); do rm $TMPDIR/$i; done; }
+TARGET="/savedb/$DBID/repl"
+test -d $TARGET || mkdir $TARGET
+test -d $TARGET && { for i in $(dir $TARGET); do rm $TARGET/$i; done; }
+
+{ case $CHOO in
+
+############################################################## SRS ##############################################################
+srs)
+
+SERVER=`/bin/uname -n`
+AGAIN="0"
+
+  /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+   if [ "$?" = "0" ]
+     then
+	/pragma/bin9/Lenin $DBID || { echo "Cannot Start source db"; /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder; exit 1; }
+	test -e $DBDIR/.lock-b && { rm $DBDIR/.lock-b; }
+     fi
+if [ "$WAY" = "way2" ]
+then
+	echo -n "Creating repl props on $SERVER"
+	echo "#" > $DBDIR/$DBNAME.repl.properties
+	echo "[server]" >> $DBDIR/$DBNAME.repl.properties
+	echo "    control-agents=agent1, agent2" >> $DBDIR/$DBNAME.repl.properties
+	echo "    database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+	echo "    defer-agent-startup=480" >> $DBDIR/$DBNAME.repl.properties
+	echo "    schema-Lock-Action=force" >> $DBDIR/$DBNAME.repl.properties
+	echo "    repl-Keep-Alive=7200" >> $DBDIR/$DBNAME.repl.properties
+	echo "    agent-shutdown-action=recovery" >> $DBDIR/$DBNAME.repl.properties
+	echo "    transition-timeout=600" >> $DBDIR/$DBNAME.repl.properties
+	echo "    transition=manual" >> $DBDIR/$DBNAME.repl.properties
+	echo "" >> $DBDIR/$DBNAME.repl.properties
+	echo "[control-agent.agent1]" >> $DBDIR/$DBNAME.repl.properties
+	echo "   name=$DBID.ixora02" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+	echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+	echo "   host=172.16.4.11" >> $DBDIR/$DBNAME.repl.properties
+	echo "   port=$REPLPORT1" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=120" >> $DBDIR/$DBNAME.repl.properties
+	echo "   replication-method=async" >> $DBDIR/$DBNAME.repl.properties
+	echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+	echo "" >> $DBDIR/$DBNAME.repl.properties
+	echo "[control-agent.agent2]" >> $DBDIR/$DBNAME.repl.properties
+	echo "   name=$DBID.ixora03" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+	echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+	echo "   host=10.0.6.101" >> $DBDIR/$DBNAME.repl.properties
+	echo "   port=$REPLPORT2" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=120" >> $DBDIR/$DBNAME.repl.properties
+	echo "   replication-method=async" >> $DBDIR/$DBNAME.repl.properties
+	echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+	echo "" >> $DBDIR/$DBNAME.repl.properties
+	echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+	echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+	echo "	is done"
+else
+	echo -n "Creating repl props on $SERVER"
+	echo "#" > $DBDIR/$DBNAME.repl.properties
+	echo "[server]" >> $DBDIR/$DBNAME.repl.properties
+	echo "    control-agents=agent1" >> $DBDIR/$DBNAME.repl.properties
+	echo "    database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+	echo "    defer-agent-startup=480" >> $DBDIR/$DBNAME.repl.properties
+	echo "    schema-Lock-Action=force" >> $DBDIR/$DBNAME.repl.properties
+	echo "    repl-Keep-Alive=7200" >> $DBDIR/$DBNAME.repl.properties
+	echo "    agent-shutdown-action=recovery" >> $DBDIR/$DBNAME.repl.properties
+	echo "    transition-timeout=600" >> $DBDIR/$DBNAME.repl.properties
+	echo "    transition=manual" >> $DBDIR/$DBNAME.repl.properties
+	echo "" >> $DBDIR/$DBNAME.repl.properties
+	echo "[control-agent.agent1]" >> $DBDIR/$DBNAME.repl.properties
+	echo "   name=$DBID.ixora03" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+	echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+	echo "   host=172.16.4.11" >> $DBDIR/$DBNAME.repl.properties
+	echo "   port=$REPLPORT1" >> $DBDIR/$DBNAME.repl.properties
+	echo "   connect-timeout=120" >> $DBDIR/$DBNAME.repl.properties
+	echo "   replication-method=async" >> $DBDIR/$DBNAME.repl.properties
+	echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+	echo "" >> $DBDIR/$DBNAME.repl.properties
+	echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+	echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+	echo "	is done"
+fi
+
+DESCRIBE=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+echo "$DESCRIBE" | grep -i "Replication" | grep -i "Source" > /dev/null
+if [ $? -eq 0 ]
+then 
+echo -n "Disable old repl on $SERVER"
+ANS="/home/`/usr/bin/whoami`/answer"
+echo "y" > $ANS
+ 	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+	 if [ $? -eq 0 ]
+	 then $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+	 else $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+	 fi
+echo "	is done"
+fi
+echo -n "Enable source repl on $SERVER"
+echo "$DESCRIBE" | grep -i "Replication" | grep -i "Source" > /dev/null
+if [ $? -ne 0 ]
+then $DLC/bin/_dbutil $DBDIR/$DBNAME -C enableSiteReplication source 
+	if [ $? -ne 0 ]
+	then echo "The srs repl can't be enabled :("
+	echo "$DESCRIBE" | grep -i "After" > /dev/null || echo "Command didn't found After Image in $DBDIR/$DBNAME"
+	echo "$DESCRIBE" | grep -i "Mangement/Archiver" > /dev/null || { echo "Command didn't found After Image Mangement Daemon in $DBDIR/$DBNAME"; AGAIN="1"; }
+	echo "$DESCRIBE" | grep -i "Replication" | grep -i "Source" > /dev/null || { echo "Command didn't found Source Replication in $DBDIR/$DBNAME"; AGAIN="1"; } 
+	fi
+fi
+
+	if [ $AGAIN = "1" ]
+	then 
+	$DLC/bin/probkup online $DBDIR/$DBNAME $TMPDIR/$DBID"1" enableai enableaiarchiver -aiarcdir $DBDIR/fullai > /dev/null && $DLC/bin/_dbutil $DBDIR/$DBNAME -C enableSiteReplication source > /dev/null || { echo "The srs repl still can't be enabled :("; exit 1; }
+	fi
+echo "	is done"
+echo -n "Make backup on $SERVER"
+test -e /tmp/$DBID.tome && rm /tmp/$DBID.tome
+for i in `echo '2 3 4 5 6 7 8 9 11 12 13 14 15 16 17 18 19 20' | awk '{print $0}'`; do echo $TMPDIR/$DBID$i >> /tmp/$DBID.tome ; done
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+RET=$?
+if [ $RET = "16" ]
+then ONLINE="online"
+else ONLINE=" "
+fi
+
+$DLC/bin/probkup $ONLINE $DBDIR/$DBNAME $TMPDIR/$DBID"1" -vs 262143 -verbose -REPLTargetCreation > /dev/null < /tmp/$DBID.tome
+echo "		is done"
+echo -n "Zip backup file(s) on $SERVER"
+cd $TMPDIR
+for i in `ls * | awk '{print $0}'`
+do 
+/usr/bin/gzip -c1 $i > $i".Z" && rm $i && mv $i".Z" $TARGET/
+done
+echo "	is done"
+;;
+
+############################################################## TRG1 ##############################################################
+trg1)
+
+SERVER=`/bin/uname -n`
+if [[ `echo "$SERVER" | grep -i "ixora02"` != "" ]]
+then 
+AGENT="ixora03"
+TWO="172.16.4.11"
+else 
+AGENT="ixora03"
+TWO="172.16.4.11"
+fi
+
+echo "=============================================================================="
+echo 
+#echo "############################################################## SRS ##############################################################"
+/usr/bin/ssh -i ~/.ssh/id_rsa_repl -q bankadm@172.16.1.11 "/pragma/bin9/repls $DBID srs $WAY" || exit 1
+#echo "############################################################## TRG ##############################################################"
+echo
+echo
+echo "Creating replication on $SERVER"
+echo -n "Stop target db on $SERVER"
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+if [ $? = "16" ]
+then $DLC/bin/proshut $DBDIR/$DBNAME -by > /dev/null
+fi
+echo "		is done"
+echo -n "Turn off all repl on $SERVER"
+
+ANS="/home/`/usr/bin/whoami`/answer"
+echo "y" > $ANS
+echo "y" >> $ANS
+
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication target > /dev/null < $ANS
+echo "	is done"
+echo -n "Turn off ai and am on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "	is done"
+echo -n "Copy backup(s)"
+/usr/bin/scp -i ~/.ssh/id_rsa_repl bankadm@172.16.1.11:$TARGET/* $TARGET/ 
+echo -n "Roll backup on $DBID on $SERVER"
+/pragma/bin9/multirest $DBDIR/$DBNAME $TARGET > /dev/null 
+echo "	is done"
+DESCRIBE=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+echo "$DESCRIBE" | grep -i "Replication" | grep -i "Target" > /dev/null
+if [ $? -ne 0 ]
+then 
+echo -n "Creating $DBDIR/$DBNAME.repl.properties repl"
+echo "#" > $DBDIR/$DBNAME.repl.properties
+echo "[agent]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.$AGENT" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-minport=40000" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-maxport=50000" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+echo "	is done"
+echo -n "Enable target repl on $SERVER"
+	$DLC/bin/_dbutil $DBDIR/$DBNAME -C enableSiteReplication target > /dev/null
+	if [ $? -ne 0 ]
+	then echo "	The trg repl can't be enabled :("
+#	exit 1
+	else echo "	is done"
+	fi
+fi
+
+echo -n "Turn off ai and am on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "	is done"
+echo -n "Lening $DBDIR/$DBNAME on $SERVER"
+/pragma/bin9/Lenin $DBID > /dev/null
+echo "	is done"
+echo
+
+if [ "$WAY" = "way2" ]
+then
+echo "Create replication on $TWO"
+/usr/bin/ssh -i ~/.ssh/id_rsa_repl bankadm@$TWO "/pragma/bin9/repls $DBID trg2" || exit 1
+fi
+
+echo "Restarting source replication server"
+/usr/bin/ssh -i ~/.ssh/id_rsa_repl -q bankadm@172.16.1.11 "$DLC/bin/dsrutil $DBDIR/$DBNAME -C restart server > /dev/null" || exit 1
+echo
+;;
+
+############################################################## TRG2 ##############################################################
+trg2)
+
+SERVER=`/bin/uname -n`
+if [[ `echo "$SERVER" | grep -i "ixora02"` != "" ]]
+then 
+AGENT="ixora02"
+TWO="172.16.4.11"
+else 
+AGENT="ixora03"
+TWO="172.16.4.11"
+fi
+echo -n "Stop target db on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /dev/null
+if [ $? = "16" ]
+then $DLC/bin/proshut $DBDIR/$DBNAME -by > /dev/null
+fi
+echo "	is done"
+
+ANS="/home/`/usr/bin/whoami`/answer"
+echo "y" > $ANS
+echo "y" >> $ANS
+echo -n "Turn off all repl on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication target > /dev/null < $ANS
+echo "	is done"
+echo -n "Turn off ai and am on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "	is done"
+echo -n "Copy backup(s) to $SERVER"
+/usr/bin/scp -i ~/.ssh/id_rsa_repl bankadm@172.16.1.11:$TARGET/* $TARGET/ 
+echo "	is done"
+echo -n "Roll backup on $DBDIR/$DBNAME"
+cd $TARGET
+for i in `ls * | awk '{print $0}'`
+do 
+/pragma/bin9/multirest $DBDIR/$DBNAME $TARGET > /dev/null 
+done
+echo "	is done"
+DESCRIBE=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C describe`
+echo "$DESCRIBE" | grep -i "Replication" | grep -i "Target" > /dev/null
+if [ $? -ne 0 ]
+then    
+echo -n "Creating repl properties"
+echo "#" > $DBDIR/$DBNAME.repl.properties
+echo "[agent]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.$AGENT" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-minport=40000" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-maxport=50000" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+echo "	is done"
+echo -n "Enable target repl on $SERVER"
+	$DLC/bin/_dbutil $DBDIR/$DBNAME -C enableSiteReplication target > /dev/null
+	if [ $? -ne 0 ]
+	then echo "The trg repl can't be enabled :("
+	exit 1
+	fi
+fi
+echo "	is done"
+echo -n "Disable ai on $SERVER"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "		is done"
+echo -n "Lenin $DBDIR/$DBNAME on $SERVER"
+/pragma/bin9/Lenin $DBID > /dev/null
+echo "	is done"
+;;
+
+############################################################## * ##############################################################
+       *)
+	echo "NO! Use like [ repls balm srs/trg1/trg2 ]"
+	;;
+
+esac } 
+
+

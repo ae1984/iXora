@@ -1,0 +1,12 @@
+﻿#!/bin/bash
+
+
+ls -alR | egrep -v "./|total" | awk  '{aa=aa+$5} END {print aa}' 
+
+
+
+#find | awk '{aa[$1]=aa[$1]+1} END {print aa}'
+
+
+#END {for (i in aa){if (aa[i]>=2) print aa[i] "\t" i}}' | sort -r
+#who | awk '{aa[$1]=aa[$1]+1} END {for (i in aa){if (aa[i]>=2) print aa[i] "\t" i}}' | sort -r

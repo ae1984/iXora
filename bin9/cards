@@ -1,0 +1,10 @@
+﻿#!/bin/bash
+####################################################
+# Processing of pay-cards statements 
+# 09/04/2002
+####################################################
+
+mkdir card$$
+echo 'Getting files from C:\HSBK\WORK\...'
+rcp `askhost`:c:\\hsbk\\work\\TKBD*.* card$$
+

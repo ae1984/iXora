@@ -1,0 +1,184 @@
+﻿#!/bin/sh
+TIME=`date "+%d-%m-%y"`
+
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+
+
+
+while true
+do  
+  echo    
+  echo "       Administrative Tools"
+  echo "       Database: [$DBDESCR]"
+  echo 
+  echo "    1. Start $DBDESCR database server (BANK, ALGA)"
+  echo "    2. Start general $DBDESCR servers (COMM, CARDS, SKLAD)"
+  echo "    3. Stop $DBDESCR database server (BANK, ALGA)"
+  echo "    4. Stop general $DBDESCR database servers (COMM, CARDS, SKLAD)"
+  echo "    5. Backup $DBDESCR database..."
+  echo "    6. Run DAYCLOSE on $DBDESCR"
+  echo "    7. Run NEWMONTH on $DBDESCR"
+  echo "    S. Start 'pragma' on $DBDESCR"
+  echo "    A. Additional tools..."
+  echo "    Q. EXIT"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1) 
+
+#       echo "Copying of the journal database BANK in archive..." 
+#       /pragma/bin9/logwrite.sh $DBID $DBID
+
+#TXB    dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 10 -Ma 5 -Mi 3 -tablerangesize  742 -indexrangesize 1800 -n 100 -B 15000 -L 20000 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall -pinshm || echo Cannot start server.
+# 29/08/07 marinav	dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 51200 -L 20000 -bibufs 25 -aibufs 25 -trig $PTRIGLIB -semsets 1 -spin 5000 -bithold 996 -bistall || echo Cannot start server.
+                        dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+
+#TXB   $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -S $DBSV -minport 1026 -maxport 1100
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+# 29/08/07 marinav       $DLC/bin/proaiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+
+#       echo "Copying of the journal database ALGA in archive..." 
+#       /pragma/bin9/logwrite.sh $DBID alga
+
+#       dbcheck $DBALDIR/alga  0 && $DLC/bin/_mprosrv $DBALDIR/alga -L 20000 -Mm 16300 -S $DBALSV || echo Cannot start server.
+
+     ;;
+  2) 
+     dbcheck $DBCOMMDIR/comm 0 && $DLC/bin/_mprosrv $DBCOMMDIR/comm -Mn 80 -tablebase 1 -tablelimit 181 -indexbase 1 -indexlimit 1100 -n 200 -spin 20000 -L 15000 -bibufs 20 -B 20000  -bithold 650 -bistall -semsets 4 || echo Cannot start server.
+     $DLC/bin/_mprosrv $DBCOMMDIR/comm -m3 -S $DBCOMMSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3
+     $DLC/bin/prowdog  $DBCOMMDIR/comm
+     $DLC/bin/probiw   $DBCOMMDIR/comm
+     $DLC/bin/proapw   $DBCOMMDIR/comm
+     
+# 29/08/07 marinav      $DLC/bin/_mprosrv $DBCOMMDIR/comm -S $DBCOMMSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 -n 200 -L 15000
+     $DLC/bin/_mprosrv $DBCRDIR/cards 
+     ;;
+  3) 
+
+     dbshut $DBDIR/$DBNAME
+#     dbshut $DBALDIR/alga
+     ;;
+  4) 
+     	dbshut $DBCOMMDIR/comm 
+     	dbshut $DBCRDIR/cards 
+     	
+	;;
+  5) 
+     # Переключим AI
+     # aiswitchall.sh $DBID 
+
+     # Останов AI (пишем stop файлы)
+     #aiadm $DBID stop switch
+     #aiadm $DBID stop rollfwd
+
+     # Сделаем копию БД
+     /pragma/bin9/dbsavall
+
+     # Запуск AI (уберем stop файлы)
+     # 29/08/07 marinav aiadm $DBID start switch
+     # 29/08/07 marinav aiadm $DBID start rollfwd
+     ;;
+  6) if dbshut $DBDIR/$DBNAME 0
+     then
+       
+        # Последний раз переключим и закинем stop файлы
+        #aiswitchall.sh $DBID 
+        #aiadm $DBID stop switch
+        #aiadm $DBID stop rollfwd
+#27.03.06 u00121 -вернул -spin равным 32000 (4000 * 1CPU)
+#        $DLC/bin/_mprosrv $DBDIR/$DBNAME -i -B 50000 -L 128000 -spin 8000 -n 4 -Mxs 250 
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME  -i -L 65000 -spin 80000 -n 4 -Mxs 250 
+        $DLC/bin/probiw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        cd /data/log/$DBID
+
+#        if [ $ID = "alm" ]; then $DLC/bin/_progres $DBDIR/$DBNAME -p dayclose -H texaka1-backup -S pragma -trig $PTRIGLIB -U bankadm -P $passw -t 
+#        else 
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4  -logentrytypes 2  -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+#        fi                            
+
+        cd ..
+        $DLC/bin/_mprshut $DBDIR/$DBNAME  -by
+
+     
+      # aiadm $DBID start switch
+      # aiadm $DBID start rollfwd
+      # aiswitchall.sh $DBID 
+
+      dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+
+     else
+       echo Cannot RUN. 
+     fi
+     ;; 
+  7) if dbcheck $DBDIR/$DBNAME 0
+     then
+       $DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/newmonth.log -logginglevel 4  -logentrytypes 2  -1 -i -L 2000 -d dmy -p newmonth -trig $PTRIGLIB -U bankadm -P $passw
+     else
+       echo Cannot RUN.
+     fi;;
+  zxc)
+
+     if [ $DBID = "alm" ]; then
+       NEEDSPACE=12288000
+     else
+       NEEDSPACE=2048000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+       proutil $DBDIR/$DBNAME -C truncate bi -G 0
+       dbsaveOnline $DBDIR/$DBNAME 
+       cp $DBDIR/$DBNAME.st /savedb/$DBID/bank/full
+     fi
+
+     if dbshut $DBDIR/$DBNAME 0
+     then
+        $DLC/bin/_mprosrv $DBDIR/$DBNAME  -i -L 65000 -spin 80000 -n 4 -Mxs 250 
+        $DLC/bin/probiw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        $DLC/bin/proapw   $DBDIR/$DBNAME
+        cd /data/log/$DBID
+
+	$DLC/bin/_progres $DBDIR/$DBNAME -clientlog $DBDIR/log/logdayclose/dayclose-$TIME.log -logginglevel 4  -logentrytypes 2  -p dayclose -trig $PTRIGLIB -U bankadm -P $passw -t 
+        cd ..
+        $DLC/bin/_mprshut $DBDIR/$DBNAME  -by
+       dbcheck $DBDIR/$DBNAME 0 && $DLC/bin/_mprosrv $DBDIR/$DBNAME -Mn 21 -n 100 -B 15000 -L 20000 -bibufs 25 -trig $PTRIGLIB -semsets 1 -spin 10000 -bithold 650 -bistall || echo Cannot start server.
+       $DLC/bin/_mprosrv $DBDIR/$DBNAME -m3 -N TCP -S $DBSV -Mm 16300 -Mpb 20 -Ma 5 -Mi 3 $MINPORT $MAXPORT 
+       $DLC/bin/prowdog  $DBDIR/$DBNAME
+       $DLC/bin/probiw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+       $DLC/bin/proapw   $DBDIR/$DBNAME
+
+	pragma $1 -U bankadm -P Bflv02
+	else
+       echo Cannot RUN. 
+     fi
+     ;; 
+  [Ss]) pragma $1;;
+  [Aa]) dbadadm;;
+  [Qq]) exit 0;;
+  exit) exit 0;;
+  *) echo "Wrong selection. Press 1-8 or Q."
+     sleep 2;;
+  esac
+done
+
+else 
+echo "\nPassword incorrect!"
+fi

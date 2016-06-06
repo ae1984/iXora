@@ -1,0 +1,85 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo "            0. Create add.st for $DBDESCR ($DBDIR/add.st)"
+  echo
+  echo "            1. prostrct add $DBDESCR ($DBDIR/add.st -validate [in Progress v9 not work]"
+  echo "           11. prostrct add online $DBDESCR ($DBDIR) add.st -validate"
+  echo
+  echo "            2. prostrct add $DBDESCR add.st"
+  echo "           22. prostrct add online $DBDESCR add.st"
+  echo
+  echo
+  echo "	  123. SYSTEM ERROR: Memory violation. =)"
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+  0)	if
+	 echo "#" > /$DBDIR/add.st
+	 echo "a $DBDIR/ai/$DBNAME.a5" >> /$DBDIR/add.st
+	 echo "a $DBDIR/ai/$DBNAME.a6" >> /$DBDIR/add.st
+         echo "a $DBDIR/ai/$DBNAME.a7" >> /$DBDIR/add.st
+         echo "a $DBDIR/ai/$DBNAME.a8" >> /$DBDIR/add.st
+         echo "a $DBDIR/ai/$DBNAME.a9" >> /$DBDIR/add.st
+         echo "a $DBDIR/ai/$DBNAME.a10" >> /$DBDIR/add.st
+	then
+	 echo "Structured file 'add.st' is successfull created for $DBDESCR"
+	else
+	echo "Cannot create 'add.st' for $DBDESCR"    
+	fi;;
+  1) clear
+	echo "start validating '$DBDIR/add.st' to $DBDESCR ($DBDIR/$DBNAME) offline";sleep 1;echo
+	if $DLC/bin/prostrct add $DBDIR/$DBNAME $DBDIR/add.st -validate;sleep 1;echo
+		then
+		echo "Structured file 'add.st' is successfull validated to $DBDESCR"
+	else
+	echo "Validation of 'add.st' to $DBDESCR calapsed"    
+	fi;;
+
+  11) clear
+	echo "Start validating '$DBDIR/add.st' to $DBDESCR ($DBDIR/$DBNAME) online";sleep 1;echo
+	if $DLC/bin/prostrct addonline $DBDIR/$DBNAME $DBDIR/add.st -validate;sleep 1;echo
+		then
+		echo "Structured file 'add.st' is successfull added to $DBDESCR"
+	else
+	echo "Cannot add 'add.st' to $DBDESCR"    
+	fi;;
+
+
+  2) echo "Start adding '$DBDIR/add.st' to $DBDESCR ($DBDIR/$DBNAME) offline"; 
+	if $DLC/bin/prostrct add $DBDIR/$DBNAME $DBDIR/add.st
+    	   then
+		chmod 0777 $DBDIR/ai
+		sleep 1
+                chmod 0777 $DBDIR/ai/*
+		echo "Structured file 'add.st' is successfully added to $DBDESCR"
+	else
+	echo "Cannot add 'add.st' to $DBDESCR"
+	fi;;
+
+  22) echo "Start adding '$DBDIR/add.st' to $DBDESCR ($DBDIR/$DBNAME) online"; 
+	if $DLC/bin/prostrct addonline $DBDIR/$DBNAME $DBDIR/add.st
+    	   then
+		chmod -v 0777 $DBDIR/ai
+		chmod -v 0777 $DBDIR/ai/*
+		echo "Structured file 'add.st' is successfully added to $DBDESCR"
+	else
+	echo "Cannot add 'add.st' to $DBDESCR"
+	fi;;
+
+#  123) addai $DBDIR $DBNAME;;
+   123) addai $DBDIR $DBNAME $DBID;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-2 or Q."
+     sleep 2;;
+  esac
+done

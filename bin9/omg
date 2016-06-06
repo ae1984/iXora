@@ -1,0 +1,120 @@
+﻿#!/bin/bash
+# отлов активных сессий иксоры и отправка письма юзеру id00477 (c)
+
+ME=`whoami`
+DOT="."
+LASTLOG=/home/$ME/lastlog_omg.tmp
+IDLOG=/home/$ME/idlog_omg.tmp
+
+test -e $LASTLOG && rm $LASTLOG
+test -e $IDLOG && rm $IDLOG
+
+last | grep "still logged in"  | grep id | grep -v ":pts" >> $LASTLOG
+echo -n "DO"
+for IDi in `cat $LASTLOG | awk '{print $1}'`
+do	
+	for IDj in `cat $LASTLOG | awk '{print $1}'`
+	do		
+		CHECK=`ps aux | grep $IDi | grep _progres` #выбираем прогресовые сессии
+		N=`ps aux | grep $IDi | grep -c _progres` #количество прогресовых сессий
+		echo "" >> $IDLOG
+		if [ $IDi = $IDj ] && [ -z `cat $IDLOG | grep $IDi` ] && [ -n "$CHECK" ]; then
+			
+			echo $IDi >> $IDLOG
+			STLOG=/home/$ME/stlog_omg_$IDi.tmp
+			last | grep "still logged in"  | grep $IDi | grep -v ":pts" | awk '{print $1 " " $3}' >> $STLOG
+
+			#N=`cat $LASTLOG | grep -c $IDi` #количество совпадений в списке
+			
+			for k in `cat $STLOG | awk '{print $2}'  | awk -F"." '{print $1}'`
+			do				
+				if [ -z `echo $ST | grep $k` ]; then					
+					ST=$ST" "$k
+				fi
+			done
+
+			MESS=/home/$ME/mess_omg_$IDj.tmp
+			test -e $MESS && rm $MESS
+
+			#WEEKDAY=`date +%u` # закрытие в будни или выходные
+			#case $WEEKDAY in
+			#	1 | 2 | 3 | 4 | 5) WORKTIME="21:00"
+			#	;;
+			#	6 | 7) WORKTIME="17:00"
+			#	;;
+			#esac
+			WORKTIME="21:00"
+			
+			if [ `expr length $N` = 2 ] && [ $N -ge 20 ]; then # справедливо для значений меньше 100
+				buf=$(($N/10))	
+			else
+				buf=$N
+			fi
+				
+			case $buf in
+				1)
+				SES="сессия"
+				ZAP="запущена"
+				;;
+				2 | 3 | 4)
+				SES="сессии"
+				ZAP="запущено"
+				;;
+				*)
+				SES="сессий"
+				ZAP="запущено"
+				;;
+			esac
+			
+			#echo 'Return-Path: Alexandr.Korzhov@fortebank.com' >> $MESS
+			#echo "From: iXora" >> $MESS
+			#echo 'To: Alexandr.Korzhov@fortebank.com' >> $MESS			
+			
+
+			echo "Return-Path: $IDi@fortebank.com" >> $MESS
+			echo "From: iXora" >> $MESS
+
+			if [ `expr length $ST` = 7 ]; then #отправка копии письма Олегу при запуске сессии более чем на одном компе
+				echo "To: $IDi@fortebank.com" >> $MESS
+			else
+				#echo "To: $IDi@fortebank.com Oleg.Pustozerov@fortebank.com" >> $MESS
+				echo "To: $IDi@fortebank.com" >> $MESS
+			fi			
+						
+			echo 'Subject: =?windows-1251?Q?OMG?=' >> $MESS
+			echo 'Content-type: multipart/mixed; boundary="--------=PART.BOUNDARY"' >> $MESS
+			echo "X-Priority: 3" >> $MESS
+			echo '----------=PART.BOUNDARY' >> $MESS
+			echo 'Content-Type: text/plain; charset="windows-1251"' >> $MESS
+			echo '' >> $MESS
+			echo 'Добрый день.' >> $MESS
+			echo "Вы получили это письмо потому, что на компьютере $ST $ZAP $N $SES иксоры под Вашим ID $IDi ." >> $MESS
+			echo '' >> $MESS
+			echo "Если Вы планируете работать в иксоре после $WORKTIME времени Алматы," >> $MESS
+			echo 'прошу отписать это письмом на группу тех. поддержки с копией на Ваше руководство.' >> $MESS
+			echo '' >> $MESS
+			echo 'В противном случае все сессии будут отключены принудительно.' >> $MESS
+			echo '' >> $MESS
+			echo 'Это письмо сформировано автоматически, отвечать на него не нужно.' >> $MESS
+			echo "----------=PART.BOUNDARY--" >> $MESS
+
+			#DV
+			#cat $MESS | /usr/lib/sendmail2 -t 
+			
+			#iXora601
+			cat $MESS | /usr/lib/sendmail -t 
+						
+			test -e $MESS && rm $MESS
+			test -e $STLOG && rm $STLOG
+			
+			ST=""			
+		fi
+		
+	done	
+	echo -n "$DOT"
+	
+done
+echo "DONE"
+
+test -e $LASTLOG && rm $LASTLOG
+test -e $IDLOG && rm $IDLOG

@@ -1,0 +1,4 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+exec $DLC/bin/_progres /data/tlm/alga -e 63 -l 5150 -d dmy -ld alga -p algm
+#$DLC/bin/_progres /data/tlm/alga -e 63 -l 5150 -d dmy -ld alga -p algm

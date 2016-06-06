@@ -1,0 +1,13 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv2 
+
+
+PROMSGS=$DLC/prolang/rus/promsgs.rus; export PROMSGS
+#if [ $ID = "alm" ]; then exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -H texaka1-backup -S pragma -t -T /data/9/temp -mmax 650 -h 10 -d dmy $@
+#else 
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 650 -h 10 -d dmy $@
+#fi                      
+
+
+#$DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -t -T /data/9/temp -mmax 650 -h 10 -d dmy $@

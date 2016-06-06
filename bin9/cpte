@@ -1,0 +1,16 @@
+﻿test $pc || { export pc=`/usr/local/bin/askhost`; }
+rhost=$pc:C:/WINDOWS/Desktop
+rfil=/tmp/$$.doc
+/bin/rm -f $rfil 
+if [ -d $3 ]; then
+ if [ -d $2 ]; then
+  un-win $1 $rfil
+ else
+  un-win $2 $rfil
+ fi
+else
+  un-win $3 $rfil
+fi
+rcp $rfil $rhost 
+/bin/rm -f $rfil
+

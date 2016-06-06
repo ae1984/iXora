@@ -1,0 +1,13 @@
+﻿#!/bin/bash
+
+test $pc || { export pc=`/usr/local/bin/askhost`; }
+RHOST=;rsh $pc echo %TEMP% | awk '{split($0,M,"\\"); print M[1] "\/" M[2] "\/TEMP"}' > /tmp/$$
+RHOST=`cat /tmp/$$ `
+#rm -f /tmp/$$
+rfil=$$.doc
+rm -f /tmp/$rfil
+un-win $1 /tmp/$rfil 
+rcp /tmp/$rfil $pc:$RHOST
+rsh $pc start $RHOST\/$rfil 
+rm -f /tmp/$rfil
+

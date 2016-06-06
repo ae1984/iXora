@@ -1,0 +1,34 @@
+﻿#!/bin/sh
+
+test "$1" = "" && { echo "Can't work with null input"; exit; }
+
+if [ "$1" = "all" ]
+then
+clear
+LOG="/home/`/usr/bin/whoami`//log.tmp"
+test -e $LOG && rm $LOG
+ALL=`/usr/bin/w | grep "id0" | grep "\-bash"`	#id00477  pts/589  st99999.metroban 11:16   11:14   0.01s  0.01s -bash
+PROC=`ps aux | grep -i "_progres"`	#id00239  32537  0.0  0.4 1357084 114812 pts/195 Ss+ 08:57   0:04 /usr/dlc/bin/_progres /drbd/data/bsem/bank -ld bank -D 100 -Mm 16300 -t -T /savedb/stemp -h 10 -TM 32 -TB 31 -s 128 -mmax 1536 -Bt 1024 -tmpbsize 4 -y -yx -p pmenu
+PTS=`echo "$ALL" | awk '{print $2}'`	#pts/589
+ALLPTS=`ps aux | grep -i "id0" | grep -iw "_progres"`	#id00239  32537  0.0  0.4 1357084 114920 pts/195 Ss+ 08:57   0:04 /usr/dlc/bin/_progres /drbd/data/bsem/bank -ld bank -D 100 -Mm 16300 -t -T /savedb/stemp -h 10 -TM 32 -TB 31 -s 128 -mmax 1536 -Bt 1024 -tmpbsize 4 -y -yx -p pmenu
+
+    echo "$PTS" | while read line
+    do
+    ID=`echo "$ALL" | grep -iw "$line" | awk '{print $1}'`	#id00477
+    ST=`echo "$ALL" | grep -iw "$line" | awk '{print $3}'`	#st99999.metroban
+    WHO=`cat /etc/passwd | grep -w $ID | awk -F: '{print $5}'`	#Alexandr_Korzhov
+    DB=`echo "$PROC" | grep -iw "$line" | awk '{print $12}' | awk -F / '{print " "$4}'` #err -bash: /bin/ps: Argument list too long
+    PID=`echo "$ALLPTS" | grep -w "$line" | awk '{print $2}'`
+    if [ -n "$PID" ]; then
+    echo -e "$ID \t $ST \t $PID \t $DB \t $WHO"	
+    fi
+    done
+    echo -n "TOTAL:	"
+    echo -n `echo "$ALL" | wc -l`
+    echo -e "\t `/bin/date`"
+else
+test "$1" = "all" && exit
+test `/bin/ls /home | grep -iw "$1" > /dev/null; echo $?` = "0" || { echo "No such id on server"; exit; }
+ALL=`/usr/bin/last | grep -iw "$1" | grep -iv "grep\|/pragma/bin9/l"`
+echo "$ALL" | grep -C 5 "$1" 
+fi

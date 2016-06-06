@@ -1,0 +1,15 @@
+﻿#!/bin/sh
+. /pragma/bin9/dbenv
+# Для тестовых баз
+echo $DBDIR
+echo $DBDIR/$DBNAME;$DLC/bin/proshut $DBDIR/$DBNAME 
+echo $DBCOMMDIR/comm;$DLC/bin/proshut $DBCOMMDIR/comm 
+echo $DBDIR/cards/cards;$DLC/bin/proshut $DBDIR/cards/cards
+echo $DBSTDIR/banks;$DLC/bin/proshut $DBSTDIR/banks
+echo $DBALDIR/alga;$DLC/bin/proshut $DBALDIR/alga   
+echo $DBSTDIR/stat;$DLC/bin/proshut $DBSTDIR/stat   
+echo $DBSKDIR/sklad;$DLC/bin/proshut $DBSKDIR/sklad  
+if test .$DBID = .mx
+then
+echo $DBDIR/ib/ib;$DLC/bin/proshut $DBDIR/ib/ib
+fi

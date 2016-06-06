@@ -1,0 +1,11 @@
+﻿#!/bin/sh
+BPID=`minigetpid`
+SESS=`screen -list | grep -i "Detached" | awk '{print $1}'`
+#SESS=`screen -list | grep -i pts | awk '{print $1}'`
+if [[ $SESS = "" ]]; then
+screen -T putty -t $1" "$BPID -c /pragma/bin9/screenrc /pragma/bin9/spragma $1
+exit
+else
+screen -r $SESS
+#screen -D -r $SESS
+fi

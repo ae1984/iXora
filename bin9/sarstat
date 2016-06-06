@@ -1,0 +1,8 @@
+﻿#!/bin/sh
+echo -e "`sar | grep "08:00*" | grep "AM" | awk '{print $4, $7, $9}'` `date +%D`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "09:00*" | grep "AM" | awk '{print $4, $7, $9}'`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "12:00*" | grep "PM" | awk '{print $4, $7, $9}'`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "02:00*" | grep "PM" | awk '{print $4, $7, $9}'`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "04:00*" | grep "PM" | awk '{print $4, $7, $9}'`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "06:00*" | grep "PM" | awk '{print $4, $7, $9}'`" >> /savedb/LOG/top.log
+echo -e "`sar | grep "08:00*" | grep "PM" | awk '{print $4, $7, $9}'`\n" >> /savedb/LOG/top.log

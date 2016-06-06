@@ -1,0 +1,16 @@
+﻿pc=`askhost`
+rhost=$pc:C:/
+rfil=/tmp/$$.txt
+/bin/rm -f $rfil 
+if [ -d $3 ]; then
+ if [ -d $2 ]; then
+  un-dos $1 $rfil
+ else
+  un-dos $2 $rfil
+ fi
+else
+  un-dos $3 $rfil
+fi
+rcp $rfil $rhost 
+/bin/rm -f $rfil
+

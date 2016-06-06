@@ -1,0 +1,4 @@
+﻿export PROOIBRK=$DLC/bin/_prooibk
+export PROOIDRV=$DLC/bin/_prooidv
+$PROOIBRK -SV -S oib -verbose
+

@@ -1,0 +1,10 @@
+﻿# This file was made for locate the weekends
+# There are scripts which use this file: dbnight & superkill 
+#
+# example of use:
+#
+# SKIPDAY=`date "+%d-%m-%y"` 
+# 06-11-08
+# 15-12-08
+# cat /pragma/bin9/skipdays | grep -v "#" | grep $SKIPDAY && exit
+

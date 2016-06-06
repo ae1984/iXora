@@ -1,0 +1,2 @@
+﻿#/bin/bash
+proshut -SV -H localhost -S oib

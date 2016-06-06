@@ -1,0 +1,71 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+
+wlog(){
+    echo `date "+%d/%m/%y %H:%M:%S"` `whoami` " " $1 $2 >> $DBDIR/log/dcls.log
+}
+
+while true
+do
+  echo
+  echo
+  echo "            1. Save $DBDESCR BANK database..."
+  echo "            2. Save $DBDESCR ALGA databases..."
+  echo "            3. Save $DBDESCR STAT database..."
+  echo "            4. Save $DBDESCR All databases..."
+  echo "            5. Save $DBDESCR database to $DBDIR/stat/data/banks..."
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+  1) wlog "1.Save $DBDESCR BANK database. "
+     wlog "Backup " $DBDIR/$DBNAME
+     dbsave -c $DBDIR/backup/ $DBDIR/$DBNAME
+     wlog "Backup " $DBDIR/$DBNAME
+     dbsave -c $DBCOMMDIR/backup/ $DBCOMMDIR/comm
+     wlog "Backup " $DBCOMMDIR/comm
+     dbsave -c $DBSKDIR/backup/ $DBSKDIR/sklad
+     wlog "Backup " $DBSKDIR/sklad
+     dbsave -c $DBCRDIR/backup/ $DBCRDIR/cards
+     wlog "Compress Library RX"
+     libadm RX -c
+     wlog "Transfer Library to texaka2" 
+     nohup libadm RX -t > /dev/null 2>&1 & 
+     wlog "End 1                          "
+     ;;
+  2) wlog "2.Save $DBDESCR ALGA databases."
+     wlog "Backup " $DBALDIR/alga
+     dbsave $DBALDIR/alga
+     wlog "End 2                          "
+     ;;
+  3) wlog "3.Save $DBDESCR STAT database. "
+     wlog "Backup " $DBSTDIR/stat
+     dbsave $DBSTDIR/stat
+     wlog "End 3                          "
+     ;;
+  4) wlog "4. Save $DBDESCR All databases."
+     wlog "Backup " $DBDIR/$DBNAME
+     dbsave -c $DBDIR/backup/ $DBDIR/$DBNAME
+     wlog "Backup " $DBALDIR/alga
+     dbsave $DBALDIR/alga
+     wlog "Backup " $DBSTDIR/stat
+     dbsave $DBSTDIR/stat
+     wlog "End 4                          "
+     ;;
+  5) wlog "5.Save $DBDESCR database to $DBDIR/stat/data/banks."
+     $DLC/bin/procopy $DBDIR/$DBNAME $DBSTDIR/banks
+     if test $? -eq 0; then
+       echo "Successfully saved."
+     else
+       echo "Error occured during process."
+     fi
+     wlog "End 5                          "
+     ;;
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-5 or Q."
+     sleep 2;;
+  esac
+done

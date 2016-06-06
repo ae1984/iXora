@@ -1,0 +1,24 @@
+﻿#!/bin/sh
+# Setting up database related variables.
+
+if [ ! -d /pragma/lib/RX/users/`/usr/bin/whoami` ]
+then
+  mkdir /pragma/lib/RX/users/`/usr/bin/whoami`
+  chmod 770 /pragma/lib/RX/users/`/usr/bin/whoami`
+fi
+
+if test .$DBID = .
+then
+  test .$1 != . || { echo "You must supply a database id."; exit 1;}
+  DBID=$1
+  export DBID
+  . /pragma/bin9/proenv    #Setting up progress environment.
+  cat /pragma/bin9/db1.cfg|awk '/\['$1'\]/,/\[.+\]/&&($0!~/'$1'/)'|awk '($0!~/\[.*\]/)&&($0!~/^[[:space:]]*#/)&&($0!~/^[[:space:]]*$/)'>/tmp/dbenv$$.tmp
+  test -s /tmp/dbenv$$.tmp || { echo "You have supplied incorrect database id."; exit 1;}
+  set -a
+  . /tmp/dbenv$$.tmp
+  set +a
+  rm -f /tmp/dbenv$$.tmp
+  shift 1
+#  test "$DBID" != "$1" || { echo "You have supplied incorrect database id."; exit 1;}
+fi

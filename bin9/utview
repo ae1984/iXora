@@ -1,0 +1,4 @@
+﻿zcat tar xvf $1 $2   >> $$.tmp
+alt --fa $$.tmp
+joe -rdonly $$.tmp
+/bin/rm -f $$.tmp

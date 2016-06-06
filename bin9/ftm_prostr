@@ -1,0 +1,143 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+  echo
+  echo
+  echo "            1. Create $DBDIR/$DBNAME.repl.properties for server"
+  echo
+  echo "            2. Create $DBDIR/$DBNAME.repl.properties for target 172.16.1.13"
+  echo "            3. Create $DBDIR/$DBNAME.repl.properties for target 10.0.6.101"
+  echo
+  echo "            C. Cat $DBDIR/$DBNAME.repl.properties"
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+  1)
+test -e $DBDIR/$DBNAME.repl.properties && { echo "There is already is $DBDIR/$DBNAME.repl.properties"; sleep 1; clear;
+					echo "cat $DBDIR/$DBNAME.repl.properties"; echo; cat $DBDIR/$DBNAME.repl.properties; 
+					echo; echo; echo "What shall we do?";
+					echo -n "Recreate it? [y/n] "; read ANS;
+					test $ANS = "y" || { exit; }; }
+
+echo "#" > $DBDIR/$DBNAME.repl.properties
+echo "[server]" >> $DBDIR/$DBNAME.repl.properties
+echo "    control-agents=agent1, agent2" >> $DBDIR/$DBNAME.repl.properties
+echo "    database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "    defer-agent-startup=480" >> $DBDIR/$DBNAME.repl.properties
+echo "    schema-Lock-Action=force" >> $DBDIR/$DBNAME.repl.properties
+echo "    repl-Keep-Alive=7200" >> $DBDIR/$DBNAME.repl.properties
+echo "    agent-shutdown-action=recovery" >> $DBDIR/$DBNAME.repl.properties
+echo "    transition-timeout=600" >> $DBDIR/$DBNAME.repl.properties
+echo "    transition=manual" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[control-agent.agent1]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.iXora02" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   host=172.16.1.13" >> $DBDIR/$DBNAME.repl.properties
+echo "   port=$REPLPORT1" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=120" >> $DBDIR/$DBNAME.repl.properties
+echo "   replication-method=async" >> $DBDIR/$DBNAME.repl.properties
+echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[control-agent.agent2]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.iXora03" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   host=10.0.6.101" >> $DBDIR/$DBNAME.repl.properties
+echo "   port=$REPLPORT2" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=120" >> $DBDIR/$DBNAME.repl.properties
+echo "   replication-method=async" >> $DBDIR/$DBNAME.repl.properties
+echo "   critical=0" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+
+echo
+echo
+echo "Creating $DBDIR/$DBNAME.repl.properties is done"
+echo
+echo
+echo "cat $DBDIR/$DBNAME.repl.properties" 
+echo
+cat $DBDIR/$DBNAME.repl.properties
+chmod 0777 $DBDIR/$DBNAME.repl.properties
+;; 
+
+  2)
+test -e $DBDIR/$DBNAME.repl.properties && { echo "There is already is $DBDIR/$DBNAME.repl.properties"; sleep 1; clear;
+					echo "cat $DBDIR/$DBNAME.repl.properties"; echo; cat $DBDIR/$DBNAME.repl.properties; 
+					echo; echo; echo "What shall we do?";
+					echo -n "Recreate it? [y/n] "; read ANS;
+					test $ANS = "y" || { exit; }; }
+
+echo "#" > $DBDIR/$DBNAME.repl.properties
+echo "[agent]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.ixora02" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-minport=40000" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-maxport=50000" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+
+echo
+echo
+echo "Creating $DBDIR/$DBNAME.repl.properties is done"
+echo
+echo
+echo "cat $DBDIR/$DBNAME.repl.properties" 
+echo
+cat $DBDIR/$DBNAME.repl.properties
+chmod 0777 $DBDIR/$DBNAME.repl.properties
+;; 
+
+  3)
+test -e $DBDIR/$DBNAME.repl.properties && { echo "There is already is $DBDIR/$DBNAME.repl.properties"; sleep 1; clear;
+					echo "cat $DBDIR/$DBNAME.repl.properties"; echo; cat $DBDIR/$DBNAME.repl.properties; 
+					echo; echo; echo "What shall we do?";
+					echo -n "Recreate it? [y/n] "; read ANS;
+					test $ANS = "y" || { exit; }; }
+
+echo "#" > $DBDIR/$DBNAME.repl.properties
+echo "[agent]" >> $DBDIR/$DBNAME.repl.properties
+echo "   name=$DBID.ixora03" >> $DBDIR/$DBNAME.repl.properties
+echo "   database=$DBDIR/$DBNAME" >> $DBDIR/$DBNAME.repl.properties
+echo "   connect-timeout=86400" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-minport=40000" >> $DBDIR/$DBNAME.repl.properties
+echo "   listener-maxport=50000" >> $DBDIR/$DBNAME.repl.properties
+echo "" >> $DBDIR/$DBNAME.repl.properties
+echo "[transition]" >> $DBDIR/$DBNAME.repl.properties
+echo "   database-role=normal" >> $DBDIR/$DBNAME.repl.properties
+
+echo
+echo
+echo "Creating $DBDIR/$DBNAME.repl.properties is done"
+echo
+echo
+echo "cat $DBDIR/$DBNAME.repl.properties" 
+echo
+cat $DBDIR/$DBNAME.repl.properties
+chmod 0777 $DBDIR/$DBNAME.repl.properties
+;; 
+
+  [Cc])
+echo "cat $DBDIR/$DBNAME.repl.properties" 
+echo; cat $DBDIR/$DBNAME.repl.properties
+sleep 2;; 
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-2 or Q."
+     sleep 2;;
+  esac
+done

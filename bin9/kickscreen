@@ -1,0 +1,37 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+ME=`/usr/bin/whoami`
+DAY=`date "+%y.%m.%d"`
+HOUR=`date "+%H%M"`
+LOG="/data/log/sesskill/$DAY-$HOUR"
+
+test $1 = 0715 && { HOUR="0715"; }
+
+if [ $HOUR = 0715 ]
+then
+
+echo "=============== LIST OF SESSIONS: =============" >> $LOG
+ps aux | grep progres | grep id00 | grep -v $ME | awk '{print $1" "$2" "$17" "$18}' > /tmp/kick-$HOUR
+cat /tmp/kick-$HOUR >> $LOG
+echo >> $LOG
+echo "===============  BEGIN =============" >> $LOG
+for i in $(cat /tmp/kick-$HOUR | awk '{print $2}' | awk '{print $1}')
+do
+USR=`cat /tmp/kick-$HOUR | grep -w $i | awk '{print $1}'`
+DB=`cat /tmp/kick-$HOUR | grep -w $i | awk '{print $3" "$4}'`
+echo >> $LOG
+/usr/bin/sudo /bin/kill $i >> $LOG
+if [ $? = "0" ]
+then OK="Done"
+else OK="Didn't"
+fi
+echo -n "Kicking $USR from $DB is $OK" >> $LOG
+echo >> $LOG
+done
+test -e /tmp/kick-$HOUR && { rm /tmp/kick-$HOUR; }
+echo "=============== FINISH =============" >> $LOG
+
+else
+echo "NO NO NO!!! Only in morning!!!"
+fi

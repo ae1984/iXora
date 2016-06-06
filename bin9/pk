@@ -1,0 +1,24 @@
+﻿#!/bin/bash
+
+#----------------------------------------------------
+# Locating and deleting frozen Progress sessions
+# of users (except root, superman, bankadm, stalker)
+# By Alexander Muhovikov, 25/09/2002
+#----------------------------------------------------
+# Script for locating and generating list of sessions
+#----------------------------------------------------
+
+
+ps -ef | gr -v bankadm | gr -v superman | gr -v stalker | gr -v root |  gr '_progres' | awk '
+   { print $1 "," $2; }' > killemall.list
+
+cat killemall.list | awk '{ print $2; }' > killemall.out
+
+echo ''
+echo ' DONE!'
+echo ''
+echo ' LISTING:'
+echo '---------------------------------------------------------------'
+cat killemall.list
+echo '---------------------------------------------------------------'
+

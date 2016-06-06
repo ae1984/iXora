@@ -1,0 +1,2 @@
+﻿#!/bin/sh
+echo "user bankadm Bflv0202\nget $2 $3"|ftp -n $1 

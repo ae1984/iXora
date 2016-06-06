@@ -1,0 +1,60 @@
+﻿#!/bin/sh
+#. /pragma/bin9/dbenv2
+
+
+#CLIENTMON=$DBDIR/log/clientmon/`logname`.mon
+CLIENTMON=/data/$DBID/log/clientmon/`whoami`.mon
+export CLIENTMON
+
+#PROCMON=$DBDIR/log/procmon/`logname`.mon
+PROCMON=/data/$DBID/log/procmon/`whoami`.mon
+export PROCMON
+DLC=/usr/dlc
+PROMSGS=${PROMSGS:-$DLC/prolang/rus/promsgs.rus}; export PROMSGS
+#if [ $ID = "alm" ]; then exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -H texaka1-backup -S pragma -t -T /data/9/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+#else 
+################### рТПЧЕТЛБ ОБ ОБМЙЮБЕ Dayclose #####################
+ME=`/usr/bin/whoami`
+test -e $DBDIR/.lock-d || { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@; exit; }
+clear
+echo
+echo
+echo 	"	чойнбойе!!!"
+echo 	"	об 'iXora $DBDESCR' ртпйъчпдйфус ретеипд об умедхаэйк претбгйпоощк деош!"
+if [ $ME = "bankadm" ]
+ then
+ echo
+ echo	"	bankadm'Х ЧИПД ОЕ ПЗТБОЙЮЕО, РТПУФП РТЕДХРТЕЦДЕОЙЕ. цНЙ ENTER..." | grep --colour=always "bankadm"
+ read none
+ exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+  else
+
+if [ $ME = "superman" ]
+ then
+ echo
+ echo	"	superman'Х ЧИПД ОЕ ПЗТБОЙЮЕО, РТПУФП РТЕДХРТЕЦДЕОЙЕ. цНЙ ENTER..." | grep --colour=always "superman"
+ read none
+ exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@
+fi
+  echo 	"	рПУМЕ ПЛПОЮБОЙС РТПГЕДХТ РЕТЕИПДБ чЩ ОЕЪБНЕДМЙФЕМШОП ЧПКДЕФЕ Ч 'iXora $DBDESCR'"
+  echo 	"	уП ЧУЕНЙ РТПШВБНЙ ПВТБЭБКФЕУШ ОБ 'support@metrobank.kz'"
+  echo 	"	рПЦБМХКУФБ РПДПЦДЙФЕ..."
+  echo -n "	"
+  while true
+   do
+     test -e $DBDIR/.lock-d || { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -mmax 1024 -h 10 -y -yx -p pmenu $@; exit; }
+     echo -n "."
+     i=$i.
+     sleep 1
+     if [ $i = "............................................................" ]
+	then
+        i=.
+	echo
+	echo -n "	рТПЫМП 60 УЕЛХОД. рТПДПМЦЙФШ ПЦЙДБОЙЕ? (1-дб / МАВПК ДТХЗПК УЙНЧПМ-оеф) "
+	read ANS
+        test $ANS = "1" || { clear; exit; }
+	echo -n "	"
+     fi
+   done
+fi
+exit                      

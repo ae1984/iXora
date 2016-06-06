@@ -1,0 +1,7 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/aienv
+
+TIME=`date "+%d-%m-%y.%H-%M"`
+$EXECDIR/aisave $DBDIR/$DBNAME.db $SAVEDBDIR/$TIME

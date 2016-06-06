@@ -1,0 +1,226 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" ]
+then
+LINE="---------------------------------"
+echo "How to use this great script:"
+echo $LINE
+echo "First parametr: 	all | bank/mko | bank | mko | ib | 24 | db1/db2/db3...db20"
+echo
+echo "Second parametr:	server [ start | stop | check | auto ] 	use carefully: [ lk | forcestart ]"
+echo "$0 [ -a ] (Show all info)"
+echo "$0 [ -d | touch/rm ] (LOCK for Dayclose. Create/Remove)" 
+echo
+exit
+fi
+
+if [[ $1 = "-d" ]]
+then
+test $2 && test $2 = "touch" && { for i in $(dir /drbd/data); do test -e /data/$i/*.db && touch /data/$i/.lock-d && echo "touch /data/$i/.lock-d"; done; }
+test $2 && test $2 = "rm" && { for i in $(dir /data); do test -e /data/$i/.lock-d && rm -v /data/$i/.lock-d; done; }
+exit
+fi
+
+if [[ $1 ]]
+then
+export DLC=/usr/dlc
+export PROMSGS=$DLC/prolang/eng/promsgs.eng
+export LANG=ru_RU.cp1251
+
+test `echo $1 | grep -iw "all\|a\|-a\|bank\|b\|mko\|m\|bank/mko\|bm\|24" > /dev/null; echo $?` -ne 0 && { echo '1 parametr is invalid! Must be: "all(-a) | bank(b) | mko(m) | bank/mko(bm) | 24'; exit; }
+clear
+echo `date`
+echo "DRAM Usr  Database    Vol  Shm  Bi  Ai  g-today   ps-today   LOG   D#1     D#2"   
+echo "============================================================================================================"
+
+if [ $1 = "-a"  -o $1 = "a" ]
+then
+echo "            ForteBank рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/bmkb/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/balm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bakt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/btrz/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/burl/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkar/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bsem/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkok/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bast/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpet/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/batr/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpav/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bust/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bzes/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bchm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/baku/bank $VAR
+echo
+echo "            Общие базы работающие 24/7"
+/pragma/bin9/dbisrs /drbd/data/comm/comm $VAR
+#следующая строка закомментированна в связи с упразднением БД cards
+#/pragma/bin9/dbisrs /drbd/data/cards/cards $VAR
+/pragma/bin9/dbisrs /drbd/data/ib/ib $VAR
+echo
+echo "            МКО рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/alm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/akt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/url/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/sem/bank $VAR
+echo "-----------------------------------------------------------------------------------------------------------"
+df -h | grep -i "/data\|Filesystem\|savedb\|drbd"
+echo -n "-----------------------------------------------------------------------------------------------------------"
+test -e /data/shm.log && rm /data/shm.log
+A=`proutil -C dbipcs | grep ".db" | awk '{print $5}' | awk -F. '{print $1}'`
+for i in $A
+do
+PID=`ps -ef | grep "$i" | grep -v "grep" | grep "pro" | awk '{print $2}'`
+SHMID=`ipcs -mp | grep "$PID" | awk '{print $1}'`
+PERMS=`ipcs -m | grep "$SHMID" | awk '{print $4}'`
+echo "Shared Memory of database $i is $PERMS" | grep -v "660\|662\|664\|666" >> /data/shm.log && chmod 777 /data/shm.log
+done
+test -e /data/shm.log && cat /data/shm.log && rm /data/shm.log
+echo 
+free -m
+echo "-----------------------------------------------------------------------------------------------------------"
+echo -n "Date of library: "
+ls -l /pragma/lib/RX/RX.pl | awk '{print $6,$7,$8}'
+prolib /pragma/lib/RX/RX.pl -list -cpstream standart -cpinternal undefined | grep "Library format"
+fi
+
+if [ $1 = "all" ]
+then
+echo "            МЕТРОКОМБАНК рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/bmkb/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/balm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bakt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/btrz/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/burl/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkar/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bsem/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkok/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bast/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpet/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/batr/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpav/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bust/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bzes/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bchm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/baku/bank $VAR
+echo
+echo "            Общие базы работающие 24/7"
+/pragma/bin9/dbisrs /drbd/data/comm/comm $VAR
+#следующая строка закомментированна в связи с упразднением БД cards
+#/pragma/bin9/dbisrs /drbd/data/cards/cards $VAR
+/pragma/bin9/dbisrs /drbd/data/ib/ib $VAR
+echo
+echo "            МКО рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/alm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/akt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/url/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/sem/bank $VAR
+echo
+echo "            МКО Филиалы на стадии закрытия"
+/pragma/bin9/dbisrs /drbd/data/trz/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kar/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kok/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/ast/bank $VAR
+echo
+echo "            ТОО РКЦ-1"
+/pragma/bin9/dbisrs /drbd/data/rkc/bank $VAR
+echo "-----------------------------------------------------------------------------------------------------------"
+df -h | grep -i "/data\|Filesystem\|savedb\|drbd"
+echo -n "-----------------------------------------------------------------------------------------------------------"
+test -e /data/shm.log && rm /data/shm.log
+A=`proutil -C dbipcs | grep ".db" | awk '{print $5}' | awk -F. '{print $1}'`
+for i in $A
+do
+PID=`ps -ef | grep "$i" | grep -v "grep" | grep "pro" | awk '{print $2}'`
+SHMID=`ipcs -mp | grep "$PID" | awk '{print $1}'`
+PERMS=`ipcs -m | grep "$SHMID" | awk '{print $4}'`
+echo "Shared Memory of database $i is $PERMS" | grep -v "660\|662\|664\|666" >> /data/shm.log && chmod 777 /data/shm.log
+done
+test -e /data/shm.log && cat /data/shm.log && rm /data/shm.log
+echo 
+free -m
+fi
+
+if [ $1 = "bank/mko" -o $1 = "bm" ]
+then
+echo "            МЕТРОКОМБАНК рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/bmkb/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/balm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bakt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/btrz/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/burl/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkar/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bsem/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkok/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bast/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpet/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/batr/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpav/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bust/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bzes/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bchm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/baku/bank $VAR
+echo
+echo "            МКО рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/alm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/akt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/url/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/sem/bank $VAR
+fi
+
+if [ $1 = "bank" -o $1 = "b" ]
+then
+echo "            МЕТРОКОМБАНК рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/bmkb/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/balm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bakt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/btrz/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/burl/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkar/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bsem/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bkok/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bast/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpet/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/batr/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bpav/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bust/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bzes/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/bchm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/baku/bank $VAR
+fi
+
+if [ $1 = "mko"	-o $1 = "m" ]
+then
+echo "            МКО рабочие базы"
+/pragma/bin9/dbisrs /drbd/data/alm/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/akt/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/kos/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/url/bank $VAR
+/pragma/bin9/dbisrs /drbd/data/sem/bank $VAR
+fi
+if [ $1 = "24" ]
+then
+echo "            Общие базы работающие 24/7"
+/pragma/bin9/dbisrs /drbd/data/comm/comm $VAR
+#следующая строка закомментированна в связи с упразднением БД cards
+#/pragma/bin9/dbisrs /drbd/data/cards/cards $VAR
+/pragma/bin9/dbisrs /drbd/data/ib/ib $VAR
+fi
+#echo
+echo "============================================================================================================"
+echo 'D - LOCK for Dayclose         :|  - Single-user mode   Ai  - Volume of AI file     "-" - Share Memory       '
+echo 'R - Replication is off        :(  - Shut down mode     Bi  - Volume of Bi file     LOG - Volume of log file '
+echo 'A - After Imaging is off      :)  - Multi-user mode    D#n - Volume of "n" ext     g-today                  '
+echo 'M - Mangement Daemon off      Shm - Share Memory       Vol - Volume of Database    ps-today                 '
+
+else echo '1 parametr is invalid! Must be: "all(-a) | bank(b) | mko(m) | bank/mko(bm) | 24'; exit; 
+fi

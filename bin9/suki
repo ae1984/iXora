@@ -1,0 +1,64 @@
+﻿#!/bin/bash
+export PROPATH=.:/pragma/lib/RX/users/`/usr/bin/whoami`:/pragma/lib/RX/rcode_debug:/pragma/lib/RX/rcode:/pragma/lib/RX/RX.pl:/pragma/lib/RX/src:/pragma/bin9:/usr/wsrt31e/src/web/method/:/drbd/dlc/jms
+export PATH=/pragma/bin9:/pragma/bin9/stat:$PATH
+
+if [[ $@ ]]
+then
+	if [ "$1" = "-h" -o "$1" = "--help" ]
+	then
+		echo
+		echo "Скрипт предназначен для корректного отключения пользователей от базы"
+		echo "все что нужно знать: Linux PID, PTS или id"
+		echo "параметры можно использовать как вместе, так и по одиночке"
+		echo "suki [ pts/* | id????? | PID ]"
+		echo "suki [ pts/n1 PID_1 .. pts/nn PID_n id????? ]"
+		echo
+		exit
+	fi
+	
+	if [ `whoami` != "bankadm" ]; then
+		clear
+		echo "Можно запускать только под bankadm'ом !!!"
+		echo "Выход через 3 секунд ..."
+		sleep 4
+		exit
+	fi
+
+	for i in `echo $@`
+	do		
+		case $i in
+
+		pts*)
+			PTSUSER=`ps aux | grep $i | grep _progres | awk '{print $2}'`		
+			if [ -z "$PTSUSER" ]; 
+			then
+				exit	
+			fi
+
+			export PTSUSER
+			_progres /data/bmkb/bank -U bankadm -P Bflv02 -ld bank -b -p disconusr.r
+		;;
+
+		id?????)
+			PTSUSER=`ps aux | grep $i | grep _progres | awk '{print $2}'`		
+			for j in $PTSUSER
+			do	
+				export PTSUSER=$j
+				_progres /data/bmkb/bank -U bankadm -P Bflv02 -ld bank -b -p disconusr.r
+			done
+		;;
+
+		*)
+			export PTSUSER=$i
+			_progres /data/bmkb/bank -U bankadm -P Bflv02 -ld bank -b -p disconusr.r
+		;;
+		esac
+
+	done
+
+	else 
+	echo
+	echo "Try suki -h or --help for more information."
+	echo
+	sleep 1
+fi

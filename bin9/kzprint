@@ -1,0 +1,108 @@
+﻿#!/bin/sh
+# скрипт переделал id00024 (c)
+
+. /pragma/bin9/mcset
+TIME1=`ls /usr/etc/kzprint -l | awk '{print $8}'`
+LOG="/home/`/usr/bin/whoami`/add.log"
+test -e $LOG && rm $LOG 
+
+LOG2="/home/`/usr/bin/whoami`/add2.log"
+test -e $LOG2 && rm $LOG2 
+
+while true
+do
+clear
+  echo
+  echo
+  echo "            1. Добавить прошитый комп"
+  echo "            2. Поиск в файле настроек конкретного компа"
+  echo "            3. Показать содержимое файла настроек"
+  echo "	    Q. Выход"
+  echo
+  echo
+  read ans
+  case $ans in
+
+  1)
+echo " Введи имя или IP адрес компа..."
+echo -n " Cюда: "
+read PC
+echo 
+
+if [[ $PC ]]
+then
+PC=`echo $PC | awk '{print $1}'`
+ALL=`/usr/bin/nslookup $PC`
+
+ if [[ `echo $ALL | grep -i "SERVFAIL\|NXDOMAIN"` ]]
+ then
+ echo " Компьютера [ $PC ] нет в МЕТРОКОМБАНКЕ"
+ else
+ echo $PC | grep -i "st" > /dev/null || PC=`echo $ALL | awk '{print $8}' | awk -F. '{print $1"."$2"."$3}'`
+  echo; echo; echo; 
+  LIST=`/usr/bin/nslookup $PC | grep -i "Name\|Address" | grep -iv "#" | awk '{print $2}'`
+  ST=`echo $LIST | awk '{print $1}'`
+  IP=`echo $LIST | awk '{print $2}'`
+  DATA=`date "+20%y-%m-%d-%H-%M-%S"`
+
+  if [ `cat /usr/etc/kzprint | grep -ic $ST` -gt 0 ]; then echo " $ST уже прописан"; else echo "$ST" >> /usr/etc/kzprint && { echo "$ST добавлен в файл настроек"; echo "$ME добавил $ST в файл настроек в $DATA" >> /data/log/kzprint/add.log; echo "$ME добавил $ST в файл настроек" >> $LOG2; }; fi
+  if [ `cat /usr/etc/kzprint | grep -ic $IP` -gt 0 ]; then echo " $IP уже прописан"; else echo "$IP" >> /usr/etc/kzprint && { echo "$IP добавлен в файл настроек"; echo "$ME добавил $IP в файл настроек в $DATA" >> /data/log/kzprint/add.log; echo "$ME добавил $IP в файл настроек" >> $LOG2; }; fi
+
+	test -e $LOG2
+	if [ $? = 0 ]
+	then 
+	echo "From: $ME@metrobank.kz"	>> $LOG
+	echo "To: id00477@metrobank.kz; id00377@metrobank.kz; id00331@metrobank.kz; id00335@metrobank.kz"	>> $LOG
+	echo "Subject: =?CP1251?Q? Добавил в файл настроек ?==?CP1251?Q?"	>> $LOG
+	echo 'Content-Type: text/plain; charset="windows-1251"'			>> $LOG
+	test -e $LOG2 && cat $LOG2 >> $LOG && rm $LOG2 && cat $LOG | /usr/lib/sendmail -t
+	test -e $LOG && rm $LOG
+	TIME2=`ls /usr/etc/kzprint -l | awk '{print $8}'`
+	test "$TIME1" != "$TIME2" && cp /usr/etc/kzprint /data/log/kzprint/kzprint-$DATA
+        fi
+ fi
+else
+echo " Не введено мия компа"
+fi
+echo; echo -n "Жми ENTER"
+read w 
+;;
+
+  2)
+echo " Введи имя или IP адрес компа..."
+echo -n " Cюда: "
+read PC
+echo 
+
+if [[ $PC ]]
+then
+PC=`echo $PC | awk '{print $1}'`
+ALL=`/usr/bin/nslookup $PC`
+
+ if [[ `echo $ALL | grep -i "SERVFAIL\|NXDOMAIN"` ]]
+ then
+ echo " Компьютера [ $PC ] нет в МЕТРОКОМБАНКЕ"
+ else
+ echo $PC | grep -i "st" > /dev/null || PC=`echo $ALL | awk '{print $8}' | awk -F. '{print $1"."$2"."$3}'`
+  echo; echo; echo; 
+  LIST=`/usr/bin/nslookup $PC | grep -i "Name\|Address" | grep -iv "#" | awk '{print $2}'`
+  ST=`echo $LIST | awk '{print $1}'`
+  IP=`echo $LIST | awk '{print $2}'`
+  if [ `cat /usr/etc/kzprint | grep -ic $ST` -gt 0 ]; then echo " $ST уже прописан"; else echo " $ST НЕ прописан в файл настроек"; fi
+  if [ `cat /usr/etc/kzprint | grep -ic $IP` -gt 0 ]; then echo " $IP уже прописан"; else echo " $IP НЕ прописан в файл настроек"; fi
+ fi
+else
+echo " Не введено мия компа"
+fi
+echo; echo -n "Жми ENTER"
+read w 
+;;
+
+  3) clear; cat /usr/etc/kzprint | more;;
+
+  [qQ]) exit;;
+
+  *) echo " Не правильно. Жми 1 или 2 или Q, а затем ENTER!"
+     sleep 1;;
+  esac
+done

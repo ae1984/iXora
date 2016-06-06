@@ -1,0 +1,78 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+ 
+ID=$1
+. /pragma/bin9/proenv 
+. /pragma/bin9/mcset
+
+BDIR=$DBDIR/aibkup
+test -d /savedb/$DBID/aibkup || { mkdir /savedb/$DBID/aibkup; chmod 750 /savedb/$DBID/aibkup; }
+test -d $BDIR || { mkdir $BDIR; chmod 750 $BDIR; }
+test -d $SDIR || { echo "There is no dir $SDIR"; exit; }
+
+ FLS=`ls $SDIR`
+ if [[ $FLS = "" ]]
+  then echo "There is no files in $SDIR"
+  exit
+ fi
+
+chmod 0777 $SDIR/*
+sleep 1
+
+if [ $SDIR = $DBDIR/fullai ]
+ then
+   mv $SDIR/* $BDIR 
+ else
+   cp -f $SDIR/* $BDIR
+fi
+
+TIME=`date "+%H:%M:%S %d-%m-20%y"`
+MNTH=`date "+%m-20%y"`
+SETAI=`cat $DBDIR/set.ai`
+DAY=/savedb/$DBID/aibkup/$SETAI
+test -d $DAY || { mkdir $DAY; chmod 750 $DAY; }
+test -d $DBLOGDIR/ai || { mkdir $DBLOGDIR/ai; chmod 750 $DBLOGDIR/ai; }
+ABDIR=$DBLOGDIR/ai/$MNTH
+test -d $ABDIR || { mkdir $ABDIR; chmod 750 $ABDIR; }
+echo "	 " $i >> $ABDIR/$SETAI-ai.log
+
+test -d $DAY || { echo "Создание директории $DAY " >> /$ABDIR/$SETAI-ai.log; mkdir $DAY; chmod 750 $DAY; }
+
+echo
+echo "List of FILES:"
+echo "------------------------------------------------------------------------------------------------------"
+ls -t1 $BDIR
+echo "------------------------------------------------------------------------------------------------------"
+
+cd $BDIR
+	for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		   cp $i $BDIR/
+		   if [ $? = 0 ]
+			then rm -f $i
+			  echo "$DATE Копируем " $i "в $DAY" >> /$ABDIR/$SETAI-ai.log
+               		else 
+			  echo "$DATE Ошибка при копировании $i !!!" >> /$ABDIR/$SETAI-ai.log
+            	      fi
+            else 
+                nice -5 /usr/bin/gzip -qc1 $i > $BDIR/$i".Z"
+		   if [ $? = 0 ]
+			then rm -f $i
+                          echo "$DATE Архивируем " $i "в $DAY" >> /$ABDIR/$SETAI-ai.log
+			else 
+			  echo "$DATE Ошибка при архивации $i !!!" >> /$ABDIR/$SETAI-ai.log
+                   fi
+            fi
+        done
+
+
+mv -f $BDIR/*.Z  $DAY/
+
+DBN=`echo $1 | awk -F/ '{print $4}'`
+echo; sleep 1
+echo "================ $DAY =============="
+LS=`ls -1 $DAY` > /tmp/as.txt
+ls -loh  $DAY | grep --colour=always "$LS"
+echo "==================================================================="; echo

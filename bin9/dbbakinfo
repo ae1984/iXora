@@ -1,0 +1,8 @@
+﻿#/bin/sh
+PIPEFILE=/tmp/dbrest.$$
+mkfifo $PIPEFILE
+{ uncompress -c $2 >$PIPEFILE 2>&1 & } | read UCPID
+echo $UCPID
+$DLC/bin/prorest $1 $PIPEFILE -l e
+#kill -1 $UCPUD
+rm -f $PIPEFILE

@@ -1,0 +1,515 @@
+﻿#!/bin/sh
+
+#echo -n "Input Administrator Password:"
+
+#if [ $passw ]; then
+#    tes="yes"
+#    else
+    
+#    passw=`perl -e 'use Term::ReadKey;                                                                                     
+#             ReadMode("cbreak");                                                                                    
+#             while ($key ne "\n")                                                                                   
+#             {                                                                                                      
+#                 $key = ReadKey(0);                                                                                 
+#                 if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+#                 {                                                                                                  
+#                     $pass = $pass . $key;                                                                          
+#                     print "*";
+#                 }                                                                                                  
+#             }                                                                                                      
+#             ReadMode("normal");
+#             print ":$pass";' | awk -F: '{print $2}'`
+    
+#    if [ $passw ]; then 
+    
+#            res=`awk -F: '/bankadm_base/ {print $2}' /drbd/pragma/bin9/passwd`
+#            tes=`genkey.exe -c $passw $res`
+#        else
+#            tes="no"
+#    fi
+    
+#fi
+    
+#    if [ $tes = "yes" ]; then 
+
+#echo "\nOK!"
+
+#export passw
+
+chpriv(){
+ chmod 640 $1
+ chown bankadm:bank $1
+}
+chprivdir(){
+ chmod 750 $1
+ chown bankadm:bank $1
+}
+doexit(){
+  rm -f $LIBDIR/$LIB.lock 2>&1 >/dev/null
+  rm -f $INCLIST 2>&1 >/dev/null
+  rm -f $NEWINCLIST 2>&1 >/dev/null
+  rm -f $TMPINCLIST 2>&1 >/dev/null
+  exit $1
+}
+log(){
+  test $1. = . && FLOG=$LOG || FLOG=$1
+  date '+%m/%d/%y %H:%M:%S'|tr -d "\n" >>$FLOG
+  echo -n " `whoami` > ">>$FLOG
+  cat |tee -a $FLOG
+}
+startlog() 
+{
+  test $1. = . && FLOG=$LOG || FLOG=$1
+  echo -n >$FLOG
+  echo ============================= >>$FLOG
+  echo -n "Log started " >>$FLOG
+  date '+%m/%d/%y %H:%M:%S' >>$FLOG
+}
+stoplog()
+{
+  test $1. = . && FLOG=$LOG || FLOG=$1
+  echo -n "Log closed  " >>$FLOG
+  date '+%m/%d/%y %H:%M:%S' >>$FLOG
+#  echo ============================= >>$FLOG
+  test $FLOG = $LOG && cat $FLOG >>$MAINLOG
+}
+email()
+{
+  { cat; echo; cat $LOG;}|mail -s "$*" it@texakabank.kz
+}
+help(){
+  echo 'Syntax: libadm Library option [arg]'
+  echo 'Where option are:'
+  echo '-m           make Library'
+  echo '-c           compress Library'
+  echo '-t           transfer Library to texaka1'
+  echo '-a filename  add file to the Library'
+  echo '-r filename  replace file in the Library'
+  echo '-z           recompile the Library'
+  echo '-b           archiving sources and libruary'
+}
+err(){
+  echo Invalid option
+  help
+  doexit 1
+}
+docopy(){
+
+#echo -n "Input FTP connection password:"
+
+#      pasw=`perl -e 'use Term::ReadKey;
+#               ReadMode("cbreak");
+#               while ($key ne "\n")
+#               {
+#                   $key = ReadKey(0);                                                                                 
+#                   if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+#                   {
+#                       $pass = $pass . $key;
+#                       print "*";
+#                   }
+#               }
+#               ReadMode("normal");
+#               print ":$pass";' | awk -F: '{print $2}'`
+      
+#      if [ $pasw ]; then 
+      
+#              res=`awk -F: '/bankadm_unix/ {print $2}' /pragma/bin9/passwd`
+#              tes=`genkey.exe -c $pasw $res`
+#          else
+#              tes="no"
+#      fi
+
+  test = "yes"    
+  if [ $tes = "yes" ]; then 
+  
+      echo "\nOK!"
+
+      startlog
+
+#      rm -f $LIBDIR/$LIB.SHpl
+#      prolib $LIBDIR/$LIB.pl -makeshared $LIBDIR/$LIB.SHpl
+
+#      echo Start copying shared library $LIB.pl to host texaka1.|log
+#      echo "user bankadm $pasw\nbin\nput $LIBDIR/$LIB.SHpl $LIBDIR/$LIB.pl"|ftp -n texaka1 && echo Copying complete.|log || echo Error occured during copying.|log
+
+      echo Start copying library $LIB.pl to host texaka1.|log
+      echo "user bankadm $pasw\nbin\nput $LIBDIR/$LIB.pl $LIBDIR/$LIB.pl"|ftp -n texaka1 && echo Copying complete.|log || echo Error occured during copying.|log
+
+#      echo Start copying library $LIB.pl to host bankonline.|log
+#      echo "user inbank tjmgLB2cCcI\nbin\nput $LIBDIR/$LIB.pl ~/IOffice9/Wrk/$LIB.pl"|ftp -n bankonline && echo Copying complete.|log || echo Error occured during copying.|log
+
+      echo Start copying library $LIB.pl to host bankonline.|log
+      scp -o BatchMode=no /pragma/lib/RX/RX.pl inbank@bankonline:/home2/inbank/IOffice9/Wrk/RX.pl && echo Copying complete.|log || echo Error occured during copying to bankonline
+
+      echo Start copying library $LIB.pl to host penguin.|log
+      echo "user bankadm Texaka2006\nbin\nput $LIBDIR/$LIB.pl ~/XGATE/Wrk/$LIB.pl"|ftp -n penguin && echo Copying complete.|log || echo Error occured during copying.|log
+
+      echo Start archiving library and sources $LIB
+      dolibarc
+      echo Start copying archive $LIB.tar.Z to host texaka1.|log
+      echo "user bankadm $pasw\nbin\nput $DIRLIBS/$LIB.tar.Z $DIRLIBS/$LIB.tar.Z"|ftp -n texaka1 && echo Copying complete.|log || echo Error occured during copying.|log
+
+      echo Clearing rcode and rcode_new|log
+      rm -f $LIBDIR/rcode_new/* 2>&1 >/dev/null
+      export pasw LIBDIR
+
+      perl -e 'use Net::FTP;
+        
+         $ftp = Net::FTP->new("192.168.1.131", Passive => 1);
+         $ftp->login("bankadm", $ENV{pasw});
+         $ftp->binary;
+         @p=($ENV{LIBDIR},"/rcode");
+         $path=join("",@p);
+         print "DELETING!!!\n";
+         $ftp->cwd($path);
+        
+         @files=$ftp->dir;
+             foreach(@files) {
+             ($perm, $num, $login, $group, $size, $month, $day, $time, $fname) = split;
+            #$ftp->get($fname);
+             $ftp->delete($fname);
+             print "$fname\n";
+             }'
+         
+
+      stoplog
+   else
+   echo "\nPassword incorrect!!!"
+  fi
+}
+docopyib(){
+
+echo -n "Input IOFFICE FTP connection password:"
+
+      pasw=`perl -e 'use Term::ReadKey;
+               ReadMode("cbreak");
+               while ($key ne "\n")
+               {
+                   $key = ReadKey(0);                                                                                 
+                   if ($key =~ m/[\~\!\@\#\$\%\^\&\*\(\)\-_;:\?,\.<>\{\}\[\]abcdefghijklmnopqrstuvwxyz0123456789]/i)
+                   {
+                       $pass = $pass . $key;
+                       print "*";
+                   }
+               }
+               ReadMode("normal");
+               print ":$pass";' | awk -F: '{print $2}'`
+      
+      if [ $pasw ]; then 
+      
+              res=`awk -F: '/inbank_unix/ {print $2}' /pragma/bin9/passwd`
+              tes=`genkey.exe -c $pasw $res`
+          else
+              tes="no"
+      fi
+
+      
+  if [ $tes = "yes" ]; then 
+  
+      echo "\nOK!"
+      startlog
+
+      perl -e 'use Net::FTP;
+        
+         $ftp = Net::FTP->new("bankonline", Passive => 1);
+         $ftp->login("inbank", $ENV{pasw});
+         $ftp->binary;
+
+         # @p=("/home2/inbank/IOffice9","/Wrk");
+         # $path=join("",@p);
+
+         $path="/home2/inbank/IOffice9/Wrk";
+         print "DELETING FROM $path\n";
+         $ftp->cwd($path);
+        
+         @files=$ftp->dir;
+             foreach(@files) {
+             ($perm, $num, $login, $group, $size, $month, $day, $time, $fname) = split;
+             if (/\.r$/) { print "$fname\n";
+                           $ftp->delete($fname); 
+                         }
+
+             }'
+
+      echo Start copying library $LIB to host bankonline.|log
+      #echo "user inbank $pasw\nbin\nput $LIBDIR/$LIB.pl /home2/inbank/IOffice/Wrk/$LIB.pl"|ftp -n bankonline && echo Copying complete.|log || echo Error occured during copying.|log
+      echo "user inbank $pasw\nbin\nput $LIBDIR/rcode/* /home2/inbank/IOffice/Wrk/"|ftp -n bankonline && echo Copying complete.|log || echo Error occured during copying.|log
+
+      echo Clearing rcode and rcode_new|log
+      rm -f $LIBDIR/rcode_new/* 2>&1 >/dev/null
+      export pasw LIBDIR
+
+      stoplog
+   else
+   echo "\nPassword incorrect!!!"
+  fi
+}
+domake(){
+  MAKELOG=$LIBDIR/log/$LIB.`date '+%m%d%y%H%M%S'`.log
+  startlog
+  startlog $MAKELOG
+  echo Start making library $LIB.pl.|log|log $MAKELOG
+  gmake -C $LIBDIR -k -r -f $LIBDIR/$LIB.make all 2>&1 | log $MAKELOG
+  echo Making finished.|log|log $LIB.makelog
+  echo See log file $MAKELOG for detals.|log>/dev/null
+  chmod 640 $LIBDIR/$LIB.pl
+  chown bankadm $LIBDIR/$LIB.pl
+  chgrp bank $LIBDIR/$LIB.pl
+  stoplog
+  stoplog $MAKELOG
+}
+domakeall(){
+  MAKELOG=$LIBDIR/log/$LIB.`date '+%m%d%y%H%M%S'`.log
+  startlog
+  startlog $MAKELOG
+  echo Deleting RCODE from library $LIB.pl.|log|log $MAKELOG
+  mv -f $LIBDIR/$LIB.pl $LIBDIR/$LIB.pl.`date '+%m%d%y-%H%M'`
+  cd $LIBDIR/rcode/
+  rm -f *
+  echo See log file $MAKELOG for detals.|log>/dev/null
+  stoplog
+  stoplog $MAKELOG
+}
+docompress(){
+  startlog
+  echo Start compressing library.|log
+  prolib $LIBDIR/$LIB.pl -compress -pf $DLC/prolib.pf
+  echo Compressing finished.|log
+  stoplog
+}
+increflist(){
+  while read R
+  do
+    IL=`inclist $F1|tr "\n" " "`
+  done
+}
+doincreflist(){
+  cat $LIBDIR/$LIB.files|grep -v -e "^#"|awk '{print $2}'|tr ".w.r;" ".w "|tr ".r;" ".p "|\
+  { while read x; do increflist $x; done;}
+}
+mnlinclist(){
+  while test "$r." != "n." -a "$r." != "y."
+  do
+    echo -n Do you want to add any include files manually? [y/n]:
+    read r
+    test "$r." = "n." && return
+  done
+  F=x
+  while test "$F." != "."
+  do
+    echo -n Enter inclide file name:
+    read F
+    test "$F." = "." && break
+    test -f $F || { echo File $F not found.;  continue;}
+    { cat $INCLIST; echo $FF|tr " " "\n";}|grep -q -x `basename $F` && { echo File $F already added.; continue;}
+    test ! -f $LIBDIR/src/$F && NF="$NF $F"
+    FF="$FF `basename $F`"
+  done
+  NF=$NF `cat $NEWINCLIST|tr "\n" " "`
+  echo $NF|tr " " "\n"|sort -f -u>$NEWINCLIST
+  FF=$FF `cat $INCLIST|tr "\n" " "` 
+  echo $FF|tr " " "\n"|sort -f -u>$INCLIST
+  cat $NEWINCLIST
+  cat $INCLIST
+}
+doinclist(){
+  for F1
+  do
+    IL=`inclist $F1|tr "\n" " "`
+    if test ."$IL" != .; then 
+      echo '$(SRC_DIR)/'`basename $F1`: $IL'; $(UPDATE)' >>$INCLIST
+      chkincl $IL
+      doinclist `cat $TMPINCLIST|tr "\n" " "`
+    fi
+  done
+}
+chkincl(){
+  echo -n >$TMPINCLIST 
+  for F
+  do
+    echo $F|grep '/' && { echo "Include file name ($F) cannot contain path."; doexit 1;}
+    if test ! -f $LIBDIR/src/$F && { cat $NEWINCLIST|grep -q -e "^.*[./]$F$"; test ! $? -eq 0;}
+    then
+      D=dafdfksdfkjsdf 
+      while test ! -f $D/$F
+      do
+        echo -n Enter include file $F location: 
+        read D
+        test -f $D/$F || echo Include file $D/$F not found.
+      done
+      echo $D/$F|tee -a $TMPINCLIST>>$NEWINCLIST
+    fi
+  done
+}
+dosort(){
+  mv $1 $1~
+  sort -f $1~>$1
+  chpriv $1
+}
+doaddinc(){
+  for F
+  do
+    echo Adding include file `basename $F`.|log
+    cp $F $LIBDIR/src/
+    chpriv $LIBDIR/src/$F
+  done
+}
+chkdb(){
+  DBLIST=
+  echo Select database must be connected to.
+  while test ! $K. = x.
+  do 
+    cat $LIBDIR/$LIB.dbdefs|grep -n ""|tr ":" " "|awk '{if(!match("'"$DBLIST"'","."$2)) print $1". "$2}'
+    echo x. No more database wanted. Done
+    read K
+    case $K in
+    [0-9]|10|11|12) DB=`cat $LIBDIR/$LIB.dbdefs|awk '{if(NR=='$K') print $1}'|tr -d ":"` 
+         test $DB. = . && echo Item $K not found. Please select from list.&& continue
+         echo $DBLIST|grep -e ".$DB">/dev/null && echo Database $DB already selected. Please select from list.&& continue
+         DBLIST=$DBLIST.$DB
+         ;;
+    x)   break;;
+    ?)   echo Press numeric key from list or x.;;
+    esac
+    echo "\nYour choose: " $DBLIST
+  done
+  DBLIST=`echo $DBLIST|tr "." " "`
+}
+append(){
+  while read REC
+  do 
+    mv $1 $1~
+    REC1=`echo $REC|awk '{print $'$2'}'`
+    cat $1~|awk '{if($'$2' != "'$REC1'") print}'>$1
+    echo $REC>>$1
+  done
+  dosort $1
+}
+doadd(){
+  FILE=`basename $1 '\..*'`
+  test $FILE != `basename $1` -a $FILE.p != `basename $1` && { test $FILE != `basename $1` -a $FILE.w != `basename $1` && { echo Only .p and .w files currently allowed.; doexit 1;}; } 
+  DIR=`dirname $1`
+  FILE=$FILE.p
+  test -f $DIR/$FILE || { FILE=`basename $1 '\..*'`; FILE=$FILE.w; test -f $DIR/$FILE || { echo file $DIR/$FILE not found; doexit 1; }; }
+  test -f $LIBDIR/src/$FILE && { echo "File $FILE already exists in the library.\nUse -r (replace) option instead -a."; doexit 1;}
+  doinclist $DIR/$FILE
+#  mnlinclist
+  chkdb
+  startlog
+  if test "$DBLIST." != "."; then
+    LIBASENAME=`basename $FILE "\.p"`
+    echo `basename $LIBASENAME "\.w"`.r $DBLIST >>$LIBDIR/$LIB.dbrefs
+    dosort $LIBDIR/$LIB.dbrefs
+  fi  
+  echo Adding source file $FILE.|log
+  LIBASENAME=`basename $FILE "\.p"`
+  echo '$(LIB)::' `basename $LIBASENAME "\.w"`'.r; $(ADD)'|append $LIBDIR/$LIB.files 2
+  cp $DIR/$FILE $LIBDIR/src/
+  chpriv $LIBDIR/src/$FILE
+  cat $INCLIST|append $LIBDIR/$LIB.include 1
+  doaddinc `cat $NEWINCLIST|tr "\n" " "`
+  stoplog
+}
+dorepl(){
+  FILE=`basename $1`
+  DIR=`dirname $1`
+  test -f $DIR/$FILE || { echo File $DIR/$FILE not found.; doexit 1;}
+  { test -f $LIBDIR/src/$FILE && TFILE=$LIBDIR/src/$FILE;}||\
+  { echo "File $FILE not in the library.\nUse -a (add) option instead -r."; doexit 2;}
+  diff $DIR/$FILE $TFILE 2>&1 >/dev/null && { echo File does not contain any differnces. Replacement ignored.; doexit 1;}
+  doinclist $DIR/$FILE
+#  read v
+#  mnlinclist
+  startlog
+  test -d $LIBDIR/arc/$FILE || { mkdir $LIBDIR/arc/$FILE; chprivdir $LIBDIR/arc/$FILE;}
+  echo Replacing file $FILE.|log
+  ARCD=$LIBDIR/arc/$FILE/`date "+%d.%m.%y-%H:%M:%S"`
+  mkdir $ARCD
+  chprivdir $ARCD
+  cp $TFILE $ARCD/
+  chpriv $ARCD/`basename $TFILE`
+  cp $DIR/$FILE $TFILE
+  chpriv $TFILE
+  echo Removing previous version of file $FILE to $ARCD.|log
+  cat $INCLIST|append $LIBDIR/$LIB.include 1
+  doaddinc `cat $NEWINCLIST|tr "\n" " "`
+  stoplog
+}
+dolibarc(){
+
+  DIRLIBS=/pragma/lib
+  tar -cvf $DIRLIBS/$LIB.tar $DIRLIBS/$LIB/$LIB.* $DIRLIBS/$LIB/src/* >/dev/null
+  rm $DIRLIBS/$LIB.tar.Z
+  gzip -q1 -S .Z $DIRLIBS/$LIB.tar
+}
+
+
+LIB=$1
+export LIB
+LIBDIR=/pragma/lib/$LIB
+test -f $LIBDIR/$LIB.make || { echo Library $1 not found.; help; exit 1;}
+test -f $LIBDIR/$LIB.lock && ps -p `cat $LIBDIR/$LIB.lock`>/dev/null && { echo Library locked by `ls -l $LIBDIR/$LIB.lock|awk '{print $3}'`.; exit 1;}
+rm -f $LIBDIR/$LIB.lock 2>&1 >/dev/null
+echo $$>$LIBDIR/$LIB.lock
+INCLIST=/tmp/inc$$.tmp
+echo -n>$INCLIST
+NEWINCLIST=/tmp/newinc$$.tmp
+echo -n>$NEWINCLIST
+TMPINCLIST=/tmp/tmpinc$$.tmp
+echo -n>$TMPINCLIST
+MAINLOG=$LIBDIR/log/$LIB.log
+LOG=/tmp/libadm.log.tmp
+shift 1
+while getopts ztlcma:r:i: OPT
+do
+  case $OPT in
+    a) doadd $OPTARG;;
+    i) doincreflist $OPTARG;;
+    r) dorepl $OPTARG;;
+    l) mnlinclist;;
+    m) domake    $LIB;;
+    z) domakeall $LIB
+       domake    $LIB
+       docompress;;
+    c) docompress;;
+    t) if [ "$LIB" = "IB" ] ; then
+          docopyib;
+       else
+          docopy;
+       fi;;
+    b) dolibarc;;
+    ?) err;;
+  esac
+done
+
+shift `expr  $OPTIND - 1`
+
+doexit 0
+
+trap 'doexit 1' 1 2 
+
+else 
+echo "\nPassword incorrect!"
+fi
+B
+       docompress;;
+    c) docompress;;
+    t) if [ "$LIB" = "IB" ] ; then
+          docopyib;
+       else
+          docopy;
+       fi;;
+    b) dolibarc;;
+    ?) err;;
+  esac
+done
+
+shift `expr  $OPTIND - 1`
+
+doexit 0
+
+trap 'doexit 1' 1 2 
+
+else 
+echo "\nPassword incorrect!"
+fi

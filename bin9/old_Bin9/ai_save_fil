@@ -1,0 +1,61 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+ 
+. /pragma/bin9/dbenv
+SDIR=data/$DBID/ai
+test -d /data/$DBID/aibkup || { mkdir /data/$DBID/aibkup; chmod 750 /data/$DBID/aibkup; }
+
+BDIR=data/$DBID/aibkup
+test -d /savedb/$DBID/aibkup || { mkdir /savedb/$DBID/aibkup; chmod 750 /savedb/$DBID/aibkup; }
+test -d /$BDIR || { mkdir /$BDIR; chmod 750 /$BDIR; }
+cp -f /$SDIR/* /$BDIR 
+
+DATE=`date "+%y-%m-%d"`
+DAY=/savedb/$DBID/aibkup/$DATE
+test -d $DAY || { mkdir $DAY; chmod 750 $DAY; }
+
+TIME=`date "+%H-%M-%S"`
+TDIR=$DAY/$TIME
+test -d /$TDIR || { mkdir /$TDIR; chmod 750 /$TDIR; }
+
+test -d $DBLOGDIR/ai || { mkdir $DBLOGDIR/ai; chmod 750 $DBLOGDIR/ai; }
+ABDIR=$DBLOGDIR/ai/$DATE
+test -d /$ABDIR || { mkdir /$ABDIR; chmod 750 /$ABDIR; }
+echo "	 " $i >> /$ABDIR/ai.log
+
+test -d $DAY || { mkdir $DAY; chmod 750 $DAY; }
+#rm -rfv /savedb/$DBID/aibkup/$DATE/* >> $ABDIR/ai.log
+#echo "уФБТЩЕ ЖБКМЩ ХДБМЕОЩ РТПГЕДХТПК ЪБРХУЛБЕНПК У ЛТПОБ" >> $ABDIR/ai.log
+#echo "	"
+echo "уПЪДБОЙЕ ДЙТЕЛФПТЙЙ $DATE / $TIME " >> /$ABDIR/ai.log
+
+cd /$BDIR
+	for i in `ls * | awk '{print $0}'`
+	do 
+	   if [ `echo $i | grep .Z` ]
+	      then 
+		   cp $i /$BDIR/
+		   if [ $? = 0 ]
+			 then rm -f $i
+                              echo "$DATE / $TIME лПРЙТХЕН " $i "Ч $TDIR" >> /$ABDIR/ai.log
+               		 else echo "$DATE / $TIME пЫЙВЛБ РТЙ ЛПРЙТПЧБОЙЙ $i !!!" >> /$ABDIR/ai.log
+            	      fi
+            else 
+                nice -5 /usr/bin/gzip -qc1 $i > /$BDIR/$i".Z"
+		   if [ $? = 0 ]
+                      then rm -f $i
+                           echo "$DATE / $TIME  бТИЙЧЙТХЕН " $i "Ч $TDIR" >> /$ABDIR/ai.log
+                      else echo "$DATE / $TIME пЫЙВЛБ РТЙ БТИЙЧБГЙЙ $i !!!" >> /$ABDIR/ai.log
+                   fi
+            fi
+        done
+
+
+mv -f /$BDIR/*.Z  /$TDIR/
+
+DBN=`echo $1 | awk -F/ '{print $4}'`
+echo; sleep 1
+echo "================ savedb/$DBID/aibkup/$DATE/$TIME =============="
+LS=`ls -1 /savedb/$DBID/aibkup/$DATE/$TIME` > /tmp/as.txt
+ls -loh  /savedb/$DBID/aibkup/$DATE/$TIME | grep --colour=always "$LS"
+echo "==================================================================="; echo

@@ -1,0 +1,25 @@
+﻿#!/bin/sh
+# Setting up database related variables.
+
+if [ ! -d /pragma/lib9/RKC/users/`/usr/bin/whoami` ]
+then
+  mkdir /pragma/lib9/RKC/users/`/usr/bin/whoami`
+  chmod 770 /pragma/lib9/RKC/users/`/usr/bin/whoami`
+fi
+
+if test .$DBID = .
+then
+  test .$1 != . || { echo "You must supply a database id."; exit 1;}
+  DBID=$1
+  export DBID
+  . /pragma/bin9/proenv    #Setting up progress environment.
+  cat /pragma/bin9/rkc.cfg|awk '/\['$1'\]/,/\[.+\]/&&($0!~/'$1'/)'|awk '($0!~/\[.*\]/)&&($0!~/^[[:space:]]*#/)&&($0!~/^[[:space:]]*$/)'>/tmp/rkcenv$$.tmp
+  test -s /tmp/rkcenv$$.tmp || { echo "You have supplied incorrect database id."; exit 1;}
+  set -a
+  . /tmp/rkcenv$$.tmp
+  set +a
+  rm -f /tmp/rkcenv$$.tmp
+  shift 1
+#  test "$DBID" != "$1" || { echo "You have supplied incorrect database id."; exit 1;}
+fi
+

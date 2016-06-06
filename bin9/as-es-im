@@ -1,0 +1,4 @@
+﻿#!/bin/bash
+
+runcomm alm as-es-im.p $1
+

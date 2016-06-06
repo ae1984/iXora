@@ -1,0 +1,13 @@
+﻿#!/bin/sh
+
+#-----------------------------------------------------
+# Locating and deleting frozen Progress sessions
+# of users (except root, superman, bankadm, stalker)
+# By Alexander Muhovikov, 25/09/2002
+#-----------------------------------------------------
+# MAIN SCRIPT - runs prokill.p and then goes prokill0
+#-----------------------------------------------------
+
+DLC=/usr/dlc9;export DLC
+PROPATH=.:/pragma/lib/RX/RX.pl:/pragma/ST.pl:/pragma/alga.pl:/pragma/lib/RX/src:/pragma/bin9;export PROPATH
+$DLC/bin/_progres -b -p prokill.p

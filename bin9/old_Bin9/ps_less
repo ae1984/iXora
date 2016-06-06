@@ -1,0 +1,5 @@
+﻿awk  '{ l = 99 ; ls = length($0) ; print substr($0,1,l); lt = l ; l = 81 ; \
+for (i=1;ls > lt ;i++) {print "                  "  \
+substr($0, lt + 1 , l ) ; lt = lt + l }}' $1 > /tmp/$$.log_ps 
+joe -rdonly /tmp/$$.log_ps
+/bin/rm /tmp/$$.log_ps

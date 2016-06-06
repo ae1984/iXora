@@ -1,0 +1,17 @@
+﻿#
+# KOVAL Копирует Swift.txt c A: to C:\PROV_CIK\IN\
+#       Synopsis
+#       rpfa
+#
+PC=Administrator@`askhost`
+scp $PC:A:\\swift.txt $HOME/temp.txt
+cat $HOME/temp.txt | tr -d '\015' | awk ' /:50:\/D\// {D=substr($0,8,9)}; /:70:\/NUM\// {gsub(" ","_",$0); print D "-" substr($0,10,length($0)-9) }' > $HOME/pid
+kuda=`cat $HOME/pid`
+dt=`date '+%H%M%S'`
+scp $HOME/temp.txt $PC:C:\\PROV_CIK\\IN\\$kuda"-"$dt.txt 
+rm -f $HOME/pid
+rm -f $HOME/temp.txt
+
+echo " "
+echo "Файл скопирован под именем " $kuda"-"$dt".txt в каталог C:\\PROV_CIK\\IN\\"
+echo " "

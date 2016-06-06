@@ -1,0 +1,5 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/rkcenv 
+
+exec $DLC/bin/_progres $DBDIR/$DBNAME -ld bank -t -T $DBDIR/temp -mmax 650 -h 10 -d dmy $@

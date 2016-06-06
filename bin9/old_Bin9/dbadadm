@@ -1,0 +1,61 @@
+﻿#!/bin/sh
+# УЛТЙРФ ОБРЙУБО id00024 (c)
+
+. /pragma/bin9/dbenv
+
+while true
+do
+  echo
+  echo
+  echo "            S. Start iXora $DBDESCR"
+  echo "            D. Start pragma on $DBDESCR" 
+  echo "            1. Database monitor for $DBDESCR"
+  echo "            2. Connected user list"
+  echo "            3. Disconnect user"
+  echo "            4. Database statistic for $DBDESCR"
+  echo "            5. Grep only users in $DBDESCR and show there ip or DNS"
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  [Ss]) pragma $1 -U bankadm -P $passw;;
+  [Dd]) dpragma $1 -U bankadm -P $passw;;
+  1) $DLC/bin/promon $DBDIR/$DBNAME;;
+
+  2) $DLC/bin/proshut $DBDIR/$DBNAME -C list;;
+
+  3) echo -n "Enter user number:"
+     read UN
+     test $UN && $DLC/bin/proshut $DBDIR/$DBNAME -C disconnect $UN;;
+
+  4) $DLC/bin/prostrct statistics $DBDIR/$DBNAME;;
+
+  5)
+    A=`proshut $DBDIR/$DBNAME -C list | grep -v "tty\|WDOG\|BIW\|AIW\|APW" | awk '{print $8}'`
+
+  if [ "$A" = "" ]
+   then
+    echo ":) There is nobody in base $DBDESCR"
+   else
+    echo "                                                            Ё"
+    echo -e "\a            There is(are) user(s) in Detabase               Ў" | grep --colour=always "There is(are) user(s) in Detabase"
+    echo "  Detabase: $DBDESCR 	Path: $DBDIR/$DBNAME.db"  | grep --colour=always "$DBDESCR\|$DBDIR/$DBNAME.db"
+    echo "            List of connected logins to Detabase            µ"
+      U=`last | grep still | awk '{print $6" "$5" Ў "$7"-"$8" Ў "$1" Ў "$3}'`
+    echo "$A" | grep --colour=always "$A"
+    echo "                                                            µ"
+    echo "  List of all connected sessions with matching that logins  Ў"
+    echo "[date] ё [connected] ё[user id]ё[ip addres or DNS Name]     µ"
+    echo "$U" | grep --colour=always "$A"
+    echo "       »             »         »                            ®"
+    echo; echo "Press Enter to EXIT" | grep --colour=always "Press Enter to EXIT"
+    read ANSW
+  fi;;
+  cp) scp -o PasswordAuthentication=yes -o batchmode=no 172.16.1.12:/pragma/lib/RX/RX.pl /pragma/lib/RX/;;
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-5 or S/D/Q."
+     sleep 2;;
+  esac
+done

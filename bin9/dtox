@@ -1,0 +1,53 @@
+﻿##########################################################################
+# Shellscript:	dtox - DOS to UNIX text file conversion
+# Author     :	Heiner Steven <heiner.steven@odn.de>
+# Category   :	File Conversion
+# SCCS-Id.   :	@(#) dtox	1.1 02/02/26
+##########################################################################
+# Description
+#	Replaces "CR LF" sequences with "LF" end-of-line.
+#	Does not handle DOS end-of-file character CTRL-Z (ASCII 26).
+##########################################################################
+
+PN=`basename "$0"`			# Program name
+VER='1.1'
+
+Usage () {
+    echo >&2 "$PN - DOS to UNIX text file conversion, $VER
+usage: $PN file [file ...]"
+    exit 1
+}
+
+Msg () {
+    for MsgLine
+    do echo "$PN: $MsgLine" >&2
+    done
+}
+
+Fatal () { Msg "$@"; exit 1; }
+
+set -- `getopt h "$@"` || Usage
+[ $# -lt 1 ] && Usage			# "getopt" detected an error
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+					# your flags here
+	--)	shift; break;;
+	-h)	Usage;;
+	-*)	Usage;;
+	*)	break;;			# First file name
+    esac
+    shift
+done
+
+[ $# -lt 1 ] && Usage
+
+set -e				# Terminate at first error
+for file
+do
+    echo >&2 "$file"
+    sed 's/$//' < "$file" > tmp.$$ &&
+    	mv tmp.$$ "$file"
+done
+

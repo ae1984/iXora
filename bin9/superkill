@@ -1,0 +1,30 @@
+﻿#!/bin/sh
+# скрипт переделал id00024 (c)
+
+TIME=`date "+20%y-%m-%d.%H:%M:%S"`
+TIME2=`date "+20%y-%m-%d"`
+
+SKIPDAY=`date "+%d-%m-%y"`
+cat /pragma/bin9/skipdays | grep -v "#" | grep $SKIPDAY && exit
+
+export ME=`/usr/bin/whoami`
+export PC=`/usr/local/bin/askhost`
+test $ME = "superman" || exit
+LOG=/data/log/sesskill/$TIME.log
+TMPLOG=/tmp/SUPERLOG.tmp
+test -e $TMPLOG && rm $TMPLOG
+
+# ps aux | grep -w "qps" | grep -v TCP | grep -v "grep" | awk '{print $2" 	sucsess killed 	"$14" 	from 	"$12}' >> $TMPLOG
+# Письмо от мадика от 2010.07.19 Пн 15:37, "Корректная остановка соник-процессов"
+
+ps aux | grep "TXB" | grep -v TCP | grep -v "grep" | grep -v "/data/bmkb/bank" | awk '{print $2" 	sucsess killed 	"$14" 	from 	"$12}' >> $TMPLOG
+
+PIDS=`cat $TMPLOG | awk '{print $1}'`
+for i in $PIDS
+do
+WRT=`cat $TMPLOG | grep -w $i`
+kill $i && echo "$WRT 	at $TIME2" >> $LOG
+done
+
+cat $LOG | /bin/mail -s Superkill 'Alexandr.Korzhov@fortebank.com Ivan.Karasev@fortebank.com Anton.Marchenko@fortebank.com'
+test -e $TMPLOG && rm $TMPLOG

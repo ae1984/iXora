@@ -1,0 +1,12 @@
+﻿#hst=$1
+#ps -eaf | grep _prog | nawk \
+# -v what="-p ${hst}_"  \
+#'{i = index($0,what) ; if ( i != 0 && index($0,"awk") == 0 ) 
+#  {print $2 " " substr($0,i+3,40 ) }} ' -
+
+
+hst=$1
+ps -eaf | grep _prog | awk \
+ -v what="-p ${hst}_"  \
+'{i = index($0,what) ; if ( i != 0 && index($0,"awk") == 0 ) 
+  {print $2 " " substr($0,i+3,40 ) }} ' -

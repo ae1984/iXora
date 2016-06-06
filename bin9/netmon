@@ -1,0 +1,67 @@
+﻿#!/bin/bash
+# скрипт написан id00024 (c) 
+
+FIRST="First parametr is measure [k/m/g]. Bytes by default!"
+SECOND="Second parametr is wait intervel in seconds [1/2/3/4..9999]."
+THIRD="Third parametr is how many times to repeat [1/2/3/4..9999]."
+
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" ]
+then
+echo $FIRST
+echo $SECOND
+echo $THIRD
+exit
+fi
+
+VOL="bytes"
+WAIT="1"
+REPEAT="1"
+#TIME="seconds"
+SPACE="       	"
+
+if [[ $1 ]]; then
+if [ "$1" = "k" -o "$1" = "m" -o "$1" = "g" ]
+then UNIT="$1"
+test $UNIT = "k" && { AND="/1024"; VOL="Kb"; }
+test $UNIT = "m" && { AND="/1024/1024"; VOL="Mb"; }
+test $UNIT = "g" && { AND="/1024/1024/1024"; VOL="Gb"; }
+else echo "You input incorrect first parametr! $FIRST Bytes by default!"
+fi; else echo "You didn't input first parametr! $FIRST Bytes by default!"; fi
+if [[ $2 ]]; then if [[ $2 -ge 2 ]]; then WAIT=$2; fi; else echo "You didn't input second parametr! $SECOND 1 second by default!"; fi
+if [[ $3 ]]; then if [[ $3 -ge 1 ]]; then REPEAT=$3; fi; else echo "You didn't input third parametr! $THIRD 1 iteration by default!"; fi
+echo
+echo "IN       	OUT"
+echo "-------------------------"
+
+ALL1=`/sbin/ifconfig eth1 | grep "bytes"`
+RX1=`echo $ALL1 | awk  '{print $2}' | awk -F: '{print $2}'`
+TX1=`echo $ALL1 | awk  '{print $6}' | awk -F: '{print $2}'`
+
+while true
+do
+sleep $WAIT
+ALL2=`/sbin/ifconfig eth1 | grep "bytes"`
+RX2=`echo $ALL2 | awk  '{print $2}' | awk -F: '{print $2}'`
+TX2=`echo $ALL2 | awk  '{print $6}' | awk -F: '{print $2}'`
+
+RES=`let "x=($RX2-RX1)$AND"; echo $x`; echo -n "$RES $VOL"; echo -n "$SPACE"
+TES=`let "x=($TX2-TX1)$AND"; echo $x`; echo "$TES $VOL"
+
+RX1="$RX2"
+TX1="$TX2"
+
+RXALL=`let "x=$RXALL+$RES"; echo $x`
+TXALL=`let "x=$TXALL+$TES"; echo $x`
+
+let "CYCLE=$CYCLE+1"
+let "WAITT=$WAITT+$WAIT"
+
+if [ $CYCLE -ge $REPEAT ]
+then
+echo "-------------------------"
+#if [ $WAITT -ge 60 ]; then let "WAITT=$WAITT/60"; TIME="minutes"; fi 
+echo -n "$RXALL $VOL       	"; echo "$TXALL $VOL$SPACE(total for $WAITT seconds $REPEAT times)"
+exit 0
+fi
+done

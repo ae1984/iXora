@@ -1,0 +1,8 @@
+﻿#/bin/sh
+# Refaction by Suchkov
+
+#xtod $1 | awk -f /pragma/bin9/unixdos > $2
+
+xtod $1 > $$-$$
+rcode $$-$$ $2 -kd 2>$1 >/dev/null
+rm -f $$-$$

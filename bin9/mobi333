@@ -1,0 +1,6 @@
+﻿#!/bin/bash
+echo "to COMM..."
+runcomm alm mobl333.p $1
+echo "to IB..."
+runpro alm mobl333IB.p $1
+echo "done."

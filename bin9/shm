@@ -1,0 +1,15 @@
+﻿#!/bin/sh
+
+#test -e /tmp/shm.log && { rm /tmp/shm.log; }
+
+for i in $(proutil -C dbipcs | grep ".db" | awk '{print $1}')
+do
+SHMID=`ipcs -m | grep $i | awk '{print $4}' | grep -v "660\|662\|664\|666"`
+echo $SHMID
+#test -z $SHMID && { exit; }
+DBASE=`proutil -C dbipcs | grep $i | awk '{print $5}'`
+echo "Shared Memory of database $DBASE is $SHMID" >> /tmp/shm.log
+done
+#cat /tmp/shm.log 
+
+#test -e /tmp/shm.log && { rm /tmp/shm.log; }

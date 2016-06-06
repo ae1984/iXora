@@ -1,0 +1,9 @@
+﻿#!/bin/sh
+DBMON=/data/promon
+PROPATH=.:$DBMON/crc/
+DB=pm
+$DLC/bin/_mprosrv $DBMON/$DB -n 20  -L 8192 -bibufs 50 -spin 32000 -Mm 4096
+$DLC/bin/prowdog $DBMON/$DB
+$DLC/bin/probiw  $DBMON/$DB
+$DLC/bin/proapw  $DBMON/$DB
+$DLC/bin/proapw  $DBMON/$DB

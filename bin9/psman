@@ -1,0 +1,189 @@
+﻿#!/bin/bash
+# id00477 15.11.2012 (c)
+
+if [ `whoami` != "superman" ]; then
+        echo "Only superman must do it"
+        sleep 1
+        exit
+fi
+
+#export ME=`whoami`
+#test $ME -eq "superman" || {echo "Only superman must do it"; exit;}
+
+
+export PROPATH=.:/pragma/lib/RX/users/`/usr/bin/whoami`:/pragma/lib/RX/rcode_debug:/pragma/lib/RX/rcode:/pragma/lib/RX/RX.pl:/pragma/lib/RX/src:/pragma/bin9:/usr/wsrt31e/src/web/method/:/drbd/dlc/jms
+export PATH=/pragma/bin9:/pragma/bin9/stat:$PATH
+
+ID=$1
+. /pragma/bin9/dbenv 
+
+while true
+do
+    echo
+    echo
+    echo "        1. PS run one"
+	if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ];	then
+		echo "       11. PS run one to all filial"
+		echo
+	fi	
+	echo "        2. PS run all"
+	if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ];	then
+		echo "       22. PS run all filial"
+	fi
+	echo
+	echo "        3. PS stop one"
+	if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ];	then
+		echo "       33. PS stop one to all filial"
+		echo
+	fi
+	echo "        4. PS stop all"
+	if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ];	then
+		echo "       44. PS stop all filial"
+	fi    
+	echo
+    echo "        5. PS close"
+	if [ "$DBDESCR" = "HEAD OFFICE METROCOMBANK" ];	then
+		echo "       55. PS close all filial"
+	fi	
+    echo
+    echo "        Q. EXIT"
+    read ANS
+    case $ANS in
+        1 | 11)
+          #Запуск только одного процесса
+		  VPARAM="run_one"
+		  echo "Ведите код процесса:" 
+		  read VPID
+		  export VPID	
+		  #если такой процесс уже запущен, то убить
+		  if [ $ANS -eq 11 ];	then
+			KILLPID=`ps aux | grep -v 'TCP' | grep TXB | grep -i $VPID | awk '{print $2}'`
+		  else
+			KILLPID=`ps aux | grep $DBID | grep -v 'TCP' | grep TXB | grep -i $VPID | awk '{print $2}'`
+		  fi
+          ;;
+		2 | 22)
+          #Запуск всех процессов платежной системы
+		  if [ $ANS -eq 22 ]; then
+			KILLPID=`ps aux | grep -v 'TCP' | grep TXB | awk '{print $2}'`
+		  else
+			KILLPID=`ps aux | grep $DBID | grep -v 'TCP' | grep TXB | awk '{print $2}'`
+		  fi
+		  VPARAM="run_all"
+          ;;	
+		3 | 33)
+          #Остановка только одного процесса
+		  VPARAM="stop_one"		  
+		  echo "Ведите код процесса:"
+		  read VPID
+		  export VPID		
+          ;;        
+        4 | 44)
+          #Остановка всех процессов платежной системы
+		  TIME=`date "+20%y-%m-%d.%H:%M:%S"`
+		  LOG=/data/log/sesskill/$TIME.log
+		  VPARAM="stop_all"			  
+          ;;        	
+        5 | 55)
+          #Закрытие опердня платежной системы
+		  VPARAM="close"			  
+          ;;		
+        [Qq])
+          #Выход
+          exit 0
+          ;;
+        *)
+          #Проверка на дурака
+          echo "Wrong selection. Press 1-5 or Q."
+		  ANS=""
+          sleep 1
+          ;;
+    esac
+	export VPARAM
+
+	if [ $ANS -ne 11 ] && [ $ANS -ne 22 ] && [ -n "$KILLPID" ]; then
+		#suki $KILLPID
+		sudo kill $KILLPID
+	fi
+
+	BUF=$DBID
+
+	if [ $ANS -ne 11 ] && [ $ANS -ne 22 ] && [ $ANS -ne 33 ] && [ $ANS -ne 44 ] && [ $ANS -ne 55 ]; then
+		_progres $DBDIR/$DBNAME -U superman -P $passw -p psrun	
+	else
+		if [ $BUF = bmkb ];	then
+
+			echo 'Return-Path: superman@ixora601.metrobank.kz' >> $LOG
+			echo 'From: superman@ixora601.metrobank.kz' >> $LOG
+			echo 'To: Alexandr.Korzhov@fortebank.com Ivan.Karasev@fortebank.com Anton.Marchenko@fortebank.com' >> $LOG
+			#echo 'To: Alexandr.Korzhov@fortebank.com' >> $LOG
+
+			echo 'Subject: =?windows-1251?Q?PS_STOP?=' >> $LOG
+			echo 'Content-type: multipart/mixed; boundary="--------=PART.BOUNDARY"' >> $LOG
+			echo "X-Priority: 3" >> $LOG
+			echo '----------=PART.BOUNDARY' >> $LOG
+			echo 'Content-Type: text/html; charset="windows-1251"' >> $LOG
+			echo '' >> $LOG
+
+			echo "<table>" >> $LOG
+
+			for base in `echo "bmkb balm bakt bkos btrz burl bkar bsem bkok bast bpet batr bpav bust bzes bchm baku"`
+			do
+				if [ $ANS -eq 44 ]; then
+						
+						echo "<tr><td align = center colspan = 3>&nbsp;</td></tr>" >> $LOG
+						echo "<tr><td align = center colspan = 3><b>Kill list for $base </b></td></tr>" >> $LOG
+						echo "<tr><td align = center colspan = 3>&nbsp;</td></tr>" >> $LOG
+						ps aux | grep $base | grep -v 'TCP' | grep TXB | awk '{print "<tr><td align = center>&nbsp; "$2" &nbsp;</td><td>&nbsp; from "$12" &nbsp;</td><td>&nbsp; must be killed "$14" &nbsp;</td></tr>"}' >> $LOG
+						
+						#echo "Kill list for " $base >> $LOG
+						#echo >> $LOG
+						#ps aux | grep $base | grep -v 'TCP' | grep TXB | awk '{print $2" 	from 	"$12" 	must be killed 	"$14}' >> $LOG
+						#echo >> $LOG
+				fi
+				DBID=""
+				. /pragma/bin9/dbenv2 $base
+				_progres $DBDIR/$DBNAME -U superman -P $passw -p psrun						
+			done				
+		else
+			echo "Only in bmkb"
+		fi
+	fi	
+
+	if [ $ANS -eq 44 ]; then
+		sleep 5s
+		ERROR=`ps aux | grep -v 'TCP\|grep' | grep TXB`
+		
+		if [ -n "$ERROR" ]; then
+			
+			echo "<tr><td align = center colspan = 3><b>===========ERROR===========</b></td></tr>" >> $LOG	
+			ps aux | grep -v 'TCP' | grep TXB | awk '{print "<tr><td align = center>&nbsp; "$2" &nbsp;</td><td>&nbsp; from "$12" &nbsp;</td><td>&nbsp; must be killed "$14" &nbsp;</td></tr>"}' >> $LOG
+			echo "<tr><td align = center colspan = 3><b>Unsuccessful assassination</b></td></tr>" >> $LOG
+			echo "</table>" >> $LOG
+			echo "----------=PART.BOUNDARY--" >> $LOG
+
+			#echo >> $LOG
+			#echo "===========ERROR===========" >> $LOG	
+			#echo >> $LOG	
+			#ps aux | grep -v 'TCP' | grep TXB | awk '{print $2" 	from 	"$12" 	was not killed 	"$14}' >> $LOG
+			#echo "Unsuccessful assassination" >> $LOG
+
+			#cat $LOG | /bin/mail -s PS_STOP 'Alexandr.Korzhov@fortebank.com'
+
+			cat $LOG | /usr/lib/sendmail -t 
+		
+		else
+			echo "<tr><td align = center colspan = 3><b>Kill successful</b></td></tr>" >> $LOG
+			echo "</table>" >> $LOG
+			echo "----------=PART.BOUNDARY--" >> $LOG
+			
+			#echo "Kill successful" >> $LOG
+		fi
+		#cat $LOG | /bin/mail -s PS_STOP 'Alexandr.Korzhov@fortebank.com Ivan.Karasev@fortebank.com Anton.Marchenko@fortebank.com'
+		cat $LOG | /usr/lib/sendmail -t 
+	fi
+	
+	DBID=""
+	. /pragma/bin9/dbenv2 $BUF
+	ANS=""
+done

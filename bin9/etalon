@@ -1,0 +1,26 @@
+﻿#!/bin/sh
+ 
+
+ETALLIST="alga bank cards comm elx ib sklad"
+clear
+
+if [[ $1 ]]
+then 
+echo "$1" | grep "start\|stop" || { echo 'Are you nuts? Input just "start" or "stop"'; sleep 1; exit; } 
+echo
+	test $1 = "start" && { COMMAND="proserve"; RCODE="0"; }
+	test $1 = "stop"  && { COMMAND="proshut -by"; RCODE="16"; }
+
+	for i in $ETALLIST
+	do
+	   echo; echo "$COMMAND /pragma/etalon/$i/$i"
+	   /usr/dlc/bin/_dbutil /pragma/etalon/$i/$i -C holder > /dev/null
+	   if [ "$?" = "$RCODE" ]
+	     then $COMMAND /pragma/etalon/$i/$i || echo "Fucking shet :("
+	     else echo "Already done"
+	   fi
+	done
+
+else echo 'Are you nuts? Input just "start" or "stop"! But you input nothing.'
+sleep 1
+fi

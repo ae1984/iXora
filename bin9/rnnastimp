@@ -1,0 +1,4 @@
+﻿#!/bin/bash
+
+runcomm alm rnnasim.p $1
+

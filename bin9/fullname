@@ -1,0 +1,6 @@
+﻿#!/bin/sh
+test -f $1 || exit 1
+CURDIR=`pwd`
+cd `dirname $1`
+echo `pwd`/`basename $1`
+cd $CURDIR

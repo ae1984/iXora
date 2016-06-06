@@ -1,0 +1,78 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/proenv
+# 15.11.2003 nadejda закомментарила основную программу - сделала бэкап в /data/9/<dbid>/backup и потом копирование в /savedb
+#CPDIR=
+
+#while getopts c: OPT
+#do
+#  case $OPT in
+#    c) CPDIR=$OPTARG;;
+#    ?) echo Unknown option.
+#       exit 1;;
+#  esac
+#done
+
+#shift `echo $OPTIND - 1|bc`
+
+#TIME=`date "+%d-%m-%y.%H-%M"`
+#DB=`dirname $1`/`basename $1 .db`
+#echo `basename $1`
+#test -f $DB.db || { echo "File not found $DB.db"; exit 1; }
+#DB=`fullname $DB.db`
+#DB=`dirname $DB`/`basename $DB .db`
+####TDIR=`dirname $DB`/savedb/$TIME
+#TDIR=/savedb/$DBID/`basename $DB`/$TIME
+#REST=$TDIR/`basename $DB`.res
+#mkdir $TDIR
+#dbbackup $DB $TDIR/`basename $DB` || { rm -f $TDIR/*.*; rmdir $TDIR; exit 1; }
+#echo "/pragma/bin9/dbrest $DB $TDIR/`basename $DB`.Z" >>$REST
+#chmod u+x $REST
+#if test $CPDIR; then
+#   cp $TDIR/`basename $DB`.Z $CPDIR &
+#fi
+
+TIME=`date "+%d-%m-%y.%H-%M"`
+#echo `/bin/basename $1`
+DB=`/usr/bin/dirname $1`/`basename $1 .db`
+test -f $DB.db || { echo "File not found $DB.db"; exit 1; }
+
+TDIR=/savedb/$DBID/tmp
+test -d $TDIR || { mkdir $TDIR; chmod 750 $TDIR; }
+test -e $TDIR/* && { rm $TDIR/*; } # если много файлоув то ругается и не удаляет. надо разобраться
+
+if `/bin/df | grep -iw "savedb" > /dev/null`
+then CPDIR1=/savedb/$DBID/$DBNAME/full
+else CPDIR1=/data/savedb/$DBID/$DBNAME/full
+fi
+
+test -d $CPDIR1 || { mkdir $CPDIR1; chmod 750 $CPDIR1; }
+CPDIR1=$CPDIR1/$TIME
+
+CPDIR2=$DBDIR/backup
+test -d $CPDIR2 || { mkdir $CPDIR2; chmod 750 $CPDIR2; }
+test -e $CPDIR2/* && { rm $CPDIR2/*; } # если много файлоув то ругается и не удаляет. надо разобраться
+
+echo
+
+if `/bin/df | grep -iw "savedb" > /dev/null`
+then
+	/pragma/bin9/dbbackupOnline $DB $TDIR/$DBNAME
+	echo "Архивируем используя savedb:	 $TDIR/$DBNAME.Z в $CPDIR1"
+	/pragma/bin9/dbarc $TDIR $CPDIR1 $CPDIR2 
+else
+	/pragma/bin9/dbbackupOnline $DB $CPDIR2/$DBNAME
+	echo "Архивируем без savedb:	 $TDIR/$DBNAME.Z в $CPDIR1"
+	/pragma/bin9/dbarc $CPDIR2 $CPDIR1
+fi
+echo; sleep 1
+echo "================ /savedb/$DBID/$DBNAME/full/$TIME =============="; echo
+ls -loh  /savedb/$DBID/$DBNAME/full/$TIME; echo
+echo "==================================================================="; echo
+#if [ $DBID = "alm" ] && [ `basename $DB` = "bank" ]; then
+#    echo "Копируются исходники"
+#    nice -5 cp /pragma/lib9/*.Z $CPDIR &
+#fi
+
+#echo basename:`dirname $DB`/`basename $DB` >$REST
+#echo tomename:$CPDIR/`basename $DB`  >>$REST

@@ -1,0 +1,49 @@
+﻿#!/bin/sh
+
+export ME=`/usr/bin/whoami`
+test $ME = "bankadm" || { echo "-bash: $0: Permission denied"; exit; }
+
+ID=$1
+BAK=$2
+. /pragma/bin9/dbenv 
+
+
+HELP="Usage: "`basename $0`" [-y] database store DBID\nRestores database from store previosly created by dbbackup.\nIf -y option prestent then database will be overwritten without prompting."
+NOWARN=
+
+while getopts y OPT
+do
+  case $OPT in
+    y) NOWARN=1;;
+    ?) echo $HELP
+       exit 1;;
+  esac
+done
+
+shift `echo $OPTIND - 1|bc`
+
+test -n "$ID" || { echo "You must supply a database name."; echo $HELP; exit 1; }
+DB="$DBDIR/$DBNAME"
+
+test -f $BAK || { echo "Store $BAK not found."; echo $HELP; exit 1; }
+LOG=/data/log/$DBID/$DBNAME".db-restore.log"
+
+(
+echo 
+echo `date '+%m/%d/%y %H:%M:%S'` Restoring database $DB from $BAK started by `who -qm`
+PIPEFILE=/tmp/dbrest.$$
+RESTCMD="$DLC/bin/prorest $DB $PIPEFILE -verbose"
+mkfifo $PIPEFILE
+#uncompress -c $BAK >$PIPEFILE &
+gunzip -c $BAK >$PIPEFILE &
+test $NOWARN && echo y|$RESTCMD|awk '{gsub("Do you want to over write it\\? \\[y\\/n\\]\\:  ",""); print}' || $RESTCMD
+EX=$?
+rm -f $PIPEFILE
+if [ $EX -ne 0 ]; then
+  echo Restoring $DB failed.
+  exit 2
+fi
+
+ls -l $DB*|awk '{print $9 "\t" $7 " " $6 " " $8 " " $5}'
+echo "$DB successfully restored."
+) 2>&1 | tee -a $LOG

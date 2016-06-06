@@ -1,0 +1,32 @@
+﻿#!/bin/sh
+
+cd /home/bankadm/temp
+
+perl -e 'use Net::FTP;
+
+$ftp = Net::FTP->new("192.168.1.132", Passive => 1);
+$ftp->login("test", "test123");
+$ftp->binary;
+$ftp->cwd("/pragma/lib9/RX/src_new");
+
+@files=$ftp->dir;
+    foreach(@files) {
+    ($perm, $num, $login, $group, $size, $month, $day, $time, $fname) = split;
+    $ftp->get($fname);
+    #$ftp->delete($fname);
+    print "$fname\n";
+    }'
+
+cd /home/bankadm/src-mail
+
+tar -cvf src_new.tar /home/bankadm/temp
+/usr/bin/gzip -S .Z src_new.tar
+rm -f /home/bankadm/temp/*
+
+#Џ®¤ё®Б®ўЄ  ЇЁАЛ¬ 
+cp header new_mail
+cat src_new.tar.Z | mimencode >> new_mail
+echo "----------=PART.BOUNDARY--" >> new_mail
+cat new_mail | /usr/lib/sendmail -t
+rm src_new.tar.Z
+

@@ -1,0 +1,39 @@
+﻿#!/bin/bash
+echo "*****************************************"
+echo "------------Основные базы данных---------"
+echo "*****************************************"
+echo "------------------ Астана ---------------"
+proshut /data/9/ast/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Уральск --------------"
+proshut /data/9/url/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Атырау ---------------"
+proshut /data/9/atr/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Актюбинск ------------"
+proshut /data/9/akt/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Караганда ------------"
+proshut /data/9/kar/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Талдыкурган-----------"
+proshut /data/9/tal/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "------------------ Филиал г.Алматы-------"
+proshut /data/9/aaa/bank -C list | egrep -v 'superman|inbank|wdog|biw|apw|aiw'
+echo "*****************************************"
+echo ""
+echo ""
+echo "*****************************************"
+echo "-------------Зарплатные базы данных------"
+echo "*****************************************"
+echo "------------------ Астана ---------------"
+proshut /data/9/ast/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Уральск---------------"
+proshut /data/9/url/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Атырау ---------------"
+proshut /data/9/atr/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Актобе ---------------"
+proshut /data/9/akt/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Караганда ------------"
+proshut /data/9/kar/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Талдыкурган-----------"
+proshut /data/9/tal/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "------------------ Филиал г.Алматы ------"
+proshut /data/9/aaa/alga/alga -C list | egrep -v 'wdog|biw|apw|aiw'
+echo "*****************************************"

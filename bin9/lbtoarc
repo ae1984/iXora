@@ -1,0 +1,20 @@
+﻿#       input through value("lbtoarc "  + v-lbin + " " + v-strALL +  " " + v-lbina + " > qq; echo $?") . 
+curdir=`pwd`
+cd $1
+tar cvf $3/$2 *.*
+if [ $? != "0" ]
+then
+exit 1
+fi
+compress -f $3/$2
+if [ $? != "0" ]
+then
+exit 1
+fi
+/bin/rm -f $1/*.* $&> /dev/null
+if [ $? != "0" ]
+then
+exit 1
+fi
+exit 0 
+

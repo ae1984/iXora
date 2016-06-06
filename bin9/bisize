@@ -1,0 +1,21 @@
+﻿#!/bin/sh
+# 12/11/2008 - id00363
+
+
+for i in $(cat /pragma/bin9/dbs.txt | grep -v '#');
+do
+	S=`ls -l /data/$i/*.b1 | awk '{print $5}'`
+
+	if [[ $S -gt "576716800" ]]
+	then
+		test -e /tmp/bisize-$i.log || 
+		{
+		echo "AHTUNG!!! Bi file of $i more then $S! Please call admin DB!" > /tmp/bisize-$i.log
+		cat /tmp/bisize-$i.log | /usr/lib/sendmail -F bisize-$i id00477@metrobank.kz
+		}
+	else
+		test -e /tmp/bisize-$i.log && rm /tmp/bisize-$i.log
+	fi
+done
+
+

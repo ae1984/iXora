@@ -1,0 +1,52 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv2 
+. mcset
+
+PROGLIST="id00640 id00700 id00205 id00020 id00477 id00661 id00800 bankadm superman id00787 id00892 id00705"
+ME=`/usr/bin/whoami`
+if [ `echo $PROGLIST | grep -iw "$ME" > /dev/null; echo $?` = 0 ] 
+then
+stty intr '^c'
+else
+stty intr ''
+fi
+
+CLIENTMON=/data/$DBID/log/clientmon/`whoami`.mon
+export CLIENTMON
+
+PROCMON=/data/$DBID/log/procmon/`whoami`.mon
+export PROCMON
+DLC=/usr/dlc
+
+#Переменная со списком разрешённых пользователей
+LIST="bankadm superman id00640 id00477 id00700 id00004 id00800 id00205 id00787 id00661 id00869 id00810 id00671 id00020 id00003 id00892 id01143 id00705 id01143 id00194"
+
+#Переменная получающая текущего пользователя
+ME=`/usr/bin/whoami`
+
+#Логируем вход
+echo "$ME в [`date`] вошёл в базу $DBDIR/$DBNAME через dpragma" >> /drbd/data/log/dpragma.log
+
+[ $ME = "bankadm" -o $ME = "id00700" ] && { clear; echo "PROPATH:"; echo $PROPATH; echo "Press enter"; read w; }
+if [ $w = w ]; then
+exec $DLC/bin/_progres $DBDIR/$DBNAME -U bankadm -P Bflv02 -ld $DBNAME -Mm 16300 -t -T /data/temp -h 10 -TM 32 -TB 31 -mmax 1000 -Bt 1024 -tmpbsize 4 -y -yx $@	
+exit
+fi
+
+echo $LIST | grep -iw "$ME" > /dev/null && { exec $DLC/bin/_progres $DBDIR/$DBNAME -ld $DBNAME -Mm 16300 -t -T /data/temp -h 10 -TM 32 -TB 31 -mmax 1000 -Bt 1024 -tmpbsize 4 -y -yx $@; exit; }
+
+clear
+echo
+echo
+echo 	"	ВНИМАНИЕ!!!"
+echo 	"	ДОСТУП К внутренней структуре 'iXora $DBDESCR' ЗАКРЫТ!"
+echo 	"	Ваши попытка входе занесена в журнал."
+echo 	"	По всем вопросам, пожалуйста, обращайтесь к администратору АБС:"
+echo 	"	Александру Коржову вн. 2019, Ивану Карасёву вн. 2057 или Марченко Антону вн. 2070"
+echo 	"	или на 'support@metrocombank.kz'"
+echo 	""
+echo 	"	Нажмите Enter"
+echo "$ME в [`date`] попытался несанкционированно войти в базу $DBDIR/$DBNAME через dpragma. Вход был отклонён." >> /drbd/data/log/dpragma.log
+read w
+clear

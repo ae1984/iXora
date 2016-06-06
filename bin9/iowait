@@ -1,0 +1,12 @@
+﻿#!/bin/sh
+
+DAY=`date "+20%y-%m-%d"`
+TIME=`date "+%H-%M-%S"`
+LOGDIR="/data/log/iostat"
+test -d $LOGDIR || mkdir $LOGDIR
+LOG=$LOGDIR/$DAY
+
+
+echo " =============== $DAY $TIME =============== " >> $LOG
+echo '%user; %iowait; %idle' >> $LOG
+iostat -cmt 10 5 | grep -iv "avg" | grep -i "." | awk '{print $1"; "$4"; "$6}' >> 

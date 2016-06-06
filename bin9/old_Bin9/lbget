@@ -1,0 +1,60 @@
+﻿# $1 - ( sysc.chval where sysc.sysc = "LBIN"  )
+# $2 - ( sysc.chval where sysc.sysc = "LBHST" )  + ":" + ( sysc.chval where sysc.sysc = "LBEKS" ) 
+# example   "lbget /ps/NB/LB/ 192.168.1.120:C:/CAPITAL/TERMINAL/"  
+
+/bin/rm -rf $1temp 
+err=$?
+if test $err != 0
+	then
+	exit $err 
+fi 
+mkdir $1temp
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi
+scp -q $2*.* $1temp/
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi
+cd $1temp
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi 
+for i in *
+do 
+        dos-un $i $i.temp
+	err=$?
+	if test $err != 0
+		then
+		exit $err
+	fi
+	mv $i.temp $1$i 
+	err=$?
+	if test $err != 0
+		then
+		exit $err
+	fi
+done
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi 
+cd $1
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi 
+/bin/rm -fr $1temp
+err=$?
+if test $err != 0
+	then
+	exit $err
+fi

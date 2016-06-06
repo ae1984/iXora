@@ -1,0 +1,230 @@
+﻿#!/bin/sh
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+  echo
+  echo "	    0. rfutil $DBDIR/$DBNAME -C mark backedup (only offline)"
+  echo "	   00. probkup online $DBDIR/$DBNAME /data/temp/$DBID incremental -verbose (only online)"
+  echo
+  echo "            1. Save $DBDESCR BANK database (ONLINE)"
+  echo "           11. Save $DBDESCR BANK database (ONLINE INKREMENTAL)"
+  echo
+  echo "            2. Save $DBDESCR BANK database (OFFLINE)"
+  echo "           22. Save $DBDESCR BANK database (OFFLINE INKREMENTAL)"
+  echo "            4. Save general COMM, CARDS, SKLAD databases (ONLINE)"
+  echo "            5. Save general COMM, CARDS, SKLAD databases (OFFLINE)"
+  echo "            6. Save general COMM, CARDS, SKLAD databases (INKREMENTAL)"
+#  echo "            6. Save ALGA database..."
+#  echo "            7. Save ALGA database (INCREMENTAL)..."
+#  echo "            8. Save $DBDESCR database to $DBDIR/stat/data/banks..."
+  echo "	"
+  echo "            7. Roll Forward backup on $DBDESCR..."
+  echo
+  echo "            L. Save log of database to savedb"
+  echo
+  echo "            Q. Exit"
+  echo 
+  read ans
+  case $ans in
+
+0)
+    $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "0" ]
+     then rfutil $DBDIR/$DBNAME -C mark backedup
+     else echo "Not offline"
+   fi;;
+
+00)
+    $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then probkup online $DBDIR/$DBNAME /savedb/$DBID/tmp/tmp incremental -verbose && rm -v /savedb/$DBID/tmp/tmp
+     else echo "Not online"
+   fi;;
+
+1)   
+# Установка замка для Dayclose
+#	test -e $DBDIR/.lock-d || { echo "Createing lock-file for $DBDESCR"; touch $DBDIR/.lock-d; }
+# Проверка наличия сервера базы
+   $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+   if [ "$?" = "16" ]
+     then
+# Проверка наличия lock файла
+	test -e $DBDIR/.lock-d || { echo "WARNING!!! Lock-file for $DBDESCR absent!"; echo "press ENTER"; read ANS; }
+# Бэкап ai
+	echo "	Backuping last ai to last folder"
+	/pragma/bin9/ai_save_fil $DBID
+	echo; echo "	Finish last ai!"
+# Онлайн бэкап
+          dbsaveOnline $DBDIR/$DBNAME 
+#	else
+#	export A
+#	/pragma/bin9/usrs
+#	fi
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi
+     ;;
+11)   
+# Онлайн бэкап
+       INCREMENTAL=1; export INCREMENTAL
+       dbsaveOnline $DBDIR/$DBNAME
+     ;;
+  2)   /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+   if [ "$?" = "0" ]
+
+     then
+# Бэкап ai
+	echo "	Backuping last ai to last folder"
+	/pragma/bin9/ai_save_fil $DBID
+	echo; echo "	Finish last ai!"
+# Оффлайн бэкап
+        dbsave $DBDIR/$DBNAME 
+
+#       dbsave $DBSTDIR/stat 
+     else
+       echo Cannot DO THIS! Database is started. 
+     fi
+	;;
+  3) if [ $DBID = "alm" ]; then
+       NEEDSPACE=1024000
+     else
+       NEEDSPACE=512000
+     fi
+     dbtstspace /data $NEEDSPACE
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBDIR/$DBNAME
+#       dbsave $DBSTDIR/stat 
+     fi
+     ;;
+  4)  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder
+     if [ "$?" = "16" ]
+     then
+          dbtstspace /data 1024000
+          DOIT=$?
+          if [ $DOIT -eq 0 ]; then
+          unset INCREMENTAL
+       
+          dbsaveOnline $DBCOMMDIR/comm
+
+	  rfutil $DBCOMMDIR/comm -C aimage extent list; sleep 2
+#       		rfutil $DBCOMMDIR/comm -C aimage begin
+
+#       		rfutil $DBCRDIR/cards -C aimage end
+#       		rfutil $DBCRDIR/cards -C aimage truncate
+#       proutil $DBCRDIR/cards -C truncate bi -G 0
+#       dbsave $DBCRDIR/cards
+#       cp $DBCRDIR/cards.st /savedb/alm/cards/full
+#       		rfutil $DBCRDIR/cards -C aimage begin
+
+#       		rfutil $DBSKDIR/sklad -C aimage end
+#       		rfutil $DBSKDIR/sklad -C aimage truncate
+#       proutil $DBSKDIR/sklad -C truncate bi -G 0
+#       dbsave $DBSKDIR/sklad
+#       cp $DBSKDIR/sklad.st /savedb/alm/sklad/full
+#       		rfutil $DBSKDIR/sklad -C aimage begin
+
+     fi
+     else
+       echo Cannot DO THIS! Database is stoped. 
+     fi
+	;;
+  5)  /usr/dlc/bin/_dbutil $DBCOMMDIR/comm -C holder
+     if [ "$?" = "0" ]
+     then
+     dbtstspace /data 1024000
+     DOIT=$?
+     if [ $DOIT -eq 0 ]; then
+       unset INCREMENTAL
+
+#       		rfutil $DBCOMMDIR/comm -C aimage end
+#       rfutil $DBCOMMDIR/comm -C aimage truncate -G 0
+#       proutil $DBCOMMDIR/comm -C truncate bi -G 0
+       dbsave $DBCOMMDIR/comm
+	echo "Start truncating AI on $DBCOMMDIR/comm"
+	$DLC/bin/rfutil $DBCOMMDIR/comm -C aimage truncate -G 0
+
+#       		rfutil $DBCRDIR/cards -C aimage end
+#       		rfutil $DBCRDIR/cards -C aimage truncate
+#       proutil $DBCRDIR/cards -C truncate bi -G 0
+#       dbsave $DBCRDIR/cards
+#       cp $DBCRDIR/cards.st /savedb/alm/cards/full
+#       		rfutil $DBCRDIR/cards -C aimage begin
+
+#       		rfutil $DBSKDIR/sklad -C aimage end
+#       		rfutil $DBSKDIR/sklad -C aimage truncate
+#       proutil $DBSKDIR/sklad -C truncate bi -G 0
+#       dbsave $DBSKDIR/sklad
+#       cp $DBSKDIR/sklad.st /savedb/alm/sklad/full
+#       		rfutil $DBSKDIR/sklad -C aimage begin
+
+     fi
+     else
+       echo Cannot DO THIS! Database is started. 
+     fi
+	;;
+  6) 
+       INCREMENTAL=1; export INCREMENTAL
+       dbsave $DBCOMMDIR/comm
+         ;;
+#  6)
+#     dbtstspace /data 512000
+#     DOIT=$?
+#     if [ $DOIT -eq 0 ]; then
+#       unset INCREMENTAL
+#       dbsave $DBALDIR/alga
+#     fi
+#     ;;      
+#  7) 
+#06.06.06 u00121 banks больше не нужен  $DLC/bin/procopy $DBDIR/$DBNAME $DBSTDIR/banks
+#     if test $? -eq 0; then
+#       echo "Successfully saved."
+#     else
+#       echo "Error occured during process."
+#     fi
+#	;;
+#
+  7) /usr/dlc/bin/_dbutil $DBDIR/$DBNAME -C holder
+     if [ "$?" = "0" ] 
+     then
+     dbrst
+     else
+       echo Cannot DO THIS! Database is started. Shut down database first!!! 
+     fi;;
+
+#06.06.06 u00121 banks больше не нужен RUNDATE=`/usr/bin/date "+%m-%d-%y"`
+#     ai_banks.sh $DBSTDIR/banks $DBSTDIR/ai
+#     if test $? -eq 0; then
+#       echo "Successfully After-Image Applyed."
+#     else
+#       echo "Error occured during process."
+#     fi
+#	;;
+    99)   dbsaveOnline $DBCRDIR/cards;;
+
+  [Ll]) 
+	test -d /savedb/$DBID/logs || { test -e /savedb/$DBID/logs && rm /savedb/$DBID/logs && echo "Logs is file and was deleted!"; }
+	test -e /savedb/$DBID/logs || { mkdir /savedb/$DBID/logs && chmod 0777 /savedb/$DBID/logs && echo "Logs dir has been created"; } 
+	test -w /savedb/$DBID/logs || { echo "/savedb/$DBID/logs is wright protected :(  Exiting..."; exit 1; }
+	echo "Start copy:"
+	TARGET=/savedb/$DBID/logs/$DBID`date "+20%y.%m.%d_%H-%M-%S"`
+	cp -v $DBDIR/$DBNAME.lg $TARGET.lg
+	if [ $? = 0 ]
+	then
+	echo "Finish copy."
+	echo
+	echo "Start zipping file:"
+	/usr/bin/gzip -c1v $TARGET.lg > $TARGET".Z" && 	echo "finish zipping file." && echo && echo "Deleting source" && rm -v $TARGET.lg && echo > $DBDIR/$DBNAME.lg && echo "Job's done :)" 
+	else echo "Can't copy $DBDIR/$DBNAME.lg :("
+	fi
+	;;
+
+  [Qq]) exit;;
+     *) echo "Wrong selection. Press 1-7 or Q."
+     sleep 2;;
+  esac
+done

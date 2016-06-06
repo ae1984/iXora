@@ -1,0 +1,230 @@
+﻿#!/bin/sh
+# скрипт написан id00024 (c)
+
+. /pragma/bin9/dbenv
+. /pragma/bin9/mcset
+
+while true
+do
+RETCODE=`dsrutil $DBDIR/$DBNAME -C status -detail` 
+
+case $RETCODE in 
+1001) MESS=" Initial connection." STS="Low";; 
+1002) MESS=" Initializing." STS="Low";; 
+1003) MESS=" Target Database in Quiet Point." STS="Low";; 
+1032) MESS=" Initial Connection Failed!" STS="High";; 
+1033) MESS=" Recovery Failed!" STS="High";; 
+1034) MESS=" Invalid Target Database Configuration!" STS="High";; 
+1035) MESS=" Agent Failed!" STS="High";; 
+1036) MESS=" Agent is Ignored!" STS="High";; 
+1037) MESS=" Agent is Stopped!" STS="High";; 
+1038) MESS=" Agent is Terminated!" STS="High";; 
+1036) MESS=" Agent is Ended!" STS="High";; 
+3048) MESS=" Startup Sychronization." STS="Low";; 
+3049) MESS=" Normal Processing." STS="Normal";; 
+3050) MESS=" Recovery Synchronization." STS="Low";; 
+2080) MESS=" Pre-transition!" STS="High";; 
+2081) MESS=" Applying After-image Extent." STS="Low";; 
+2082) MESS=" Transitioning!" STS="Normal";; 
+2083) MESS=" Listening!" STS="High";; 
+6001) MESS=" Server Initialization." STS="Normal";; 
+6002) MESS=" Connecting to Agents." STS="Low";; 
+6003) MESS=" Configuring Agent(s)." STS="Low";; 
+6004) MESS=" Recovery Processing." STS="Normal";; 
+6005) MESS=" Startup Synchronization." STS="Low";; 
+6021) MESS=" Normal Processing." STS="Normal";; 
+6060) MESS=" Server is ended!" STS="High";;
+*) MESS=" Unknown!" STS="High";;  
+esac 
+
+  echo
+  echo
+  echo "	[Fantom replication status:$MESS] (flag=$STS)" | grep --colour=always "$MESS\|High"
+  echo
+  echo "            0. Replication monitoring"
+  echo
+  echo "            1. Enable SiteReplication Source"
+  echo "            2. Disable SiteReplication Source"
+  echo
+  echo "            3. Enable SiteReplication Target"
+  echo "            4. Disable SiteReplication Target"
+  echo
+  echo "            5. Restart agent(s)"
+  echo "            6. Restart servers(s)"
+  echo "           66. Connectagent(s)"
+  echo
+  echo "            7. Copy backup from 172.16.1.11"
+  echo "            8. Copy backup from 172.16.1.22"
+  echo
+  echo "	    A. Creating of propfile"
+  echo
+  echo "            Q. Exit"
+  echo
+  read ans
+  case $ans in
+
+  0) $DLC/bin/dsrutil $DBDIR/$DBNAME -C monitor;;
+
+  1)    
+	echo; echo "EnableSiteReplication source:"
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	RETCODE=$?
+	if [ $RETCODE = 0 ]
+	then echo "Command has found Source Replication in $DBDESCR! it's ok"
+	else
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	 RETCODE=$?
+	 if [ $RETCODE = 0 ]
+	 then echo "Command has found Target(!) Replication in $DBDESCR!"
+	 echo "For switching $DBDESCR in Sourse state - first turn off Target state"
+	 else echo "Command hasn't found Source Replication in $DBDESCR! So swiching it..."
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C enableSiteReplication source 
+	 fi
+	fi
+        ;;
+  2)    
+	echo; echo "DisableSiteReplication source:"
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	RETCODE=$?
+	
+	if [ $RETCODE = 0 ]
+	 then echo "Command has found Source Replication in $DBDESCR!" 
+
+	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder | grep -i "multi-user" > /tmp/as.txt 
+	 if [ "$?" = "0" ]
+	 then echo "Disabling in offline..."
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication source
+	 else echo "Disabling in online..."
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication source
+	 fi
+	else echo "Command hasn't found Source Replication in $DBDESCR!"
+	fi
+	;;
+ 22)
+ 	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder | grep -i "multi-user" > /tmp/as.txt 
+	 if [ "$?" = "0" ]
+	 then echo "Disabling in offline..."
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication source
+	 else echo "Disabling in online..."
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication source
+	 fi
+	 ;;
+  3)    
+	echo; echo "EnableSiteReplication Target:"
+	
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?
+	if [ $RETCODE = 0 ]
+	then echo "Command has found Target Replication in $DBDESCR! it's ok"
+	else 
+	
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Source" > /tmp/as.txt
+	 RETCODE=$?
+	 if [ $RETCODE = 0 ]
+	 then echo "Command has found Source Replication in $DBDESCR and now swiching $DBDESCR Target state..."
+	 
+	  $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder | grep -i "multi-user" > /tmp/as.txt 
+	  if [ "$?" = "0" ]
+	  then echo; echo "Enabling..."
+	  $DLC/bin/proutil $DBDIR/$DBNAME -C enableSiteReplication target
+	  else echo "Database $DBDESCR is online. You can set db in target status only in offline"
+	  fi
+	 
+	 else echo "Command hasn't found Source Replication in $DBDESCR! So can't swich $DBDESCR to Target state..."
+	 fi
+	fi
+	;;
+
+  4)    
+	echo; echo "DisableSiteReplication Target:"
+	$DLC/bin/proutil $DBDIR/$DBNAME -C describe | grep "Replication" | grep "Target" > /tmp/as.txt
+	RETCODE=$?
+	if [ $RETCODE = 0 ] 
+	then echo "Command has found Target Replication in $DBDESCR! " 
+
+	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+	 if [ "$?" = "0" ]
+	 then echo "Disableing..."
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication target
+	 else echo "Database $DBDESCR is online..."
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication target
+	 fi
+	else echo "Command hasn't found Target Replication in $DBDESCR!"
+        fi
+
+	if [ $RETCODE = 2 ] 
+	then 
+	echo "Can't get access to $DBDIR/$DBNAME" 
+	proutil $DBDIR/$DBNAME -C describe
+	fi	
+	;;
+ 44)
+	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C holder > /tmp/as.txt 
+	 if [ "$?" = "0" ]
+	 then echo "Disableing..."
+	 $DLC/bin/proutil $DBDIR/$DBNAME -C disableSiteReplication target
+	 else echo "Database $DBDESCR is online..."
+	 $DLC/bin/dsrutil $DBDIR/$DBNAME -C disableSiteReplication target
+	 fi
+	 ;;
+
+  5) $DLC/bin/dsrutil $DBDIR/$DBNAME -C startAgent ALL;;
+
+  6) $DLC/bin/dsrutil $DBDIR/$DBNAME -C restart server;;
+
+ 66) $DLC/bin/dsrutil $DBDIR/$DBNAME -C connectagent database All;;
+
+  7)
+	TIME=`date "+%d-%m-%y.%H-%M"`
+	echo "Now you are trying to copy backup from 172.16.1.11"
+	echo "Example of storage path /savedb/$DBID/bank/full/$TIME"
+	echo -n "Paste here storage path: "
+	read SPATH
+	TSPATH="/savedb/$DBID"; test -d $TSPATH || { mkdir $TSPATH; chmod 0777 $TSPATH; echo "Dir $TSPATH has been created"; }
+	TSPATH="/savedb/$DBID/bank"; test -d $TSPATH || { mkdir $TSPATH; chmod 0777 $TSPATH; echo "Dir $TSPATH has been created"; }
+	TSPATH="/savedb/$DBID/bank/full"; test -d $TSPATH || { mkdir $TSPATH; chmod 0777 $TSPATH; echo "Dir $TSPATH has been created"; }
+	TSPATH="/savedb/$DBID/bank/full/$SPATH"; test -d $SPATH || { mkdir $SPATH; chmod 0777 $SPATH; echo "Dir $SPATH has been created"; }
+	echo
+	echo "EXEQUTING:"
+	echo "scp -o PasswordAuthentication=yes -o batchmode=no -r 172.16.1.11:$SPATH/* $SPATH/";
+	scp -i ~/.ssh/id_rsa_repl 172.16.1.11:$SPATH/*.Z $SPATH/
+	if [ "$?" = "0" ]
+	then
+	 echo "EXEQUTING:	multirest $DBDIR/$DBNAME $SPATH"; sleep 1;
+	multirest $DBDIR/$DBNAME $SPATH
+	else
+	 echo "Copying has failed!"
+	 sleep 1
+	fi
+	;;
+ 
+  8)   
+	TIME=`date "+%d-%m-%y.%H-%M"`
+	echo "Now you are trying to copy backup from 172.16.1.22"
+	echo "Example of storage path /savedb/$DBID/bank/full/$TIME"
+	echo -n "Paste here storage path: "
+	read SPATH
+	test -d $SPATH || { echo; mkdir $SPATH; chmod 0777 $SPATH; echo "Dir $SPATH has been created"; }
+	echo
+	echo "EXEQUTING:"
+	echo "scp -o PasswordAuthentication=yes -o batchmode=no -r 172.16.1.22:$SPATH/* $SPATH/";
+	scp -o PasswordAuthentication=yes -o batchmode=no 172.16.1.22:$SPATH/*.Z $SPATH/
+	if [ "$?" = "0" ]
+	then
+	 echo "EXEQUTING:	multirest $DBDIR/$DBNAME $SPATH"; sleep 1;
+	multirest $DBDIR/$DBNAME $SPATH
+	else
+	 echo "Copying has failed!"
+	 sleep 1
+	fi
+	;;
+
+  A) /pragma/bin9/ftm_prostr;;
+
+
+  [Qq]) exit;;
+
+  *) echo "Wrong selection. Press 1-8"
+     sleep 2;;
+  esac
+done

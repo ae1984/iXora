@@ -1,0 +1,145 @@
+﻿#!/bin/sh
+
+export ME=`/usr/bin/whoami`
+test $ME = "bankadm" || { echo "-bash: $0: Permission denied"; exit; }
+
+ID=$1
+AIFILE=$2
+
+. /pragma/bin9/dbenv 
+
+
+FIRST="1 parametr is alias of DB ( bmkb or balm or bakt... | --help )"
+SECOND="2 parametr is zipped/unziped ai file which you want to ROLL FORWARD"
+LINE="---------------------------------"
+
+
+test -n "$1" || { echo "$FIRST"; exit; }
+
+if [ "$1" = "-h" -o "$1" = "-help" -o "$1" = "--help" ]
+then
+echo "How to:"; echo "$LINE"; echo "$FIRST"; echo -e "$SECOND"; echo "$LINE"; echo
+exit
+fi
+
+test -e "$AIFILE" || { echo "$SECOND"; exit; }
+
+echo "Begin"
+echo "$LINE"
+
+#######################################################
+
+test -f "$AIFILE" || { echo '$AIFILE must be file!'; exit; }
+
+SOURCE="$AIFILE"
+if `/bin/df | grep -iw "savedb" > /dev/null`
+then TARGET=/savedb/$DBID/tmp
+else TARGET=/data/savedb/$DBID/tmp
+fi
+rm $TARGET/*
+
+if ls $SOURCE | grep ".Z"
+then
+echo "UNzipping $SOURCE to $TARGET:"
+/bin/gunzip -cv $SOURCE > $TARGET/file.ai
+else
+echo "Copying $SOURCE to $TARGET:"
+cp -v $SOURCE $TARGET/file.ai
+
+fi
+
+#######################################################
+
+echo -n "Turn off all repl on $DBDIR/$DBNAME"
+ANS="/home/`/usr/bin/whoami`/answer"
+echo "y" > $ANS
+echo "y" >> $ANS
+
+	 RCODE=`$DLC/bin/_dbutil $DBDIR/$DBNAME -C holder`
+	 if [ "$RCODE" = "16" ]
+	 then echo "Disabling in offline..."
+	 $DLC/bin/rprepl  $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+	 $DLC/bin/rprepl  $DBDIR/$DBNAME -C disableSiteReplication target > /dev/null < $ANS
+	 else echo "Disabling in online..."
+	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication source > /dev/null < $ANS
+	 $DLC/bin/_dbutil $DBDIR/$DBNAME -C disableSiteReplication target > /dev/null < $ANS
+	 fi
+echo "	is done"
+
+echo -n "Turn off ai and am on $DBDIR/$DBNAME"
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aimage end > /dev/null
+$DLC/bin/_dbutil $DBDIR/$DBNAME -C aiarchiver disable > /dev/null
+echo "	is done"
+
+test -e $ANS && rm $ANS
+
+
+
+#######################################################
+
+while true
+do
+  echo    
+  echo 
+  echo "    1. Roll Forward"
+  echo "    2. Roll Forward till TIME"
+  echo 
+  echo "    Q. Выход"
+  echo 
+  echo 
+  read ans
+  case $ans in
+  1) 
+
+	echo "Начался накат $i на $DBDIR/$DBNAME..." | grep --colour=always "Начался накат $i на $DBDIR/$DBNAME..."
+        $DLC/bin/rfutil $DBDIR/$DBNAME -C roll forward -a $TARGET/file.ai
+	RCODE="$?"
+
+	if [ "$RCODE" = "0" ]
+	then echo "`ls $TARGET/*` успешно накатился на $DBDIR/$DBNAME"
+	else $DLC/bin/rfutil $DBDIR/$DBNAME -C roll forward retry -a $TARGET/file.ai
+		RCODE="$?"
+		if [ "$RCODE" = "0" ]
+		then echo "`ls $TARGET/*` успешно накатился на $DBDIR/$DBNAME"
+		else echo "Немогу накатить `ls $TARGET/*` на $DBDIR/$DBNAME >_<"
+		fi
+	fi
+	;;
+
+  2) 
+        echo "Roll forward AI files to a specific point in time..."
+	echo "You can set time only in choosen diapasone"
+	echo "Example of input 20YY:MM:DD:hh:mm:ss"
+	echo -n "Input here: 20"
+	read TTIME
+
+	echo "Начался накат $i на $DBDIR/$DBNAME..." | grep --colour=always "Начался накат $i на $DBDIR/$DBNAME..."
+        $DLC/bin/rfutil $DBDIR/$DBNAME -C roll forward endtime 20$TTIME -a $TARGET/file.ai
+	RCODE="$?"
+	
+	if [ "$RCODE" = "0" ]
+	then echo "`ls $TARGET/*` успешно накатился на $DBDIR/$DBNAME"
+	else $DLC/bin/rfutil $DBDIR/$DBNAME -C roll forward retry endtime 20$TTIME -a $TARGET/file.ai
+		RCODE="$?"
+		if [ "$RCODE" = "0" ]
+		then echo "`ls $TARGET/*` успешно накатился на $DBDIR/$DBNAME"
+		else echo "Немогу накатить `ls $TARGET/*` на $DBDIR/$DBNAME >_<"
+		fi
+	fi
+	;;
+
+  [Qq]) exit;;
+  exit) exit;;
+  quit) exit;;
+  *) echo "Wrong selection. Press 1 or 2 or Q."
+     sleep 1;;
+  esac
+done
+
+
+#######################################################
+
+echo "$LINE"
+echo "Done"
+echo
+

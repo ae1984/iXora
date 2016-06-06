@@ -1,0 +1,40 @@
+﻿#!/bin/sh
+
+if test $1
+then 
+    if test $2
+    then 
+        SOURCE=$1
+        TARGET=$2
+        cd $SOURCE
+#        test -r bank0* || { echo "File not found in " $SOURCE >> /data/log/daycopy30.log ; exit 1; }
+        test -r *0inc || TARGET=`echo $TARGET | awk -F/ '{print $1 "/" $2 "/" $3 "/" $4 "/full/" $5}'`
+        test -d `echo $TARGET | awk -F/ '{print $1 "/" $2 "/" $3 "/" $4 "/full/"}'` || mkdir `echo $TARGET | awk -F/ '{print $1 "/" $2 "/" $3 "/" $4 "/full/"}'`
+	mkdir $TARGET
+        
+        for i in `ls * | awk '{print $0}'`
+        do 
+            if [ `echo $i | grep .Z` ]
+            then 
+                cp $i $TARGET
+                if [ $? = 0 ]
+                   then rm -f $i
+                        echo "лПРЙТХЕН " $i >> /data/log/daycopy30.log
+                   else echo "пЫЙВЛБ РТЙ ЛПРЙТПЧБОЙЙ $i !!!" >> /data/log/daycopy30.log
+                fi
+            else 
+  
+                nice -5 /usr/bin/gzip -c1 $i > $TARGET/$i".Z"
+                if [ $? = 0 ]
+                   then rm -f $i
+                        echo "бТИЙЧЙТХЕН " $i >> /data/log/daycopy30.log
+                   else echo "пЫЙВЛБ РТЙ БТИЙЧБГЙЙ $i !!!" >> /data/log/daycopy30.log
+                fi
+            fi
+        done
+    else
+        echo "хЛБЦЙФЕ ЙУФПЮОЙЛ!!!" >> /data/log/daycopy30.log
+    fi        
+else
+    echo "хЛБЦЙФЕ РПМХЮБФЕМС!!!" >> /data/log/daycopy30.log
+fi

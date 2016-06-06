@@ -1,0 +1,2 @@
+﻿#!/bin/sh
+/pragma/bin9/tzsklad alm $@
